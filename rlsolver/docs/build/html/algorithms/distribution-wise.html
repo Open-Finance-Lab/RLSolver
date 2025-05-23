@@ -1,0 +1,193 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>分布式采样方法（Distribution-wise） &mdash; RLSolver 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=92fd9be5" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/documentation_options.js?v=d45e8c67"></script>
+      <script src="../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="逐实例方法（Instance-wise）" href="instance-wise.html" />
+    <link rel="prev" title="What is maxcut?" href="../tutorial/ECO-DQN%20%E6%B1%82%E8%A7%A3%20maxcut.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            RLSolver
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Home</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">HelloWorld</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../helloworld/hello.html">hello</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../helloworld/net.html">Networks: net.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../helloworld/agent.html">Agents: agent.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../helloworld/env.html">Environment: env.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../helloworld/run.html">Main: run.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../helloworld/quickstart.html">Quickstart</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Overview</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../about/overview.html">Key Concepts and Features</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/ECO-DQN%20%E6%B1%82%E8%A7%A3%20maxcut.html">What is maxcut?</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Algorithms</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">分布式采样方法（Distribution-wise）</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#id2">简介</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id3">实现细节</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id4">使用示例</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id5">优缺点对比</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="instance-wise.html">逐实例方法（Instance-wise）</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">RLSolver</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../RLSolver/overview.html">Overview</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/config.html">Configuration: <em>config.py</em></a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Other</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../other/faq.html">FAQ</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">RLSolver</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">分布式采样方法（Distribution-wise）</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/algorithms/distribution-wise.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="distribution-wise">
+<span id="id1"></span><h1>分布式采样方法（Distribution-wise）<a class="headerlink" href="#distribution-wise" title="Link to this heading">¶</a></h1>
+<section id="id2">
+<h2>简介<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h2>
+<p>Distribution-wise 方法的核心思想是 <strong>针对整个问题分布（distribution）一次性并行采样</strong>，而不是逐个实例地运行。
+这种思路特别适合 GPU 上的大规模并行环境：</p>
+<ul class="simple">
+<li><p><strong>一次性生成 N 个样本</strong>，利用 Tensor/CUDA 核心同时做环境步进</p></li>
+<li><p>跳过了循环“加载–运行–收集”开销</p></li>
+<li><p>提升了采样吞吐量（samples/sec）</p></li>
+</ul>
+</section>
+<section id="id3">
+<h2>实现细节<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h2>
+<ol class="arabic simple">
+<li><p><strong>环境封装</strong>
+- <cite>RLSolver.environments.DistributionWiseEnv</cite>
+- 接口和标准 Gym 环境一致，只是内部批量处理多条轨迹</p></li>
+<li><p><strong>并行机制</strong>
+- PyTorch/TensorFlow 张量并行运算
+- 每个 step 同时推进所有轨迹</p></li>
+<li><p><strong>数据收集</strong>
+- 一次性返回形状为 <cite>(batch_size, obs_dim)</cite> 的观测张量
+- 统一做探针、log 以及归一化</p></li>
+</ol>
+</section>
+<section id="id4">
+<h2>使用示例<a class="headerlink" href="#id4" title="Link to this heading">¶</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">rlsolver.environments</span> <span class="kn">import</span> <span class="n">DistributionWiseEnv</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">DistributionWiseEnv</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">1024</span><span class="p">)</span>
+<span class="n">obs</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1000</span><span class="p">):</span>
+    <span class="n">actions</span> <span class="o">=</span> <span class="n">policy</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>        <span class="c1"># shape: [1024, action_dim]</span>
+    <span class="n">obs</span><span class="p">,</span> <span class="n">rewards</span><span class="p">,</span> <span class="n">dones</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">actions</span><span class="p">)</span>
+    <span class="c1"># 处理 dones，将对应轨迹 reset</span>
+</pre></div>
+</div>
+</section>
+<section id="id5">
+<h2>优缺点对比<a class="headerlink" href="#id5" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><strong>优点</strong>
+- 极低的单样本开销
+- 内存占用可控（一次性预分配）</p></li>
+<li><p><strong>缺点</strong>
+- 需要足够大的 batch_size 才能发挥优势
+- 不适合超大状态维度、显存受限场景</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../tutorial/ECO-DQN%20%E6%B1%82%E8%A7%A3%20maxcut.html" class="btn btn-neutral float-left" title="What is maxcut?" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="instance-wise.html" class="btn btn-neutral float-right" title="逐实例方法（Instance-wise）" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, RLSolver.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
