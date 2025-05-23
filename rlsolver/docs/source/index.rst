@@ -70,7 +70,9 @@ Or install with the newest version through GitHub:
    :maxdepth: 1
    :caption: HelloWorld
 
-   helloworld/intro
+   helloworld/hello
+   helloworld/net
+   helloworld/quickstart
 
 .. toctree::
    :maxdepth: 1
@@ -79,7 +81,7 @@ Or install with the newest version through GitHub:
    about/overview
    about/cloud
    about/parallel
-   
+
    
 .. toctree::
    :maxdepth: 1
