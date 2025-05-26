@@ -9,6 +9,8 @@ from typing import List, Tuple
 import os
 import torch
 import sys
+import numpy as np
+import random
 sys.path.append('..')
 from torch_geometric.data import Data
 from rlsolver.methods.util_evaluator import EncoderBase64
@@ -25,6 +27,16 @@ from config import (GPU_ID,
                     DATA_FILENAME,
                     DIRECTORY_DATA,
                     PREFIXES)
+
+fix_seed = False # if test speed, objs_epochs, etc, set it as True; and False otherwise.
+if fix_seed:
+    seed = 74
+    random.seed(seed)
+    os.environ['PYTHONHASHSEED'] = str(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
 
 class Config:
     show_gap = 2 ** 4
