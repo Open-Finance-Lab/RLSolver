@@ -28,7 +28,7 @@ from config import (GPU_ID,
                     DIRECTORY_DATA,
                     PREFIXES)
 
-fix_seed = False # if test speed, objs_epochs, etc, set it as True; and False otherwise.
+fix_seed = True # if test speed, objs_epochs, etc, set it as True; and False otherwise.
 if fix_seed:
     seed = 74
     random.seed(seed)
