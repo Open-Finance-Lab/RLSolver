@@ -68,37 +68,26 @@ Or install with the newest version through GitHub:
     
 .. toctree::
    :maxdepth: 1
-   :caption: HelloWorld
-	
-   hello <helloworld/hello>
-   Networks: net.py <helloworld/net>
-   Agents: agent.py <helloworld/agent>
-   Environment: env.py <helloworld/env>
-   Main: run.py <helloworld/run>
-   helloworld/quickstart
-
-.. toctree::
-   :maxdepth: 1
    :caption: Overview
 
    about/overview
    about/cloud
    about/parallel
-
+   
    
 .. toctree::
    :maxdepth: 1
    :caption: Tutorials
 
-   tutorial/ECO-DQN 求解 maxcut
+   tutorial/maxcut
 
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Algorithms
    
-   algorithms/distribution-wise
-   algorithms/instance-wise
+   algorithms/REINFORCE
+
 
 .. toctree::
    :maxdepth: 1
@@ -120,10 +109,13 @@ Or install with the newest version through GitHub:
    
  
 .. toctree::
-   :maxdepth: 1
-   :caption: Other
+  :maxdepth: 1
+  :caption: helloWorld
 
-   other/faq
+   helloworld/quickstart
+   helloworld/intro
+   helloworld/structure
+   helloworld/run
 
 
 Indices and tables

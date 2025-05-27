@@ -647,7 +647,7 @@ def run():
     num_ls = 6
     reset_epoch_num = 192
     total_mcmc_num = 2 ** 9
-    path = '../data/gset_22.txt'
+    path = '../data/gset_14.txt'
     # path = 'data/gset_15.txt'
     # path = 'data/gset_49.txt'
     # path = 'data/gset_50.txt'
@@ -656,7 +656,7 @@ def run():
     graph_id = 0
     # graph_name = f"{graph_type}_{num_nodes}_ID{graph_id}"
     #path = f'temp_{graph_name}.txt'
-    graph_name = "gset_22"
+    graph_name = "gset_14"
     save_graph_list_to_txt(graph_list=load_graph_list(graph_name=graph_name), txt_path=path)
 
     # num_ls = 6
@@ -728,7 +728,9 @@ def run():
     print('start loop')
     rewardss = []
     sys.stdout.flush()  # add for slurm stdout
-    objs_of_epoch = []
+    objs_of_epochs = []
+    duration_obj_dict = {}
+    start_time_of_dict = time.time()
     for epoch in range(1, max_epoch_num + 1):
         rewards = []
         net.to(device).reset_parameters()
@@ -765,7 +767,8 @@ def run():
                 entropy = -(probs * probs.log2() + _probs * _probs.log2()).mean(dim=1)
                 obj_entropy = entropy.mean()
 
-
+                duration = time.time() - start_time_of_dict
+                duration_obj_dict[duration] = max(now_max_res).item()
                 print(f"value {max(now_max_res).item():9.2f}  entropy {obj_entropy:9.3f}")
                 sys.stdout.flush()  # add for slurm stdout
 
@@ -801,8 +804,8 @@ def run():
                 print_gpu_memory(device)
             if os.path.exists('./stop'):
                 break
-        objs_of_epoch.append(objective_value.item())
-        print("total_mcmc_num", total_mcmc_num, "objs_of_epoch: ", objs_of_epoch[:max_epoch_num])
+        objs_of_epochs.append(objective_value.item())
+        print("total_mcmc_num", total_mcmc_num, "objs_of_epoch: ", objs_of_epochs[:max_epoch_num])
 
         #print("rewards", rewards)
         rewardss.append(rewards)
@@ -811,6 +814,10 @@ def run():
 
         print()
     print("rewardss: ", rewardss)
+    with open("objs_of_epochs.txt", "w") as f:
+        f.write(str(objs_of_epochs))
+    with open("duration_obj_dict.txt", "w") as f:
+        f.write(str(duration_obj_dict))
     if os.path.exists('./stop'):
         print(f"break: os.path.exists('./stop') {os.path.exists('./stop')}")
         sys.stdout.flush()  # add for slurm stdout

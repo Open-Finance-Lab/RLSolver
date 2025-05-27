@@ -1,13 +1,16 @@
+import copy
 import sys
 import os
 cur_path = os.path.dirname(os.path.abspath(__file__))
 rlsolver_path = os.path.join(cur_path, '../../rlsolver')
 sys.path.append(os.path.dirname(rlsolver_path))
-
+from rlsolver.methods.util import calc_result_file_name
 from typing import List, Tuple
 import os
 import torch
 import sys
+import numpy as np
+import random
 sys.path.append('..')
 from torch_geometric.data import Data
 from rlsolver.methods.util_evaluator import EncoderBase64
@@ -24,6 +27,16 @@ from config import (GPU_ID,
                     DATA_FILENAME,
                     DIRECTORY_DATA,
                     PREFIXES)
+
+fix_seed = False # if test speed, objs_epochs, etc, set it as True; and False otherwise.
+if fix_seed:
+    seed = 74
+    random.seed(seed)
+    os.environ['PYTHONHASHSEED'] = str(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
 
 class Config:
     show_gap = 2 ** 4
@@ -353,6 +366,9 @@ def mcpg(filename: str):
     sys.stdout.flush()  # add for slurm stdout
     objs_epochs = []
     xs_epochs = []
+    objs_of_epochs = []
+    duration_obj_dict = {}
+    start_time_of_dict = time.time()
     for epoch in range(1, Config.max_epoch_num + 1):
         net.to(device).reset_parameters()
         objs_each_epoch = []
@@ -391,6 +407,9 @@ def mcpg(filename: str):
             _probs = 1 - probs
             entropy = -(probs * probs.log2() + _probs * _probs.log2()).mean(dim=1)
             obj_entropy = entropy.mean()
+
+            duration = time.time() - start_time_of_dict
+            duration_obj_dict[duration] = max(now_max_res).item()
             print(f"value {now_max: 9.2f}  entropy {obj_entropy: 9.3f}")
             # sys.stdout.flush()  # add for slurm stdout
 
@@ -422,18 +441,19 @@ def mcpg(filename: str):
 
                 print(f"epoch {epoch:6}  value {objective_value.item():8.2f}  {x_str}")
                 print_gpu_memory(device)
-
-            if os.path.exists('./stop'):
-                break
-        if os.path.exists('./stop'):
-            break
-
+        objs_of_epochs.append(objective_value.item())
         objs_epochs.extend(objs_each_epoch)
         xs_epochs.extend(xs_each_epoch)
         print()
-    if os.path.exists('./stop'):
-        print(f"break: os.path.exists('./stop') {os.path.exists('./stop')}")
-        sys.stdout.flush()  # add for slurm stdout
+    result_file = calc_result_file_name(filename)
+    result_file2 = copy.deepcopy(result_file)
+    result_file3 = copy.deepcopy(result_file)
+    result_file_objs_of_epochs = result_file2.replace(".txt", "objs_of_epochs" + ".txt")
+    result_file_duration_obj_dict = result_file3.replace(".txt", "duration_obj_dict" + ".txt")
+    with open(result_file_objs_of_epochs, "w") as f:
+        f.write(str(objs_of_epochs))
+    with open(result_file_duration_obj_dict, "w") as f:
+        f.write(str(duration_obj_dict))
     best_obj = max(objs_epochs)
     best_index = objs_epochs.index(best_obj)
     best_x = xs_epochs[best_index]
