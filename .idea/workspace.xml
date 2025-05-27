@@ -5,15 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="7b408936-40e7-4fdf-9130-53ae7a4452b7" name="更改" comment="">
-      <change afterPath="$PROJECT_DIR$/rlsolver/docs/source/Datasets/graph.rst" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/rlsolver/docs/source/Datasets/index.rst" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/rlsolver/docs/source/Datasets/non_graph.rst" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/rlsolver/docs/source/Methods/Conventional_methods.rst" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/rlsolver/docs/source/Methods/RL_methods.rst" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/rlsolver/docs/source/Methods/index.rst" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ElegantRL" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/rlsolver/docs/source/index.rst" beforeDir="false" afterPath="$PROJECT_DIR$/rlsolver/docs/source/index.rst" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -65,7 +57,7 @@
       <workItem from="1747901387035" duration="3746000" />
       <workItem from="1748311092816" duration="40000" />
       <workItem from="1748312865354" duration="65000" />
-      <workItem from="1748312933231" duration="1749000" />
+      <workItem from="1748312933231" duration="3994000" />
     </task>
     <servers />
   </component>
