@@ -85,7 +85,12 @@ Or install with the newest version through GitHub:
    about/cloud
    about/parallel
 
-   
+   .. toctree::
+   :maxdepth: 2
+   :caption: Methods
+
+   methods/index
+
 .. toctree::
    :maxdepth: 1
    :caption: Tutorials
@@ -109,7 +114,14 @@ Or install with the newest version through GitHub:
    RLSolver/datasets
    RLSolver/environments
    RLSolver/benchmarks
-   
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Datasets
+
+   methods/index
+   datasets/index   
+
    
 .. toctree::
    :maxdepth: 1
