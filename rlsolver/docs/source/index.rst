@@ -1,71 +1,42 @@
-.. RLSolver documentation master file, created by
-
 Welcome to RLSolver!
-=====================================
+====================
 
+`RLSolver <https://github.com/zhumingpassional/RLSolver>`_ : GPU-based Massively Parallel Environments for Combinatorial Optimization (CO) Problems Using Reinforcement Learning.
 
-   :width: 50%
-   :align: center
-   :target: https://github.com/zhumingpassional/RLSolver
-   
-   
-
-`RLSolver <https://github.com/zhumingpassional/RLSolver>`_ : GPU-based Massively Parallel Environments for Combinatorial Optimization (CO) Problems Using Reinforcement Learning
-
-We aim to showcase the effectiveness of massively parallel environments for combinatorial optimization (CO) problems using reinforcement learning (RL). RL with the help of GPU based parallel environments can significantly improve the sampling speed and can obtain high-quality solutions within short time.
+We aim to showcase the effectiveness of massively parallel environments for CO problems using RL. With GPU-based parallel environments, sampling speed is significantly improved.
 
 Overview
+--------
 
 RLSolver has three layers:
 
--Environments: providing massively parallel environments using GPUs.
--RL agents: providing RL algorithms, e.g., REINFORCE.
--Problems: typical CO problems, e.g., graph maxcut and TNCO.
+- Environments: providing massively parallel environments using GPUs.
+- RL agents: providing RL algorithms, e.g., REINFORCE.
+- Problems: typical CO problems, e.g., graph maxcut and TNCO.
 
 Key Technologies
--**GPU-based Massively parallel environments** of Markov chain Monte Carlo (MCMC) simulations on GPU using thousands of CUDA cores and tensor cores.
--**Distribution-wise** is **much much faster** than the instance-wise methods, such as MCPG and iSCO, since we can obtain the results directly by inference.
+----------------
 
-Why Use GPU-based Massively Parallel Environments?
-
-The bottleneck of using RL for solving CO problems is the sampling speed since existing solver engines (a.k.a, gym-style environments) are implemented on CPUs. Training the policy network is essentially estimating the gradients via a Markov chain Monte Carlo (MCMC) simulation, which requires a large number of samples from environments.
-
-Existing CPU-based environments have two significant disadvantages: 1) The number of CPU cores is typically small, generally ranging from 16 to 256, resulting in a small number of parallel environments. 2) The communication link between CPUs and GPUs has limited bandwidth. The massively parallel environments can overcome these disadvantages, since we can build thounsands of environments and the communication bottleneck between CPUs and GPUs is bypassed, therefore the sampling speed is significantly improved.
+- **GPU-based massively parallel environments** using CUDA.
+- **Distribution-wise** methods (e.g. ECO, S2V) are faster than instance-wise methods (e.g. MCPG, iSCO).
 
 Installation
----------------------------------------
-
-RLSolver generally requires:
-
-- Python>=3.6
-
-- PyTorch>=1.0.2
-
-- gym, matplotlib, numpy, torch
-
-You can simply install ElegantRL from PyPI with the following command:
+------------
 
 .. code-block:: bash
-   :linenos:
 
-   pip3 install rlsolver --upgrade
+   pip install rlsolver --upgrade
 
-Or install with the newest version through GitHub:
+Or from GitHub:
 
 .. code-block:: bash
-   :linenos:
 
    git clone https://github.com/zhumingpassional/RLSolver
    cd RLSolver
-   pip3 install .
+   pip install .
 
+----
 
-.. toctree::
-    :maxdepth: 1
-    :hidden:
-
-    Home <self>
-    
 .. toctree::
    :maxdepth: 1
    :caption: Overview
@@ -73,50 +44,61 @@ Or install with the newest version through GitHub:
    about/overview
    about/cloud
    about/parallel
-   
-   
-.. toctree::
-   :maxdepth: 1
-   :caption: Tutorials
-
-   tutorial/maxcut
-
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
+   :caption: HelloWorld
+
+   helloworld/hello
+   helloworld/net
+   helloworld/agent
+   helloworld/env
+   helloworld/run
+   helloworld/quickstart
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Methods
+
+   Methods/index
+
+.. toctree::
+   :maxdepth: 2
    :caption: Algorithms
-   
-   algorithms/REINFORCE
 
+   algorithms/distribution-wise
+   algorithms/instance-wise
 
 .. toctree::
-   :maxdepth: 1
-   :caption: RLSolver
-   
-   RLSolver/overview
-   RLSolver/helloworld
-   RLSolver/datasets
-   RLSolver/environments
-   RLSolver/benchmarks
-   
-   
+   :maxdepth: 2
+   :caption: Datasets
+
+   Datasets/index
+
 .. toctree::
    :maxdepth: 1
    :caption: API Reference
 
    api/config
-   api/util
-   
- 
+   api/utils
+
 .. toctree::
-  :maxdepth: 1
-  :caption: helloWorld
+   :maxdepth: 1
+   :caption: Tutorials
 
-   helloworld/quickstart
-   helloworld/intro
-   helloworld/structure
-   helloworld/run
+   tutorial/ECO-DQN 求解 maxcut
 
+.. toctree::
+   :maxdepth: 2
+   :caption: RLSolver System
+
+   RLSolver/overview
+   RLSolver/helloworld
+   RLSolver/datasets
+   RLSolver/environments
+   RLSolver/benchmarks
+
+----
 
 Indices and tables
 ==================
