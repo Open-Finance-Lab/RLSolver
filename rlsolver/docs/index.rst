@@ -7,8 +7,8 @@ Welcome to RLSolver!
    :width: 50%
    :align: center
    :target: https://github.com/zhumingpassional/RLSolver
-   
-   
+
+
 
 `RLSolver <https://github.com/zhumingpassional/RLSolver>`_ : GPU-based Massively Parallel Environments for Combinatorial Optimization (CO) Problems Using Reinforcement Learning
 
@@ -65,60 +65,83 @@ Or install with the newest version through GitHub:
     :hidden:
 
     Home <self>
-    
+
 .. toctree::
    :maxdepth: 1
+<<<<<<< HEAD
    :caption: HelloWorld
 
-   helloworld/intro
+   hello <helloworld/hello>
+   Networks: net.py <helloworld/net>
+   Agents: agent.py <helloworld/agent>
+   Environment: env.py <helloworld/env>
+   Main: run.py <helloworld/run>
+   helloworld/quickstart
 
 .. toctree::
    :maxdepth: 1
+=======
+>>>>>>> upstream/master
    :caption: Overview
 
    about/overview
    about/cloud
    about/parallel
-   
-   
+
+   .. toctree::
+   :maxdepth: 2
+   :caption: Methods
+
+   methods/index
+
 .. toctree::
    :maxdepth: 1
    :caption: Tutorials
 
-   tutorial/maxcut
+   tutorial/ECO-DQN 求解 maxcut
 
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: Algorithms
-   
-   algorithms/REINFORCE
 
+   algorithms/distribution-wise
+   algorithms/instance-wise
 
 .. toctree::
    :maxdepth: 1
    :caption: RLSolver
-   
+
    RLSolver/overview
    RLSolver/helloworld
    RLSolver/datasets
    RLSolver/environments
    RLSolver/benchmarks
-   
-   
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Datasets
+
+   methods/index
+   datasets/index
+
+
 .. toctree::
    :maxdepth: 1
    :caption: API Reference
 
    api/config
    api/util
-   
- 
-.. toctree::
-   :maxdepth: 1
-   :caption: Other
 
-   other/faq
+
+.. toctree::
+  :maxdepth: 1
+  :caption: helloWorld
+
+   helloworld/quickstart
+   helloworld/intro
+   helloworld/structure
+   helloworld/run
 
 
 Indices and tables

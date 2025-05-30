@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="7b408936-40e7-4fdf-9130-53ae7a4452b7" name="更改" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/rlsolver/docs/.readthedocs.yaml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/rlsolver/docs/build/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/rlsolver/docs/build/doctrees/RLSolver/overview.doctree" beforeDir="false" afterPath="$PROJECT_DIR$/rlsolver/docs/build/doctrees/RLSolver/overview.doctree" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rlsolver/docs/build/doctrees/about/overview.doctree" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/rlsolver/docs/build/doctrees/algorithms/REINFORCE.doctree" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/rlsolver/docs/build/doctrees/api/config.doctree" beforeDir="false" afterPath="$PROJECT_DIR$/rlsolver/docs/build/doctrees/api/config.doctree" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rlsolver/docs/build/doctrees/api/utils.doctree" beforeDir="false" afterPath="$PROJECT_DIR$/rlsolver/docs/build/doctrees/api/utils.doctree" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rlsolver/docs/build/doctrees/environment.pickle" beforeDir="false" afterPath="$PROJECT_DIR$/rlsolver/docs/build/doctrees/environment.pickle" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rlsolver/docs/build/doctrees/helloworld/quickstart.doctree" beforeDir="false" afterPath="$PROJECT_DIR$/rlsolver/docs/build/doctrees/helloworld/quickstart.doctree" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rlsolver/docs/build/doctrees/index.doctree" beforeDir="false" afterPath="$PROJECT_DIR$/rlsolver/docs/build/doctrees/index.doctree" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rlsolver/docs/build/doctrees/other/faq.doctree" beforeDir="false" afterPath="$PROJECT_DIR$/rlsolver/docs/build/doctrees/other/faq.doctree" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rlsolver/docs/build/doctrees/tutorial/maxcut.doctree" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/rlsolver/docs/build/html/.buildinfo" beforeDir="false" afterPath="$PROJECT_DIR$/rlsolver/docs/build/html/.buildinfo" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rlsolver/docs/build/html/RLSolver/overview.html" beforeDir="false" afterPath="$PROJECT_DIR$/rlsolver/docs/build/html/RLSolver/overview.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rlsolver/docs/build/html/_sources/about/overview.rst.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/rlsolver/docs/build/html/_sources/algorithms/REINFORCE.rst.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/rlsolver/docs/build/html/_sources/helloworld/quickstart.rst.txt" beforeDir="false" afterPath="$PROJECT_DIR$/rlsolver/docs/build/html/_sources/helloworld/quickstart.rst.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rlsolver/docs/build/html/_sources/index.rst.txt" beforeDir="false" afterPath="$PROJECT_DIR$/rlsolver/docs/build/html/_sources/index.rst.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rlsolver/docs/build/html/_sources/tutorial/maxcut.rst.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/rlsolver/docs/build/html/_static/basic.css" beforeDir="false" afterPath="$PROJECT_DIR$/rlsolver/docs/build/html/_static/basic.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rlsolver/docs/build/html/_static/doctools.js" beforeDir="false" afterPath="$PROJECT_DIR$/rlsolver/docs/build/html/_static/doctools.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rlsolver/docs/build/html/_static/language_data.js" beforeDir="false" afterPath="$PROJECT_DIR$/rlsolver/docs/build/html/_static/language_data.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rlsolver/docs/build/html/_static/pygments.css" beforeDir="false" afterPath="$PROJECT_DIR$/rlsolver/docs/build/html/_static/pygments.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rlsolver/docs/build/html/_static/searchtools.js" beforeDir="false" afterPath="$PROJECT_DIR$/rlsolver/docs/build/html/_static/searchtools.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rlsolver/docs/build/html/about/overview.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/rlsolver/docs/build/html/algorithms/REINFORCE.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/rlsolver/docs/build/html/algorithms/distribution-wise.html" beforeDir="false" afterPath="$PROJECT_DIR$/rlsolver/docs/build/html/algorithms/distribution-wise.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rlsolver/docs/build/html/algorithms/instance-wise.html" beforeDir="false" afterPath="$PROJECT_DIR$/rlsolver/docs/build/html/algorithms/instance-wise.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rlsolver/docs/build/html/api/config.html" beforeDir="false" afterPath="$PROJECT_DIR$/rlsolver/docs/build/html/api/config.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rlsolver/docs/build/html/api/utils.html" beforeDir="false" afterPath="$PROJECT_DIR$/rlsolver/docs/build/html/api/utils.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rlsolver/docs/build/html/genindex.html" beforeDir="false" afterPath="$PROJECT_DIR$/rlsolver/docs/build/html/genindex.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rlsolver/docs/build/html/helloworld/agent.html" beforeDir="false" afterPath="$PROJECT_DIR$/rlsolver/docs/build/html/helloworld/agent.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rlsolver/docs/build/html/helloworld/env.html" beforeDir="false" afterPath="$PROJECT_DIR$/rlsolver/docs/build/html/helloworld/env.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rlsolver/docs/build/html/helloworld/hello.html" beforeDir="false" afterPath="$PROJECT_DIR$/rlsolver/docs/build/html/helloworld/hello.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rlsolver/docs/build/html/helloworld/net.html" beforeDir="false" afterPath="$PROJECT_DIR$/rlsolver/docs/build/html/helloworld/net.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rlsolver/docs/build/html/helloworld/quickstart.html" beforeDir="false" afterPath="$PROJECT_DIR$/rlsolver/docs/build/html/helloworld/quickstart.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rlsolver/docs/build/html/helloworld/run.html" beforeDir="false" afterPath="$PROJECT_DIR$/rlsolver/docs/build/html/helloworld/run.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rlsolver/docs/build/html/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/rlsolver/docs/build/html/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rlsolver/docs/build/html/objects.inv" beforeDir="false" afterPath="$PROJECT_DIR$/rlsolver/docs/build/html/objects.inv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rlsolver/docs/build/html/other/faq.html" beforeDir="false" afterPath="$PROJECT_DIR$/rlsolver/docs/build/html/other/faq.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rlsolver/docs/build/html/search.html" beforeDir="false" afterPath="$PROJECT_DIR$/rlsolver/docs/build/html/search.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rlsolver/docs/build/html/searchindex.js" beforeDir="false" afterPath="$PROJECT_DIR$/rlsolver/docs/build/html/searchindex.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rlsolver/docs/build/html/tutorial/ECO-DQN 求解 maxcut.html" beforeDir="false" afterPath="$PROJECT_DIR$/rlsolver/docs/build/html/tutorial/ECO-DQN 求解 maxcut.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rlsolver/docs/build/html/tutorial/maxcut.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/rlsolver/docs/build/init.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/rlsolver/docs/index.rst" beforeDir="false" afterPath="$PROJECT_DIR$/rlsolver/docs/index.rst" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rlsolver/docs/source/about/overview.rst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/rlsolver/docs/source/algorithms/REINFORCE.rst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/rlsolver/docs/source/conf.py" beforeDir="false" afterPath="$PROJECT_DIR$/rlsolver/docs/source/conf.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rlsolver/docs/source/helloworld/intro.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/rlsolver/docs/source/helloworld/quickstart.rst" beforeDir="false" afterPath="$PROJECT_DIR$/rlsolver/docs/source/helloworld/quickstart.rst" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rlsolver/docs/source/helloworld/run.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/rlsolver/docs/source/helloworld/structure.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/rlsolver/docs/source/index.rst" beforeDir="false" afterPath="$PROJECT_DIR$/rlsolver/docs/source/index.rst" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rlsolver/docs/source/tutorial/maxcut.rst" beforeDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 7
+}</component>
+  <component name="ProjectId" id="2xQtBqKCPaF2897HKC2gyF2bPpg" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;docs__update&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/casia/Documents/RLSolver&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  }
+}</component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-js-predefined-d6986cc7102b-1632447f56bf-JavaScript-PY-243.26053.29" />
+        <option value="bundled-python-sdk-b1dbf8ef85a6-4df51de95216-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-243.26053.29" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="应用程序级" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="默认任务">
+      <changelist id="7b408936-40e7-4fdf-9130-53ae7a4452b7" name="更改" comment="" />
+      <created>1747881996966</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1747881996966</updated>
+      <workItem from="1747882003588" duration="2934000" />
+      <workItem from="1747901387035" duration="3746000" />
+      <workItem from="1748311092816" duration="40000" />
+      <workItem from="1748312865354" duration="65000" />
+      <workItem from="1748312933231" duration="3994000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>

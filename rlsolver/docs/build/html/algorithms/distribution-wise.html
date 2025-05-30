@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>&lt;no title&gt; &mdash; RLSolver 0.0.1 documentation</title>
+  <title>分布式采样方法（Distribution-wise） &mdash; RLSolver 0.0.1 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=92fd9be5" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
 
@@ -16,8 +16,7 @@
       <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" />
-    <link rel="prev" title="Configuration: config.py" href="config.html" /> 
+    <link rel="search" title="Search" href="../search.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -71,7 +70,7 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration: <em>config.py</em></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/config.html">Configuration: <em>config.py</em></a></li>
 </ul>
 
         </div>
@@ -88,9 +87,9 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">&lt;no title&gt;</li>
+      <li class="breadcrumb-item active">分布式采样方法（Distribution-wise）</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/api/utils.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/algorithms/distribution-wise.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -98,13 +97,61 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  
+  <section id="distribution-wise">
+<span id="id1"></span><h1>分布式采样方法（Distribution-wise）<a class="headerlink" href="#distribution-wise" title="Link to this heading">¶</a></h1>
+<section id="id2">
+<h2>简介<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h2>
+<p>Distribution-wise 方法的核心思想是 <strong>针对整个问题分布（distribution）一次性并行采样</strong>，而不是逐个实例地运行。
+这种思路特别适合 GPU 上的大规模并行环境：</p>
+<ul class="simple">
+<li><p><strong>一次性生成 N 个样本</strong>，利用 Tensor/CUDA 核心同时做环境步进</p></li>
+<li><p>跳过了循环“加载–运行–收集”开销</p></li>
+<li><p>提升了采样吞吐量（samples/sec）</p></li>
+</ul>
+</section>
+<section id="id3">
+<h2>实现细节<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h2>
+<ol class="arabic simple">
+<li><p><strong>环境封装</strong>
+- <cite>RLSolver.environments.DistributionWiseEnv</cite>
+- 接口和标准 Gym 环境一致，只是内部批量处理多条轨迹</p></li>
+<li><p><strong>并行机制</strong>
+- PyTorch/TensorFlow 张量并行运算
+- 每个 step 同时推进所有轨迹</p></li>
+<li><p><strong>数据收集</strong>
+- 一次性返回形状为 <cite>(batch_size, obs_dim)</cite> 的观测张量
+- 统一做探针、log 以及归一化</p></li>
+</ol>
+</section>
+<section id="id4">
+<h2>使用示例<a class="headerlink" href="#id4" title="Link to this heading">¶</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">rlsolver.environments</span> <span class="kn">import</span> <span class="n">DistributionWiseEnv</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">DistributionWiseEnv</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">1024</span><span class="p">)</span>
+<span class="n">obs</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1000</span><span class="p">):</span>
+    <span class="n">actions</span> <span class="o">=</span> <span class="n">policy</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>        <span class="c1"># shape: [1024, action_dim]</span>
+    <span class="n">obs</span><span class="p">,</span> <span class="n">rewards</span><span class="p">,</span> <span class="n">dones</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">actions</span><span class="p">)</span>
+    <span class="c1"># 处理 dones，将对应轨迹 reset</span>
+</pre></div>
+</div>
+</section>
+<section id="id5">
+<h2>优缺点对比<a class="headerlink" href="#id5" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><strong>优点</strong>
+- 极低的单样本开销
+- 内存占用可控（一次性预分配）</p></li>
+<li><p><strong>缺点</strong>
+- 需要足够大的 batch_size 才能发挥优势
+- 不适合超大状态维度、显存受限场景</p></li>
+</ul>
+</section>
+</section>
+
 
            </div>
           </div>
-          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="config.html" class="btn btn-neutral float-left" title="Configuration: config.py" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-    </div>
+          <footer>
 
   <hr/>
 

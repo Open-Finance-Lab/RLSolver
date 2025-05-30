@@ -7,17 +7,18 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Welcome to RLSolver! &mdash; RLSolver 0.0.1 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=92fd9be5" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
   
       <script src="_static/documentation_options.js?v=d45e8c67"></script>
-      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/doctools.js?v=9a2dae69"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Key Concepts and Features" href="about/overview.html" /> 
+    <link rel="next" title="Quickstart" href="helloworld/quickstart.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -39,24 +40,35 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Home</a></li>
+              <p class="caption" role="heading"><span class="caption-text">HelloWorld</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="helloworld/quickstart.html">Quickstart</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Overview</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="about/overview.html">Key Concepts and Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="overview/Introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="overview/CO_problems.html">CO Problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="overview/Methods.html">Methods</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Methods</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Methods/Conventional_methods.html">Conventional Methods</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Methods/RL_methods.html">RL Methods</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/maxcut.html">What is maxcut?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/ECO-DQN.html">ECO-DQN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/s2v-DQN.html">s2v-DQN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/MCPG.html">MCPG</a></li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">Algorithms</span></p>
+<p class="caption" role="heading"><span class="caption-text">Datasets</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="algorithms/REINFORCE.html">REINFORCE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Datasets/graph.html">Graph Datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Datasets/non_graph.html">Non-Graph Datasets</a></li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">RLSolver</span></p>
+<p class="caption" role="heading"><span class="caption-text">Benchmark</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="RLSolver/overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Benchmark/Benchmark.html">Benchmark</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
 <ul>
@@ -89,74 +101,79 @@
              
   <section id="welcome-to-rlsolver">
 <h1>Welcome to RLSolver!<a class="headerlink" href="#welcome-to-rlsolver" title="Link to this heading">¶</a></h1>
-<blockquote>
-<div><dl class="field-list simple">
-<dt class="field-odd">width<span class="colon">:</span></dt>
-<dd class="field-odd"><p>50%</p>
-</dd>
-<dt class="field-even">align<span class="colon">:</span></dt>
-<dd class="field-even"><p>center</p>
-</dd>
-<dt class="field-odd">target<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://github.com/zhumingpassional/RLSolver">https://github.com/zhumingpassional/RLSolver</a></p>
-</dd>
-</dl>
-</div></blockquote>
-<p><a class="reference external" href="https://github.com/zhumingpassional/RLSolver">RLSolver</a> : GPU-based Massively Parallel Environments for Combinatorial Optimization (CO) Problems Using Reinforcement Learning</p>
-<p>We aim to showcase the effectiveness of massively parallel environments for combinatorial optimization (CO) problems using reinforcement learning (RL). RL with the help of GPU based parallel environments can significantly improve the sampling speed and can obtain high-quality solutions within short time.</p>
-<p>Overview</p>
-<p>RLSolver has three layers:</p>
-<p>-Environments: providing massively parallel environments using GPUs.
--RL agents: providing RL algorithms, e.g., REINFORCE.
--Problems: typical CO problems, e.g., graph maxcut and TNCO.</p>
-<p>Key Technologies
--<strong>GPU-based Massively parallel environments</strong> of Markov chain Monte Carlo (MCMC) simulations on GPU using thousands of CUDA cores and tensor cores.
--<strong>Distribution-wise</strong> is <strong>much much faster</strong> than the instance-wise methods, such as MCPG and iSCO, since we can obtain the results directly by inference.</p>
-<p>Why Use GPU-based Massively Parallel Environments?</p>
-<p>The bottleneck of using RL for solving CO problems is the sampling speed since existing solver engines (a.k.a, gym-style environments) are implemented on CPUs. Training the policy network is essentially estimating the gradients via a Markov chain Monte Carlo (MCMC) simulation, which requires a large number of samples from environments.</p>
-<p>Existing CPU-based environments have two significant disadvantages: 1) The number of CPU cores is typically small, generally ranging from 16 to 256, resulting in a small number of parallel environments. 2) The communication link between CPUs and GPUs has limited bandwidth. The massively parallel environments can overcome these disadvantages, since we can build thounsands of environments and the communication bottleneck between CPUs and GPUs is bypassed, therefore the sampling speed is significantly improved.</p>
-<section id="installation">
-<h2>Installation<a class="headerlink" href="#installation" title="Link to this heading">¶</a></h2>
-<p>RLSolver generally requires:</p>
-<ul class="simple">
-<li><p>Python&gt;=3.6</p></li>
-<li><p>PyTorch&gt;=1.0.2</p></li>
-<li><p>gym, matplotlib, numpy, torch</p></li>
-</ul>
-<p>You can simply install ElegantRL from PyPI with the following command:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="linenos">1</span>pip3<span class="w"> </span>install<span class="w"> </span>rlsolver<span class="w"> </span>--upgrade
-</pre></div>
-</div>
-<p>Or install with the newest version through GitHub:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="linenos">1</span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/zhumingpassional/RLSolver
-<span class="linenos">2</span><span class="nb">cd</span><span class="w"> </span>RLSolver
-<span class="linenos">3</span>pip3<span class="w"> </span>install<span class="w"> </span>.
-</pre></div>
-</div>
+<p>…your intro text…</p>
 <div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">HelloWorld</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="helloworld/quickstart.html">Quickstart</a></li>
+</ul>
 </div>
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">Overview</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="about/overview.html">Key Concepts and Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="overview/Introduction.html">Introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="overview/Introduction.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="overview/Introduction.html#key-technologies">Key Technologies</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="overview/CO_problems.html">CO Problems</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="overview/CO_problems.html#graph-maxcut">Graph Maxcut</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="overview/CO_problems.html#ilp-formulation">1. ILP Formulation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="overview/CO_problems.html#qubo-formulation">2. QUBO Formulation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="overview/CO_problems.html#rl-methods-two-decision-patterns">3. RL Methods: Two Decision Patterns</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="overview/CO_problems.html#knapsack">Knapsack</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="overview/CO_problems.html#id1">1. ILP Formulation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="overview/CO_problems.html#id2">2. QUBO Formulation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="overview/CO_problems.html#two-patterns-of-rl-methds">3. Two Patterns of RL Methds</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="overview/Methods.html">Methods</a></li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Methods</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Methods/Conventional_methods.html">Conventional Methods</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Methods/Conventional_methods.html#gurobi">Gurobi</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Methods/Conventional_methods.html#greedy">Greedy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Methods/Conventional_methods.html#sdp">SDP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Methods/Conventional_methods.html#sa">SA</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Methods/Conventional_methods.html#ga">GA</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Methods/RL_methods.html">RL Methods</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Methods/RL_methods.html#eco-dqn">ECO-DQN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Methods/RL_methods.html#s2v-dqn">S2V-DQN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Methods/RL_methods.html#mcpg">MCPG</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Methods/RL_methods.html#isco">iSCO</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Methods/RL_methods.html#jumanji">Jumanji</a></li>
+</ul>
+</li>
 </ul>
 </div>
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/maxcut.html">What is maxcut?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/ECO-DQN.html">ECO-DQN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/s2v-DQN.html">s2v-DQN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/MCPG.html">MCPG</a></li>
 </ul>
 </div>
 <div class="toctree-wrapper compound">
-<p class="caption" role="heading"><span class="caption-text">Algorithms</span></p>
+<p class="caption" role="heading"><span class="caption-text">Datasets</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="algorithms/REINFORCE.html">REINFORCE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Datasets/graph.html">Graph Datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Datasets/non_graph.html">Non-Graph Datasets</a></li>
 </ul>
 </div>
 <div class="toctree-wrapper compound">
-<p class="caption" role="heading"><span class="caption-text">RLSolver</span></p>
+<p class="caption" role="heading"><span class="caption-text">Benchmark</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="RLSolver/overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Benchmark/Benchmark.html">Benchmark</a></li>
 </ul>
 </div>
 <div class="toctree-wrapper compound">
@@ -165,9 +182,6 @@
 <li class="toctree-l1"><a class="reference internal" href="api/config.html">Configuration: <em>config.py</em></a></li>
 </ul>
 </div>
-<div class="toctree-wrapper compound">
-</div>
-</section>
 </section>
 <section id="indices-and-tables">
 <h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Link to this heading">¶</a></h1>
@@ -182,7 +196,7 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="about/overview.html" class="btn btn-neutral float-right" title="Key Concepts and Features" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="helloworld/quickstart.html" class="btn btn-neutral float-right" title="Quickstart" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

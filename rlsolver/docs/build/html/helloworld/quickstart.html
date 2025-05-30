@@ -7,16 +7,18 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Quickstart &mdash; RLSolver 0.0.1 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=92fd9be5" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
 
   
       <script src="../_static/documentation_options.js?v=d45e8c67"></script>
-      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/doctools.js?v=9a2dae69"></script>
       <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" /> 
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Introduction" href="../overview/Introduction.html" />
+    <link rel="prev" title="Welcome to RLSolver!" href="../index.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -38,24 +40,41 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <ul>
-<li class="toctree-l1"><a class="reference internal" href="../index.html">Home</a></li>
+              <p class="caption" role="heading"><span class="caption-text">HelloWorld</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Quickstart</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#read-data">Read Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#store-solution">Store Solution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#distribution-wise">Distribution-wise</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#instance-wise">Instance-wise</a></li>
+</ul>
+</li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Overview</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../about/overview.html">Key Concepts and Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../overview/Introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../overview/CO_problems.html">CO Problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../overview/Methods.html">Methods</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Methods</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../Methods/Conventional_methods.html">Conventional Methods</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Methods/RL_methods.html">RL Methods</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/maxcut.html">What is maxcut?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/ECO-DQN.html">ECO-DQN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/s2v-DQN.html">s2v-DQN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/MCPG.html">MCPG</a></li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">Algorithms</span></p>
+<p class="caption" role="heading"><span class="caption-text">Datasets</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../algorithms/REINFORCE.html">REINFORCE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Datasets/graph.html">Graph Datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Datasets/non_graph.html">Non-Graph Datasets</a></li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">RLSolver</span></p>
+<p class="caption" role="heading"><span class="caption-text">Benchmark</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../RLSolver/overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Benchmark/Benchmark.html">Benchmark</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
 <ul>
@@ -88,16 +107,110 @@
              
   <section id="quickstart">
 <h1>Quickstart<a class="headerlink" href="#quickstart" title="Link to this heading">¶</a></h1>
-<p>As a quickstart, we select the maxcut task from the demo.py to show how to train a DRL agent.</p>
-<section id="step-1-import-packages">
-<h2>Step 1: Import packages<a class="headerlink" href="#step-1-import-packages" title="Link to this heading">¶</a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>
+<p>The license is <strong>MIT License</strong>.
+The following processes show how to run the algorithm in four parts.</p>
+<section id="read-data">
+<h2>Read Data<a class="headerlink" href="#read-data" title="Link to this heading">¶</a></h2>
+<p>There are two types of datasets used:</p>
+<ul class="simple">
+<li><p><strong>Gset</strong>: Provided by Stanford University, stored in the <cite>data/</cite> folder. The number of nodes ranges from 800 to 10,000.</p></li>
+<li><p><strong>Syn</strong>: Synthetic data. Number of nodes ranges from 100 to 1000 across three distributions: Barabasi–Albert (BA), Erdos–Renyi (ER), and Powerlaw (PL). Each distribution has 10 graph instances.</p></li>
+</ul>
+<p>Example: <cite>gset_14.txt</cite> (an undirected graph with 800 nodes and 4694 edges):</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>800 4694          # #nodes = 800, #edges = 4694
+1 7 1             # node 1 connects with node 7, weight = 1
+1 10 1            # node 1 connects with node 10, weight = 1
+1 12 1            # node 1 connects with node 12, weight = 1
 </pre></div>
 </div>
 </section>
-<section id="step-2-specify-agent-and-environment">
-<h2>Step 2: Specify Agent and Environment<a class="headerlink" href="#step-2-specify-agent-and-environment" title="Link to this heading">¶</a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>
+<section id="store-solution">
+<h2>Store Solution<a class="headerlink" href="#store-solution" title="Link to this heading">¶</a></h2>
+<p>The solution will be stored in the folder <cite>result</cite>.
+Take graph maxcut as an example. The result includes the objective value, number of nodes, algorithm name, and the solution.</p>
+<p>Example result for <cite>data/BA_100_ID0.txt</cite> stored in <cite>result/BA_100_ID0.txt</cite>:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>// obj: 273.0                   # objective value
+// running_duration: 71.9577648639679
+// num_nodes: 100
+// alg_name: greedy
+
+1 1   # node 1 in set 1
+2 2   # node 2 in set 2
+3 2   # node 3 in set 2
+4 2   # node 4 in set 2
+5 2   # node 5 in set 2
+...
+</pre></div>
+</div>
+</section>
+<section id="distribution-wise">
+<h2>Distribution-wise<a class="headerlink" href="#distribution-wise" title="Link to this heading">¶</a></h2>
+<ol class="arabic simple">
+<li><p><strong>Select problem</strong></p></li>
+</ol>
+<p>In <cite>config.py</cite>, we select a CO problem:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">PROBLEM</span> <span class="o">=</span> <span class="n">Problem</span><span class="o">.</span><span class="n">maxcut</span>  <span class="c1"># We can select a problem such as maxcut.</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="2">
+<li><p><strong>Training</strong></p></li>
+</ol>
+<p>Take S2V-DQN as an example. In <cite>config.py</cite>, we set parameters as follows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">ALG</span> <span class="o">=</span> <span class="n">Alg</span><span class="o">.</span><span class="n">s2v</span>
+<span class="n">TRAIN_INFERENCE</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># 0 = train, 1 = inference</span>
+<span class="n">NUM_TRAIN_NODES</span> <span class="o">=</span> <span class="mi">200</span>
+</pre></div>
+</div>
+<p>Run method in command line:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>methods/eco_s2v/main.py<span class="w">   </span><span class="c1"># train S2V-DQN</span>
+python<span class="w"> </span>methods/L2A/main.py<span class="w">       </span><span class="c1"># run dREINFORCE</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="3">
+<li><p><strong>Inference</strong></p></li>
+</ol>
+<p>In the inference stage, we should select dataset(s). Take S2V-DQN as an example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">TRAIN_NODES_IN_INFERENCE</span> <span class="o">=</span> <span class="mi">200</span>
+<span class="n">directory_data</span> <span class="o">=</span> <span class="s1">&#39;../data/syn_BA&#39;</span>  <span class="c1"># the directory of datasets</span>
+<span class="n">prefixes</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;BA_100_&#39;</span><span class="p">]</span>             <span class="c1"># select the BA graphs with 100 nodes</span>
+</pre></div>
+</div>
+<p>In <cite>config.py</cite>, we set the parameters:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">TRAIN_INFERENCE</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># 0 = train, 1 = inference</span>
+</pre></div>
+</div>
+<p>Run method in command line:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>methods/eco_s2v/main.py<span class="w">   </span><span class="c1"># inference S2V-DQN</span>
+python<span class="w"> </span>methods/L2A/main.py<span class="w">       </span><span class="c1"># run dREINFORCE</span>
+</pre></div>
+</div>
+</section>
+<section id="instance-wise">
+<h2>Instance-wise<a class="headerlink" href="#instance-wise" title="Link to this heading">¶</a></h2>
+<ol class="arabic simple">
+<li><p><strong>Select problem</strong></p></li>
+</ol>
+<p>In <cite>config.py</cite>, we select a CO problem:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">PROBLEM</span> <span class="o">=</span> <span class="n">Problem</span><span class="o">.</span><span class="n">maxcut</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="2">
+<li><p><strong>Select dataset(s)</strong></p></li>
+</ol>
+<p>In <cite>config.py</cite>, we select dataset(s):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">directory_data</span> <span class="o">=</span> <span class="s1">&#39;../data/syn_BA&#39;</span>  <span class="c1"># the directory of datasets</span>
+<span class="n">prefixes</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;BA_100_&#39;</span><span class="p">]</span>             <span class="c1"># select the BA graphs with 100 nodes</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="3">
+<li><p><strong>Run method</strong></p></li>
+</ol>
+<p>Run method in command line:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>methods/greedy.py<span class="w">                  </span><span class="c1"># run greedy</span>
+python<span class="w"> </span>methods/gurobipy.py<span class="w">                </span><span class="c1"># run gurobi</span>
+python<span class="w"> </span>methods/simulated_annealing.py<span class="w">     </span><span class="c1"># run simulated annealing</span>
+python<span class="w"> </span>methods/mcpg.py<span class="w">                    </span><span class="c1"># run MCPG</span>
+python<span class="w"> </span>methods/iSCO/main.py<span class="w">               </span><span class="c1"># run iSCO</span>
 </pre></div>
 </div>
 </section>
@@ -106,7 +219,10 @@
 
            </div>
           </div>
-          <footer>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../index.html" class="btn btn-neutral float-left" title="Welcome to RLSolver!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../overview/Introduction.html" class="btn btn-neutral float-right" title="Introduction" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
 
   <hr/>
 
