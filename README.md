@@ -1,6 +1,6 @@
 # RLSolver: GPU-based Massively Parallel Environments for Large-Scale Combinatorial Optimization (CO) Problems Using Reinforcement Learning
 
-[docs](https://rlsolvers.readthedocs.io/index.html)
+Docs: [website](https://rlsolvers.readthedocs.io/index.html)
 
 We aim to showcase the effectiveness of GPU-based massively parallel environments for large-scale combinatorial optimization (CO) problems using reinforcement learning (RL). RL with the help of GPU based parallel environments can significantly improve the sampling speed and can obtain high-quality solutions within short time. 
 
