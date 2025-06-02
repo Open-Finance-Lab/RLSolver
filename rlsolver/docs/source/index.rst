@@ -5,6 +5,12 @@ Welcome to RLSolver!
 
 .. toctree::
    :maxdepth: 1
+   :caption: RLSolver Competition 2025
+
+   competition/index
+
+.. toctree::
+   :maxdepth: 1
    :caption: HelloWorld
 
    helloworld/quickstart
