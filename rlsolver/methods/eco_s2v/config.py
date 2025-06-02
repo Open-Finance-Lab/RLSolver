@@ -16,7 +16,7 @@ class Alg(Enum):
 TRAIN_INFERENCE = 0  # 0: train, 1: inference
 assert TRAIN_INFERENCE in [0, 1]
 
-ALG = Alg.eeco # Alg
+ALG = Alg.s2v # Alg
 GRAPH_TYPE = GraphType.BA
 
 #训练的参数

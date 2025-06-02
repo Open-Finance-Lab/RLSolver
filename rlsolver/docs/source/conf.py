@@ -54,7 +54,7 @@ autodoc_mock_imports = [
 ]
 
 pygments_style = "sphinx"
-
+language = 'en'
 import sphinx_rtd_theme
 
 # Add any paths that contain templates here, relative to this directory.

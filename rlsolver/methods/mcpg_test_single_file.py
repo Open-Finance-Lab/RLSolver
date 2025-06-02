@@ -57,7 +57,7 @@ total_running_duration = 2000
 
 
 DataDir = '../data/gset'  # 保存图最大割的txt文件的目录，txt数据以稀疏的方式记录了GraphList，可以重建图的邻接矩阵
-path = '../data/gset/gset_22.txt'
+path = '../data/gset/gset_14.txt'
 # path = '../data/syn_BA/BA_100_ID0.txt'
 # num_ls = 6
 # reset_epoch_num = 192
@@ -796,7 +796,9 @@ def run():
     sys.stdout.flush()  # add for slurm stdout
     objs_of_epochs = []
     sum_samples_per_second = []
+    duration_obj_dict = {}
     start_time = time.time()
+    start_time_of_dict = time.time()
     for epoch in range(1, max_epoch_num + 1):
         #start_time = time.time()
         y_dict = {}
@@ -836,6 +838,9 @@ def run():
                 _probs = 1 - probs
                 entropy = -(probs * probs.log2() + _probs * _probs.log2()).mean(dim=1)
                 obj_entropy = entropy.mean()
+
+                duration = time.time() - start_time_of_dict
+                duration_obj_dict[duration] = max(now_max_res).item()
 
                 print(f"value {max(now_max_res).item():9.2f}  entropy {obj_entropy:9.3f}")
                 run_time = time.time() - start_time
