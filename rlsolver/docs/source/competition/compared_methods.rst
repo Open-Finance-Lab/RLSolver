@@ -24,11 +24,11 @@ This section lists all baseline and reference methods that will be compared agai
      - **Disadvantages**: Many hyperparameters (population size, crossover rate, mutation rate); can be slow to converge.
 
 3. **Exact or MIP Solvers**  
-   - **Gurobi (ILP Formulation)**  
+   - **Gurobi (ILP or QUBO Formulation)**
      - **Description**: Formulate MaxCut as a binary quadratic integer program (QIP) or an ILP via linearization, solve with Gurobi to optimality or time limit.  
      - **Advantages**: Provides an optimality guarantee when it converges; widely used in industry.  
      - **Disadvantages**: Not scalable to large graphs (≥ 500 nodes) under reasonable time limits.
-   - **CPLEX (ILP or QIP)**  
+   - **CPLEX (ILP or QUBO)**
      - **Description**: Similar to Gurobi but using IBM’s CPLEX solver.  
      - **Advantages**: Comparable performance to Gurobi in many instances.  
      - **Disadvantages**: Same scalability constraints on large graphs.
