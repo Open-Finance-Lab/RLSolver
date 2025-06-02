@@ -1,14 +1,14 @@
-# Ignore the build directory and all its contents
-rlsolver/docs/build/
+# Ignore build directory under docs (everything)…
+docs/build/*
 
-# Ignore all HTML files
-*.html
+# …except keep the empty __init__.py in docs/build
+!docs/build/__init__.py
 
-# Ignore specific files
-rlsolver/docs/build/html/helloworld/net.html
-rlsolver/docs/build/html/helloworld/run.html
+# Ignore baseline/ and build_models/
+baseline/
+build_models/
 
-# IDE configuration files
+# Ignore IDE config
 .idea/
 
 # Python cache and compiled files
@@ -16,12 +16,8 @@ __pycache__/
 *.pyc
 *.pyo
 
-# Sphinx build directory
-rlsolver/docs/build/
+# Ignore all HTML files 
+*.html
 
-# Optional: Ignore temporary Markdown files
+# Ignore any temporary .md.txt
 *.md.txt
-
-baseline/
-build_models/
-
