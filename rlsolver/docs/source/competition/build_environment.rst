@@ -4,15 +4,19 @@ Build Environment
 This section explains how to set up the software and hardware environment required to run RLSolver Competition 2025 code.
 
 1. **Operating System**  
-   - Ubuntu 20.04 (recommended) or Windows 10 (WSL is supported).  
+   - Ubuntu 20.04 (recommended) or Windows 10 (WSL is supported), or MacOS.
    - If you use Windows, install WSL2 with Ubuntu for GPU support.
 
-2. **Hardware Requirements**  
+2. **Hardware Requirements **
    - NVIDIA GPU with CUDA capability (compute capability ≥ 6.0).  
    - At least 8 GB of RAM.  
    - At least 20 GB of free disk space for data and models.
 
-3. **Software Dependencies**  
+3. **Software Dependencies**
+torch
+numpy
+matplotlib
+pandas
 
 4. **Creating a Python Virtual Environment**  
 - Using Conda:

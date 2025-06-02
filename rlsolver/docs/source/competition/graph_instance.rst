@@ -38,7 +38,7 @@ Node indices start from **1**, and the graphs are undirected.
 
 5. **Data Selection in Code**
 
-In the code, you can specify dataset by setting:
+In the code, you can specify a dataset by setting:
 ```python
 directory_data = '../data/syn_BA'
 prefixes = ['BA_100_']
