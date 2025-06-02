@@ -1,24 +1,27 @@
-# 忽略build目录及其所有内容
+# Ignore the build directory and all its contents
 rlsolver/docs/build/
 
-# 忽略所有HTML文件
+# Ignore all HTML files
 *.html
 
-# 忽略指定文件
+# Ignore specific files
 rlsolver/docs/build/html/helloworld/net.html
 rlsolver/docs/build/html/helloworld/run.html
 
-# IDE config
+# IDE configuration files
 .idea/
 
-# Python
+# Python cache and compiled files
 __pycache__/
 *.pyc
 *.pyo
 
-# Sphinx build
+# Sphinx build directory
 rlsolver/docs/build/
 
-
-# 可选：忽略 Markdown 临时文件
+# Optional: Ignore temporary Markdown files
 *.md.txt
+
+baseline/
+build_models/
+
