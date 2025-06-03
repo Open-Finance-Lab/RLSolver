@@ -57,7 +57,7 @@ Welcome to RLSolver!
    :caption: API Reference
 
    api/config
-   api/utils
+
 
 Indices and tables
 ==================
