@@ -366,8 +366,9 @@ def mcpg(filename: str):
     sys.stdout.flush()  # add for slurm stdout
     objs_epochs = []
     xs_epochs = []
-    objs_of_epochs = []
+    epochs_objs = []
     duration_obj_dict = {}
+    step_num_samples_per_second = []
     start_time_of_dict = time.time()
     for epoch in range(1, Config.max_epoch_num + 1):
         net.to(device).reset_parameters()
@@ -417,6 +418,7 @@ def mcpg(filename: str):
             num_samples = temp_max.shape[0]
             num_samples_per_second = num_samples / running_duration
             print("num_samples_per_second: ", num_samples_per_second)
+            step_num_samples_per_second.append(num_samples_per_second)
 
             for _ in range(Config.sample_epoch_num):
                 xs_prob = net()
@@ -441,19 +443,22 @@ def mcpg(filename: str):
 
                 print(f"epoch {epoch:6}  value {objective_value.item():8.2f}  {x_str}")
                 print_gpu_memory(device)
-        objs_of_epochs.append(objective_value.item())
+        epochs_objs.append(objective_value.item())
         objs_epochs.extend(objs_each_epoch)
         xs_epochs.extend(xs_each_epoch)
         print()
     result_file = calc_result_file_name(filename)
     result_file2 = copy.deepcopy(result_file)
     result_file3 = copy.deepcopy(result_file)
-    result_file_objs_of_epochs = result_file2.replace(".txt", "objs_of_epochs" + ".txt")
+    result_file_epochs_objs = result_file2.replace(".txt", "epochs_objs" + ".txt")
     result_file_duration_obj_dict = result_file3.replace(".txt", "duration_obj_dict" + ".txt")
-    with open(result_file_objs_of_epochs, "w") as f:
-        f.write(str(objs_of_epochs))
+    result_file_step_num_samples_per_second = result_file3.replace(".txt", "step_num_samples_per_second" + ".txt")
+    with open(result_file_epochs_objs, "w") as f:
+        f.write(str(epochs_objs))
     with open(result_file_duration_obj_dict, "w") as f:
         f.write(str(duration_obj_dict))
+    with open(result_file_step_num_samples_per_second, "w") as f:
+        f.write(str(step_num_samples_per_second))
     best_obj = max(objs_epochs)
     best_index = objs_epochs.index(best_obj)
     best_x = xs_epochs[best_index]

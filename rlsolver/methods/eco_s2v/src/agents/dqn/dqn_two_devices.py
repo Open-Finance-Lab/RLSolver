@@ -391,8 +391,9 @@ class DQN:
                     if timestep % self.update_target_frequency == 0:
                         self.target_network.load_state_dict(self.network.state_dict())
 
-            if (
-                    timestep + 1) % self.test_obj_frequency == 0 and self.evaluate and is_training_ready and not self.test_sampling_speed:
+            if (timestep + 1) % self.test_obj_frequency == 0 \
+                    and self.evaluate and is_training_ready \
+                    and not self.test_sampling_speed:
                 total_time += time.time() - start_time
                 test_score = self.evaluate_agent()
                 start_time = time.time()
@@ -415,8 +416,9 @@ class DQN:
 
                 test_scores.append([timestep + 1, test_score])
 
-            if (
-                    time.time() - last_record_obj_time >= self.save_network_frequency) and is_training_ready and not self.test_sampling_speed:
+            if time.time() - last_record_obj_time >= self.save_network_frequency \
+                    and is_training_ready \
+                    and not self.test_sampling_speed:
                 total_time += time.time() - start_time
 
                 path_main_ = path_main + '_' + str(int(total_time))

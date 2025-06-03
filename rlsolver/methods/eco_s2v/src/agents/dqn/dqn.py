@@ -410,7 +410,9 @@ class DQN:
 
                 test_scores.append([timestep + 1, test_score])
 
-            if (time.time() - last_record_obj_time >= self.save_network_frequency) and is_training_ready and not self.test_sampling_speed:
+            if time.time() - last_record_obj_time >= self.save_network_frequency \
+                    and is_training_ready \
+                    and not self.test_sampling_speed:
                 total_time += time.time() - start_time
 
                 path_main_ = path_main+ '_'+str(int(total_time))
