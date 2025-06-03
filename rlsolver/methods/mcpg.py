@@ -368,6 +368,7 @@ def mcpg(filename: str):
     xs_epochs = []
     objs_of_epochs = []
     duration_obj_dict = {}
+    num_samples_per_second_list = []
     start_time_of_dict = time.time()
     for epoch in range(1, Config.max_epoch_num + 1):
         net.to(device).reset_parameters()
@@ -417,6 +418,7 @@ def mcpg(filename: str):
             num_samples = temp_max.shape[0]
             num_samples_per_second = num_samples / running_duration
             print("num_samples_per_second: ", num_samples_per_second)
+            num_samples_per_second_list.append(num_samples_per_second)
 
             for _ in range(Config.sample_epoch_num):
                 xs_prob = net()
@@ -450,10 +452,13 @@ def mcpg(filename: str):
     result_file3 = copy.deepcopy(result_file)
     result_file_objs_of_epochs = result_file2.replace(".txt", "objs_of_epochs" + ".txt")
     result_file_duration_obj_dict = result_file3.replace(".txt", "duration_obj_dict" + ".txt")
+    result_file_num_samples_per_second_list = result_file3.replace(".txt", "num_samples_per_second_list" + ".txt")
     with open(result_file_objs_of_epochs, "w") as f:
         f.write(str(objs_of_epochs))
     with open(result_file_duration_obj_dict, "w") as f:
         f.write(str(duration_obj_dict))
+    with open(result_file_num_samples_per_second_list, "w") as f:
+        f.write(str(num_samples_per_second_list))
     best_obj = max(objs_epochs)
     best_index = objs_epochs.index(best_obj)
     best_x = xs_epochs[best_index]
