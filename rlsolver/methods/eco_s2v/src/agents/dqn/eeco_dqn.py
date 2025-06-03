@@ -353,7 +353,7 @@ class DQN:
                 # Periodically update target network
                 if timestep % self.update_target_frequency == 0:
                     self.target_network.load_state_dict(self.network.state_dict())
-            if ((timestep + 1) % self.test_obj_frequency == 0 and self.evaluate and is_training_ready) or timestep==0:
+            if timestep == 0 or ((timestep + 1) % self.test_obj_frequency == 0 and self.evaluate and is_training_ready):
                 total_time += time.time() - start_time_of_learn
                 test_score = self.evaluate_agent()
                 start_time = time.time()
