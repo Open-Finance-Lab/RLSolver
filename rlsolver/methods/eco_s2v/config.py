@@ -9,14 +9,14 @@ class Alg(Enum):
     eco = 'eco'
     s2v = 's2v'
     eco_torch = 'eco_torch'
-    eeco = 'eeco'
+    eeco = 'None'
     jumanji = 'jumanji'
     rl4co = 'rl4co'
 
-TRAIN_INFERENCE = 0  # 0: train, 1: inference
+TRAIN_INFERENCE = 1  # 0: train, 1: inference
 assert TRAIN_INFERENCE in [0, 1]
 
-ALG = Alg.s2v # Alg
+ALG = Alg.eco # Alg
 GRAPH_TYPE = GraphType.BA
 
 #训练的参数
@@ -48,7 +48,8 @@ LOCAL_SEARCH_FREQUENCY = 10
 NEURAL_NETWORK_SAVE_PATH = rlsolver_path + "/methods/eco_s2v/pretrained_agent/" + ALG.value + "_" + GRAPH_TYPE.value + "_" + str(NUM_TRAINED_NODES_IN_INFERENCE) + "spin_best.pth"
 DATA_DIR = rlsolver_path + "/data/syn_" + GRAPH_TYPE.value
 NEURAL_NETWORK_DIR = rlsolver_path + "/methods/eco_s2v/pretrained_agent/tmp"
-NEURAL_NETWORK_FOLDER = rlsolver_path + "/methods/eco_s2v/pretrained_agent/tmp/" + ""
+NEURAL_NETWORK_SUBFOLDER = "s2v_BA_20spin_s"
+NEURAL_NETWORK_FOLDER = rlsolver_path + "/methods/eco_s2v/pretrained_agent/tmp/" + NEURAL_NETWORK_SUBFOLDER
 NEURAL_NETWORK_PREFIX = ALG.value + "_" + GRAPH_TYPE.value + "_" + str(NUM_TRAIN_NODES) + "spin"
 
 UPDATE_FREQUENCY = 32
@@ -59,7 +60,7 @@ BUFFER_DEVICE = calc_device(BUFFER_GPU_ID)
 
 if GRAPH_TYPE == GraphType.BA:
     if NUM_TRAIN_NODES == 20:
-        NB_STEPS = 250000
+        NB_STEPS = 1000 # 25000
         REPLAY_BUFFER_SIZE = 500
     elif NUM_TRAIN_NODES == 40:
         NB_STEPS = 250000
@@ -108,6 +109,7 @@ else:
     REPLAY_START_SIZE = 3000 # NUM_TRAIN_NODES*2*NUM_TRAIN_SIMS
 
 #jumanji
+JUMANJI_NB_STEPS = 10000
 HERIZON_LENGTH = int(NUM_TRAIN_NODES/2)
 JUMANJI_TEST_OBJ_FREQUENCY = 10 #每次test的时间间隔
 
