@@ -276,16 +276,9 @@ class DQN:
         total_time = 0
         if self.logging:
             if not self.test_sampling_speed:
-                logger = Logger(save_path=self.logger_save_path
-                                ,args=self.args,
-                                n_sims = 1)
+                logger = Logger(save_path=self.logger_save_path,args=self.args)
             else:
-                logger = Logger(save_path=self.sampling_speed_save_path
-                                ,args=self.args,
-                                n_sims = 1)
-
-        if self.test_sampling_speed:
-            logger.add_scalar('sampling_speed', 0,start_time)
+                logger = Logger(save_path=self.sampling_speed_save_path,args=self.args)
 
         path = self.network_save_path
         path_main, path_ext = os.path.splitext(path)
@@ -306,7 +299,7 @@ class DQN:
         is_training_ready = False
 
         for timestep in range(timesteps):
-
+            start_time_this_step = time.time()
             if not is_training_ready:
                 if all([len(rb) >= self.replay_start_size for rb in self.replay_buffers.values()]):
                     print('\nAll buffers have {} transitions stored - training is starting!\n'.format(
@@ -339,6 +332,10 @@ class DQN:
 
             self.replay_buffer.add(state, action, reward, state_next, done)
 
+            if self.test_sampling_speed:  # save log
+                num_samples_per_second = (time.time() - start_time_this_step) / 1
+                logger.add_scalar('step_vs_num_samples_per_second', timestep, num_samples_per_second)
+
             if done:
                 # Reinitialise the state
                 if verbose:
@@ -360,34 +357,27 @@ class DQN:
             else:
                 state = state_next
 
-            if self.test_sampling_speed and (timestep + 1) % 100 == 0:  # 每100步记录一次
-                logger.add_scalar('sampling_speed', timestep, time.time())
-                last_record_time = time.time()  # 更新记录时间
-                # if time.time() - start_time > 200:
-                #     break
+            if is_training_ready:
 
-            if not self.test_sampling_speed:
-                if is_training_ready:
+                # Update the main network
+                if timestep % self.update_frequency == 0:
 
-                    # Update the main network
-                    if timestep % self.update_frequency == 0:
+                    # Sample a batch of transitions
+                    transitions = self.get_random_replay_buffer().sample(self.minibatch_size, self.device)
 
-                        # Sample a batch of transitions
-                        transitions = self.get_random_replay_buffer().sample(self.minibatch_size, self.device)
+                    # Train on selected batch
+                    loss = self.train_step(transitions)
+                    losses.append([timestep, loss])
+                    losses_eps.append(loss)
 
-                        # Train on selected batch
-                        loss = self.train_step(transitions)
-                        losses.append([timestep, loss])
-                        losses_eps.append(loss)
+                    if self.logging:
+                        logger.add_scalar('step_vs_loss', timestep - training_ready_step, loss)
 
-                        # if self.logging:
-                        #     logger.add_scalar('Loss', loss, timestep)
+                # Periodically update target network
+                if timestep % self.update_target_frequency == 0:
+                    self.target_network.load_state_dict(self.network.state_dict())
 
-                    # Periodically update target network
-                    if timestep % self.update_target_frequency == 0:
-                        self.target_network.load_state_dict(self.network.state_dict())
-
-            if (timestep + 1) % self.test_obj_frequency == 0 and self.evaluate and is_training_ready and not self.test_sampling_speed:
+            if timestep % self.test_obj_frequency == 0 and self.evaluate and is_training_ready:
                 total_time += time.time() - start_time
                 test_score = self.evaluate_agent()
                 start_time = time.time()
@@ -399,7 +389,8 @@ class DQN:
                 else:
                     raise NotImplementedError("{} is not a recognised TestMetric".format(self.test_metric))
                 if self.logging:
-                    logger.add_scalar('Episode_score', test_score, (total_time,timestep-training_ready_step))
+                    logger.add_scalar('time_vs_episodeScore', total_time, test_score)
+                    logger.add_scalar('step_vs_episodeScore', timestep - training_ready_step, test_score)
                 # if best_network:
                 #     path = self.network_save_path
                 #     path_main, path_ext = os.path.splitext(path)
@@ -411,13 +402,13 @@ class DQN:
                 test_scores.append([timestep + 1, test_score])
 
             if time.time() - last_record_obj_time >= self.save_network_frequency \
-                    and is_training_ready \
-                    and not self.test_sampling_speed:
+                    and is_training_ready:
                 total_time += time.time() - start_time
 
                 path_main_ = path_main+ '_'+str(int(total_time))
                 if self.logging:
-                    logger.add_scalar('Loss', loss, (total_time,timestep-training_ready_step))
+                    logger.add_scalar('time_vs_loss',  total_time, loss)
+                    logger.add_scalar('step_vs_loss', timestep - training_ready_step, loss)
 
                 self.save(path_main_ + path_ext)
                 start_time = time.time()

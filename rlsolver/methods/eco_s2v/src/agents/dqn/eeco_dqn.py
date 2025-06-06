@@ -247,8 +247,6 @@ class DQN:
         self.save_network_frequency = save_network_frequency
         self.network_save_path = network_save_path
 
-
-
     def get_replay_buffer_for_env(self, env):
         return self.replay_buffers[env.action_space.n]
 
@@ -261,13 +259,9 @@ class DQN:
 
         if self.logging:
             if not self.test_sampling_speed:
-                logger = Logger(save_path=self.logger_save_path
-                                ,args=self.args,
-                                n_sims = self.env.n_sims)
+                logger = Logger(save_path=self.logger_save_path,args=self.args)
             else:
-                logger = Logger(save_path=self.sampling_speed_save_path
-                                ,args=self.args,
-                                n_sims = self.env.n_sims)
+                logger = Logger(save_path=self.sampling_speed_save_path,args=self.args)
         path = self.network_save_path
         path_main, path_ext = os.path.splitext(path)
         if path_ext == '':
@@ -353,7 +347,7 @@ class DQN:
                 # Periodically update target network
                 if timestep % self.update_target_frequency == 0:
                     self.target_network.load_state_dict(self.network.state_dict())
-            if timestep == 0 or ((timestep + 1) % self.test_obj_frequency == 0 and self.evaluate and is_training_ready):
+            if timestep  % self.test_obj_frequency == 0 and self.evaluate and is_training_ready:
                 total_time += time.time() - start_time_of_learn
                 test_score = self.evaluate_agent()
                 start_time = time.time()

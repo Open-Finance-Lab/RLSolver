@@ -279,17 +279,9 @@ class DQN:
         total_time = 0
         if self.logging:
             if not self.test_sampling_speed:
-                logger = Logger(save_path=self.logger_save_path
-                                , args=self.args,
-                                n_sims=1)
+                logger = Logger(save_path=self.logger_save_path, args=self.args)
             else:
-                logger = Logger(save_path=self.sampling_speed_save_path
-                                , args=self.args,
-                                n_sims=1)
-
-        if self.test_sampling_speed:
-            last_record_time = time.time()
-            logger.add_scalar('sampling_speed', 0, start_time)
+                logger = Logger(save_path=self.sampling_speed_save_path, args=self.args)
 
         path = self.network_save_path
         path_main, path_ext = os.path.splitext(path)
@@ -310,6 +302,7 @@ class DQN:
         is_training_ready = False
 
         for timestep in range(timesteps):
+            start_time_this_step = time.time()
             start_sampling_time = time.time()
             if not is_training_ready:
                 if all([len(rb) >= self.replay_start_size for rb in self.replay_buffers.values()]):
@@ -343,6 +336,10 @@ class DQN:
 
             self.replay_buffer.add(state, action, reward, state_next, done)
 
+            if self.test_sampling_speed:  # save log
+                num_samples_per_second = (time.time() - start_time_this_step) / self.env.n_sims
+                logger.add_scalar('step_vs_num_samples_per_second', timestep, num_samples_per_second)
+
             if done:
                 # Reinitialise the state
                 if verbose:
@@ -364,11 +361,6 @@ class DQN:
             else:
                 state = state_next
 
-            if self.test_sampling_speed and (timestep + 1) % 100 == 0:  # 每100步记录一次
-                logger.add_scalar('sampling_speed', timestep, time.time())
-                last_record_time = time.time()  # 更新记录时间
-                # if time.time() - start_time > 200:
-                #     break
             sampling_duration_of_this = time.time() - start_sampling_time
             self.sampling_duration += sampling_duration_of_this
             if not self.test_sampling_speed:
@@ -384,8 +376,6 @@ class DQN:
                         losses.append([timestep, loss])
                         losses_eps.append(loss)
 
-                        # if self.logging:
-                        #     logger.add_scalar('Loss', loss, timestep)
 
                     # Periodically update target network
                     if timestep % self.update_target_frequency == 0:
@@ -405,7 +395,9 @@ class DQN:
                 else:
                     raise NotImplementedError("{} is not a recognised TestMetric".format(self.test_metric))
                 if self.logging:
-                    logger.add_scalar('Episode_score', test_score, (total_time, timestep - training_ready_step))
+                    logger.add_scalar('time_vs_episodeScore', total_time, test_score)
+                    logger.add_scalar('step_vs_episodeScore', timestep - training_ready_step, test_score)
+                    # logger.add_scalar('Episode_score', test_score, (total_time, timestep - training_ready_step))
                 # if best_network:
                 #     path = self.network_save_path
                 #     path_main, path_ext = os.path.splitext(path)
@@ -423,7 +415,8 @@ class DQN:
 
                 path_main_ = path_main + '_' + str(int(total_time))
                 if self.logging:
-                    logger.add_scalar('Loss', loss, (total_time, timestep - training_ready_step))
+                    logger.add_scalar('step_vs_loss', timestep - training_ready_step, loss)
+                    logger.add_scalar('time_vs_loss', total_time, loss)
 
                 self.save(path_main_ + path_ext)
                 start_time = time.time()
