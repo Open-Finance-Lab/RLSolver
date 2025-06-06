@@ -368,7 +368,7 @@ class PrioritisedReplayBuffer:
 
 
 class Logger:
-    def __init__(self,save_path,args,n_sims):
+    def __init__(self,save_path,args):
         self._memory = {}
         self._saves = 0
         self._maxsize = NB_STEPS
@@ -376,45 +376,65 @@ class Logger:
         self.save_path = save_path
         self.result = {}
         self.result['args'] = str(args['args'])
-        self.result['n_sims'] = n_sims
         self.result['alg'] = ALG.value
 
-    def add_scalar(self, name, data, timestep):
+    # def add_scalar(self, name, data, timestep):
+    #     """
+    #     Saves a scalar
+    #     """
+    #     if isinstance(data, torch.Tensor):
+    #         data = data.item()
+    #
+    #     self._memory.setdefault(name, []).append([data, timestep])
+    #
+    #     self._saves += 1
+    #     if self._saves == self._maxsize - 1:
+    #         # with open('log_data_' + str((self._dumps + 1) * self._maxsize) + '.pkl', 'wb') as output:
+    #         #     pickle.dump(self._memory, output, pickle.HIGHEST_PROTOCOL)
+    #         self._dumps += 1
+    #         self._saves = 0
+    #         self._memory = {}
+
+    def add_scalar(self, name_str, key, value):
         """
         Saves a scalar
         """
-        if isinstance(data, torch.Tensor):
-            data = data.item()
+        if isinstance(key, torch.Tensor):
+            key = key.item()
+        if isinstance(value, torch.Tensor):
+            value = value.item()
+        if name_str not in self._memory:
+            self._memory[name_str] = {}
+        if key not in self._memory[name_str]:
+            self._memory[name_str][key] = {}
+        self._memory[name_str][key] = value
 
-        self._memory.setdefault(name, []).append([data, timestep])
 
-        self._saves += 1
-        if self._saves == self._maxsize - 1:
-            # with open('log_data_' + str((self._dumps + 1) * self._maxsize) + '.pkl', 'wb') as output:
-            #     pickle.dump(self._memory, output, pickle.HIGHEST_PROTOCOL)
-            self._dumps += 1
-            self._saves = 0
-            self._memory = {}
+    # def save(self):
+    #     self.result = {}
+    #     # 保存所有内存中的数据到txt文件
+    #     if not os.path.exists(os.path.dirname(self.save_path)):
+    #         os.makedirs(os.path.dirname(self.save_path))
+    #     keys = ["step_vs_num_samples_per_second", "step_vs_obj", "time_vs_obj", "step_vs_loss", "time_vs_loss"]
+    #     with open(self.save_path, 'w') as output:
+    #         for key, values in self._memory.items():
+    #             if key in keys:
+    #                 tmp_dict = {}
+    #                 for value in values:
+    #                     if type(value[1]) == torch.Tensor:
+    #                         value[1] = value[1].tolist()
+    #                     tmp_dict[f'{value[0]}'] = value[1]
+    #                 self.result[key] = tmp_dict
+    #         # for key, value in self.result.items():
+    #         #     tmp_dict = {}
+    #         #     tmp_dict[key] = value
+    #         #     json.dump(tmp_dict, output, ensure_ascii=True, indent=4)
+    #         json.dump(self.result, output, ensure_ascii=True, indent=4)
+    #         print(f"result saved to {self.save_path}")
 
     def save(self):
-        self.result = {}
-        # 保存所有内存中的数据到txt文件
         if not os.path.exists(os.path.dirname(self.save_path)):
             os.makedirs(os.path.dirname(self.save_path))
-        keys = ["step_vs_num_samples_per_second", "step_vs_obj", "time_vs_obj", "step_vs_loss", "time_vs_loss"]
         with open(self.save_path, 'w') as output:
-            for key, values in self._memory.items():
-                if key in keys:
-                    tmp_dict = {}
-                    for value in values:
-                        if type(value[1]) == torch.Tensor:
-                            value[1] = value[1].tolist()
-                        tmp_dict[f'{value[0]}'] = value[1]
-                    self.result[key] = tmp_dict
-            # for key, value in self.result.items():
-            #     tmp_dict = {}
-            #     tmp_dict[key] = value
-            #     json.dump(tmp_dict, output, ensure_ascii=True, indent=4)
-            json.dump(self.result, output, ensure_ascii=True, indent=4)
+            json.dump(self._memory, output, ensure_ascii=True, indent=4)
             print(f"result saved to {self.save_path}")
-
