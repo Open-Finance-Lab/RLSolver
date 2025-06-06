@@ -254,9 +254,7 @@ class DQN:
     def learn(self, timesteps, start_time = None, verbose=False):
         total_time = 0
         if self.logging:
-            logger = Logger(save_path=self.logger_save_path
-                            ,seed=self.seed,update_frequency = self.update_frequency,
-                            update_target_frequency=self.update_target_frequency)
+            logger = Logger(save_path=self.logger_save_path,args=None)
 
 
         # Initialise the state
@@ -336,7 +334,8 @@ class DQN:
                         losses_eps.append(loss)
 
                         if self.logging:
-                            logger.add_scalar('Loss', loss, timestep)
+                            logger.add_scalar('time_vs_loss', total_time, loss)
+                            logger.add_scalar('step_vs_loss', timestep - training_ready_step, loss)
 
                     # Periodically update target network
                     if timestep % self.update_target_frequency == 0:
@@ -355,7 +354,9 @@ class DQN:
                     raise NotImplementedError("{} is not a recognised TestMetric".format(self.test_metric))
                 
                 if self.logging:
-                    logger.add_scalar('Episode_score', test_score, (total_time,timestep-training_ready_step))
+                    logger.add_scalar('time_vs_episodeScore', total_time, test_score)
+                    logger.add_scalar('step_vs_episodeScore', timestep - training_ready_step, test_score)
+                    # logger.add_scalar('Episode_score', test_score, (total_time,timestep-training_ready_step))
                 
                 if best_network:
                     path = self.network_save_path
