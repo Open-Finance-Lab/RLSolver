@@ -99,9 +99,8 @@ def run(save_loc,graph_save_loc):
     obj_vs_time['0'] = th.mean(agent.inference(env=test_envs,max_steps=NUM_VALIDATION_NODES * step_fact)).item()
     best_score = float('-inf')
 
-    nb_steps = 64
     buffer = []
-    for i in tqdm.tqdm(range(nb_steps)):
+    for i in tqdm.tqdm(range(JUMANJI_NB_STEPS)):
         buffer_items = agent._explore_vec_env(env=train_envs, horizon_len=HERIZON_LENGTH)
         buffer[:] = buffer_items
         if not TEST_SAMPLING_SPEED:
