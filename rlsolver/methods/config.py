@@ -32,9 +32,9 @@ PROBLEM = Problem.maxcut
 
 GPU_ID: int = 0  # -1: cpu, >=0: gpu
 
-DATA_FILENAME = "../data/syn_BA/BA_100_ID0.txt"  # one instance
-DIRECTORY_DATA = "../data/syn_BA"  # used in multi instances
-PREFIXES = ["BA_100_ID0"]  # used in multi instances
+DATA_FILENAME = "../data/gset/gset_22.txt"  # one instance
+DIRECTORY_DATA = "../data/gset"  # used in multi instances
+PREFIXES = ["gset_22"]  # used in multi instances
 
 DEVICE: th.device = calc_device(GPU_ID)
 

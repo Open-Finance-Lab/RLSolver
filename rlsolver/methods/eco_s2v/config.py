@@ -29,7 +29,7 @@ NUM_TRAIN_SIMS = 2 ** 8
 NUM_VALIDATION_NODES = NUM_TRAIN_NODES
 VALIDATION_SEED = 10
 NUM_VALIDATION_SIMS = 2 ** 4
-TEST_SAMPLING_SPEED = True  # False by default
+TEST_SAMPLING_SPEED = False  # False by default
 
 #推理的参数
 INFERENCE_GPU_ID = 0
@@ -49,7 +49,7 @@ NEURAL_NETWORK_SAVE_PATH = rlsolver_path + "/methods/eco_s2v/pretrained_agent/" 
 DATA_DIR = rlsolver_path + "/data/syn_" + GRAPH_TYPE.value
 NEURAL_NETWORK_DIR = rlsolver_path + "/methods/eco_s2v/pretrained_agent/tmp"
 NEURAL_NETWORK_SUBFOLDER = "s2v_BA_20spin_s"
-NEURAL_NETWORK_FOLDER = rlsolver_path + "/methods/eco_s2v/pretrained_agent/tmp/" + NEURAL_NETWORK_SUBFOLDER
+NEURAL_NETWORK_FOLDER = rlsolver_path + "/methods/eco_s2v/pretrained_agent/tmp/" + "eco_BA_20spin_p"
 NEURAL_NETWORK_PREFIX = ALG.value + "_" + GRAPH_TYPE.value + "_" + str(NUM_TRAIN_NODES) + "spin"
 
 UPDATE_FREQUENCY = 32
@@ -60,7 +60,7 @@ BUFFER_DEVICE = calc_device(BUFFER_GPU_ID)
 
 if GRAPH_TYPE == GraphType.BA:
     if NUM_TRAIN_NODES == 20:
-        NB_STEPS = 1000 # 25000
+        NB_STEPS = 25000 # 25000
         REPLAY_BUFFER_SIZE = 500
     elif NUM_TRAIN_NODES == 40:
         NB_STEPS = 250000
