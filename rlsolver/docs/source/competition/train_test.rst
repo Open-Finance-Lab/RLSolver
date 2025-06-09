@@ -30,6 +30,13 @@ Distribution-wise (eco Example)
 
 We demonstrate the full pipeline using the `eco` method on 20-node BA graphs.
 
+Training
+------------
+
+The training phase aims to help the reinforcement learning agent (e.g., `eco`) learn the relationship between graph **topology** and **optimal or near-optimal solutions** (e.g., maximum cut).  
+By observing graph structures and receiving rewards based on solution quality, the agent gradually learns a strategy that generalizes to similar unseen graphs.
+
+
 1. **Set basic config in ``config.py``**:
 
    .. code-block:: python
@@ -94,6 +101,11 @@ We demonstrate the full pipeline using the `eco` method on 20-node BA graphs.
       eco_BA_20spin_best.pth  →  rlsolver/methods/eco_s2v/pretrained_agent/
 
    .. image:: /_static/move.png
+
+Testing
+-------
+Now that training is complete and the best model has been selected and moved, we proceed to the testing phase.  
+The following steps configure and run inference using the trained model on graphs of various sizes.
 
 5. **Switch to inference mode**:
 
