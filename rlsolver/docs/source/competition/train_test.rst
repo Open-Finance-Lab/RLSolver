@@ -25,62 +25,29 @@ Each dataset is stored as `.txt` files inside the `data/` folder. The format of 
 
 This section shows only the configuration fields you must modify for each mode.
 
-Distribution-wise
------------------
+Distribution-wise (eco Example)
+-------------------------------
 
-1. **Graph distribution and data directory**  
-   In `config.py`, set:
-   .. code-block:: python
+We demonstrate the full pipeline using the `eco` method on 20-node BA graphs.
 
-      from rlsolver.methods.config import GraphType
+Training
+------------
 
-      GRAPH_TYPE = GraphType.BA      # or GraphType.ER, GraphType.PL
-      DATA_DIR   = rlsolver_path + "/data/syn_" + GRAPH_TYPE.value
+The training phase aims to help the reinforcement learning agent (e.g., `eco`) learn the relationship between graph **topology** and **optimal or near-optimal solutions** (e.g., maximum cut).  
+By observing graph structures and receiving rewards based on solution quality, the agent gradually learns a strategy that generalizes to similar unseen graphs.
 
-2. **Train vs. Inference**  
-   In `config.py`, set one of:
-   .. code-block:: python
 
-      TRAIN_INFERENCE = 0    # to train on the entire distribution
-      TRAIN_INFERENCE = 1    # to run inference on all prefixes
-
-3. **Prefixes for batch inference**  
-   In `config.py`, replace the default prefixes with:
-   .. code-block:: python
-
-      NUM_INFERENCE_NODES = 
-          [100, 200, 300, 400, 500,
-          600, 700, 800, 900, 1000,
-          1100, 1200, 2000, 3000,
-          4000, 5000, 10000]
-
-      INFERENCE_PREFIXES = 
-         [ GRAPH_TYPE.value + "_" + str(n) + "_"
-          for n in NUM_INFERENCE_NODES ]
-
-4. **Run the script**  
-   .. code-block:: console
-
-      python methods/L2A/main.py
-
-   - If `TRAIN_INFERENCE = 0`, this trains one model over the entire synthetic distribution.  
-   - If `TRAIN_INFERENCE = 1`, this iterates over every prefix in `INFERENCE_PREFIXES` and performs inference.
-
-Example: Train S2V with 20-node BA graphs
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-To help you understand the full pipeline, here is a detailed example using `s2v` with 20-node BA graphs.
-
-1. Set basic config in `config.py`:
+1. **Set basic config in ``config.py``**:
 
    .. code-block:: python
 
-      ALG = Alg.s2v
-      GRAPH_TYPE = GraphType.BA
-      NUM_TRAIN_NODES = 20
-      TRAIN_INFERENCE = 0
+      ALG = Alg.eco                                   # select eco as the RL method
+      GRAPH_TYPE = GraphType.BA          # use BA (Barabási–Albert) graph distribution
+      NUM_TRAIN_NODES = 20                # each training graph has 20 nodes
+      TRAIN_INFERENCE = 0                     # 0 = train mode; 1 = inference mode
 
-2. Run training:
+
+2. **Run training**:
 
    .. code-block:: console
 
@@ -90,19 +57,27 @@ To help you understand the full pipeline, here is a detailed example using `s2v`
 
    .. code-block:: text
 
-      rlsolver/methods/eco_s2v/pretrained_agent/tmp/s2v_BA_20spin_b/
+      rlsolver/methods/eco_s2v/pretrained_agent/tmp/eco_BA_20spin_p/
 
    Inside this folder, multiple `.pth` model snapshots will be saved over time.
 
-   .. image:: /_static/example_s2v_training.png
+   .. image:: /_static/example_eco_training.png
 
-3. Select the best model from this folder:
+3. **Select the best model from this folder**:
 
-   Edit `config.py` to point to that folder:
+   Edit ``methods/eco_s2v/config.py``.  
+   Find the line:
 
    .. code-block:: python
 
-      NEURAL_NETWORK_FOLDER = rlsolver_path + "/methods/eco_s2v/pretrained_agent/tmp/s2v_BA_20spin_b"
+      NEURAL_NETWORK_FOLDER = rlsolver_path + "/methods/eco_s2v/pretrained_agent/tmp/" + NEURAL_NETWORK_SUBFOLDER
+
+   Replace only the last part (i.e., the `NEURAL_NETWORK_SUBFOLDER`) with the desired folder name directly.  
+   For example, if you want to select the folder named ``eco_BA_20spin_p``, change it to:
+
+   .. code-block:: python
+
+      NEURAL_NETWORK_FOLDER = rlsolver_path + "/methods/eco_s2v/pretrained_agent/tmp/" + "eco_BA_20spin_p"
 
    Then run:
 
@@ -110,129 +85,123 @@ To help you understand the full pipeline, here is a detailed example using `s2v`
 
       python methods/eco_s2v/train_and_inference/select_best_neural_network.py
 
-   It will produce a file like:
+   It will generate a file like:
 
    .. code-block:: text
 
-      s2v_BA_20spin_best_1033.pth
+      eco_BA_20spin_23_best.pth
 
-  .. image:: /_static/best.png
+   .. image:: /_static/best.png
 
 
-4. Rename and move best model:
-
-   Rename the file to:
+4. **Rename and move best model**:
 
    .. code-block:: text
 
-      s2v_BA_20spin_best.pth
+      eco_BA_20spin_best.pth  →  rlsolver/methods/eco_s2v/pretrained_agent/
 
-   And move it to:
+   .. image:: /_static/move.png
 
-   .. code-block:: text
+Testing
+-------
+Now that training is complete and the best model has been selected and moved, we proceed to the testing phase.  
+The following steps configure and run inference using the trained model on graphs of various sizes.
 
-      rlsolver/methods/eco_s2v/pretrained_agent/
+5. **Switch to inference mode**:
 
-  .. image:: /_static/move.png
-
-
-5. Switch to inference mode:
-
-   In `config.py`, set:
+   In ``config.py``, set:
 
    .. code-block:: python
 
-      TRAIN_INFERENCE = 1
-      NUM_TRAINED_NODES_IN_INFERENCE = 20
-      NUM_INFERENCE_NODES = [20, 100, 200, 400, 800]  # Any scale ≥ training size
+      TRAIN_INFERENCE = 1                                              # 1 = inference mode
+      NUM_TRAINED_NODES_IN_INFERENCE = 20             # model was trained on 20-node graphs
+      NUM_INFERENCE_NODES = [20, 100, 200, 400, 800]   # test on graphs of various sizes
 
-      NEURAL_NETWORK_SAVE_PATH = rlsolver_path + "/methods/eco_s2v/pretrained_agent/s2v_BA_20spin_best.pth"
+Here, although the model was trained only on 20-node graphs, it can be applied to larger graphs (e.g., 100–800 nodes).
+You only need to make sure that all graphs used for inference have node counts greater than or equal to 20.
 
-6. Run inference:
+6. **Run inference**:
 
-   .. code-block:: console
+Run the following command:
 
-      python methods/eco_s2v/main.py
+.. code-block:: console
 
-   This performs inference across the node sizes in `NUM_INFERENCE_NODES`.
+   python methods/eco_s2v/main.py
 
-This completes the full training + model selection + inference pipeline for S2V using BA graphs.
+This step uses the newly selected best neural network parameters to run inference over all test graph instances.
 
-
-
-Instance-wise
--------------
-
-1. **Data directory and single prefix**  
-   In `config.py`, override to target one file only. For example, to test graph “g22” from Gset:
-   .. code-block:: python
-
-      DATA_DIR            = rlsolver_path + "/data/Gset"
-      INFERENCE_PREFIXES  = ["g22_"]    # only this one instance
-      NUM_INFERENCE_NODES = [2000]      # node count for “g22”
-      TRAIN_INFERENCE     = 1
-
-2. **Run on that single instance**  
-   .. code-block:: console
-
-      python methods/L2A/main.py
-
-   The script will load `g22.txt` from `DATA_DIR` and perform inference for that one prefix.
-
-3. **Conventional methods (single graph)**  
-   For other Instance-wise scripts, specify `--data-dir` and `--prefix`. For example:
-   .. code-block:: console
-
-      python methods/greedy.py \
-        --data-dir ../data/Gset \
-        --prefix g22
-
-      python methods/gurobi.py \
-        --data-dir ../data/Gset \
-        --prefix g22
-
-      python methods/simulated_annealing.py \
-        --data-dir ../data/Gset \
-        --prefix g22
-
-      python methods/mcpg.py \
-        --data-dir ../data/Gset \
-        --prefix g22
-
-      python methods/iSCO/main.py \
-        --data-dir ../data/Gset \
-        --prefix g22
-
-      python methods/PI-GNN/main.py \
-        --data-dir ../data/Gset \
-        --prefix g22
-
-      python methods/L2A/main.py \
-        --data-dir ../data/Gset \
-        --prefix g22 \
-        --mode instance
-
-
-3. Output Format
-----------------
-
-The final result should be written to `result/result.txt`. Each line represents a node and its assigned label:
+The result files will be saved in:
 
 .. code-block:: text
 
-   1 2
-   2 1
-   3 2
-   ...
+   rlsolver/result/syn_BA/
 
-This indicates the partitioning of nodes for the MaxCut solution.
+Each result file corresponds to one test graph and includes:
 
-4. Evaluation
+- ``obj``: the best objective value (i.e., maximum cut size),
+- ``running_duration``: time taken to solve the instance (in **seconds**),
+- ``num_nodes``: the number of nodes in the graph,
+- ``alg_name``: the algorithm used (e.g., ``eco``),
+- followed by the node assignments (each node assigned to group 1 or 2).
+
+Example output:
+
+.. image:: /_static/result.png
+   :align: center
+   :width: 600px
+
+This completes the full pipeline: **training → model selection → inference** for ``eco`` on distribution-wise BA graphs.
+
+Instance-wise (Greedy Baseline on Gset)
 -------------
+1. **Set problem and dataset**  
 
-See the `Evaluation` section of the documentation for information on how solutions are assessed.
+   In ``methods/config.py``, set the following:
 
+   .. code-block:: python
 
+      PROBLEM = Problem.maxcut
+      DIRECTORY_DATA = "../data/gset"
+      PREFIXES = ["gset_22"]
 
+   This will run the greedy algorithm on the Gset instance ``gset_22.txt``.
 
+2. **Run Greedy**  
 
+   Use the following command to execute the baseline algorithm:
+
+   .. code-block:: console
+
+      python methods/greedy.py
+
+   This script runs `greedy_maxcut()` using the specified file(s) under `data/gset/`.
+
+3. **Result Output**  
+
+After running the greedy algorithm, the results will be saved to:
+.. code-block:: text
+
+rlsolver/result/syn_BA/
+
+Each result file corresponds to one test instance and contains:
+
+ Example output:
+
+.. image:: /_static/result2.png
+   :align: center
+   :width: 600px
+
+- ``obj``: Final objective value (e.g., total cut size for MaxCut).
+- ``running_duration``: Time taken by the algorithm in **seconds**.
+- ``num_nodes``: Number of nodes in the graph instance.
+- ``alg_name``: The algorithm used to generate the solution (e.g., greedy).
+- Each following line: node ID and its assigned label (partition).  
+  For MaxCut, labels represent two sets in the cut.
+
+The file is automatically generated and named based on the instance prefix and a unique suffix, such as:
+
+.. code-block:: text
+
+   BA_100_ID0_3.txt
+
+You can find all greedy results in the ``result/syn_BA`` folder.
