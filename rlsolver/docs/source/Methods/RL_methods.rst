@@ -42,3 +42,4 @@ It leverages discrete‐space Markov Chain Monte Carlo (MCMC) moves together wit
 Jumanji
 --------
 Jumanji is a modular RL environment framework tailored for combinatorial problems. It provides standard Gym-style interfaces and helpers, letting you plug in any policy architecture or training algorithm with minimal boilerplate. Jumanji focuses on reproducibility and extensibility, making it easy to benchmark new methods on a wide range of combinatorial tasks.
+
