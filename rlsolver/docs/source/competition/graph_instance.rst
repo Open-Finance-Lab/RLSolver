@@ -1,44 +1,48 @@
 Graph Instance
 ==============
 
-This competition supports two categories of datasets: **Gset** (real-world instances) and **Syn** (synthetic graphs).
+Synthetic graphs are generated with three random distributions:
 
-1. **Gset Dataset**
-
-- The Gset dataset is originally released by Stanford University.
-- Graphs are stored as `.txt` files in the `data/` folder.
-- The number of nodes ranges from **800 to 10000**.
-- Each line describes an edge in the format:  
-
-where `u` and `v` are node indices (starting from 1), and `w` is the edge weight.
-
-- The first line of the file describes the total number of nodes and edges.  
-For example, the beginning of `gset_14.txt` is:
-
-2. **Syn Dataset (Synthetic)**
-
-- Synthetic graphs are generated with 3 random distributions:
 - **BA**: Barabási–Albert
 - **ER**: Erdős–Rényi
 - **PL**: Power Law
 
 - Node counts range from **100 to 1000**, with 10 graph instances per distribution and size.
+- Files are stored in the `data/` directory. Examples include:
 
-- Files are also stored in the `data/` directory. Example:
+  - `BA_100_ID0.txt`
+  - `ER_100_ID0.txt`
+  - `PL_100_ID0.txt`
 
-3. **Directory Layout**
+**File Format (Example: ``BA_100_ID0.txt``)**
 
-4. **Graph File Format**
+Each graph file is a plain text file with the following format:
 
-Each `.txt` file format:
-- Line 1: `N E` (number of nodes, number of edges)
-- Line 2 onward: `u v w` (node `u` is connected to node `v` with weight `w`)
+.. code-block:: text
 
-Node indices start from **1**, and the graphs are undirected.
+   100 384
+   1 2 1
+   1 3 1
+   1 4 1
+   1 5 1
+   1 6 1
+   ...
+   1 40 1
 
-5. **Data Selection in Code**
+Explanation:
 
-In the code, you can specify a dataset by setting:
-```python
-directory_data = '../data/syn_BA'
-prefixes = ['BA_100_']
+- The **first line** contains two integers:
+  - `100`: the number of nodes in the graph.
+  - `384`: the total number of edges.
+
+- Each **subsequent line** represents an undirected edge with a unit weight:
+  - The first number is the **source node index**.
+  - The second number is the **target node index**.
+  - The third number is the **edge weight** (always 1 in synthetic datasets).
+
+- **Node indices are 1-based**, meaning nodes are labeled from `1` to `100`.
+
+- An edge `1 2 1` means there is an edge between node 1 and node 2 with weight 1.  
+  Since the graph is undirected, the edge `2 1 1` is not repeated.
+
+This format is consistent across all synthetic graphs (BA, ER, PL) in the dataset.
