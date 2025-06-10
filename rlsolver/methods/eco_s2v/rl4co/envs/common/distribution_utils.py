@@ -38,13 +38,13 @@ class Cluster:
         # Generate the coordinates
         current_index = 0
         for i in range(self.n_cluster):
-            means = center[:, i * 2 : (i + 1) * 2]
+            means = center[:, i * 2: (i + 1) * 2]
             stds = torch.full((batch_size, 2), self.std)
             points = torch.normal(
                 means.unsqueeze(1).expand(-1, cluster_sizes[i], -1),
                 stds.unsqueeze(1).expand(-1, cluster_sizes[i], -1),
             )
-            coords[:, current_index : current_index + cluster_sizes[i], :] = points
+            coords[:, current_index: current_index + cluster_sizes[i], :] = points
             current_index += cluster_sizes[i]
 
         # Confine the coordinates to range [0, 1]
@@ -69,7 +69,6 @@ class Mixed:
         self.n_cluster_mix = n_cluster_mix
 
     def sample(self, size):
-
         batch_size, num_loc, _ = size
 
         # Generate the centers of the clusters
@@ -90,7 +89,7 @@ class Mixed:
         remaining_indices = num_loc // 2 - segment_size * (self.n_cluster_mix - 1)
         sizes = [segment_size] * (self.n_cluster_mix - 1) + [remaining_indices]
         for i in range(self.n_cluster_mix):
-            indices = mutate_idx[:, sum(sizes[:i]) : sum(sizes[: i + 1])]
+            indices = mutate_idx[:, sum(sizes[:i]): sum(sizes[: i + 1])]
             means_x = center[:, 2 * i].unsqueeze(1).expand(-1, sizes[i])
             means_y = center[:, 2 * i + 1].unsqueeze(1).expand(-1, sizes[i])
             coords.scatter_(
@@ -202,7 +201,7 @@ class Gaussian_Mixture:
 
         # Step 2: Normalize coordinates to range [0, 1]
         coords = (
-            coords - coords_min
+                coords - coords_min
         )  # Broadcasting subtracts min value on each coordinate
         range_max = (
             (coords_max - coords_min).max(dim=-1, keepdim=True).values
@@ -211,7 +210,7 @@ class Gaussian_Mixture:
 
         # Step 3: Center the batch in the middle of the [0, 1] range
         coords = (
-            coords + (1 - coords.max(dim=1, keepdim=True).values) / 2
+                coords + (1 - coords.max(dim=1, keepdim=True).values) / 2
         )  # Centering the batch
 
         return coords

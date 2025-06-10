@@ -1,6 +1,7 @@
 import torch
-from rlsolver.methods.iSCO.config.config_mis import *
 from torch.func import vmap
+
+from rlsolver.methods.iSCO.config.config_mis import *
 from rlsolver.methods.iSCO.util import math_util
 
 
@@ -17,7 +18,6 @@ class iSCO:
         self.edge_to = params_dict['edge_to']
         self.lam = LAMADA
 
-
     def random_gen_init_sample(self, params_dict):
         sample = torch.bernoulli(torch.full((BATCH_SIZE, self.max_num_nodes,), 0.5, device=self.device))
 
@@ -28,7 +28,7 @@ class iSCO:
         ll_x2y = trajectory['ll_x2y']
         ll_y, ll_y2x = self.ll_y2x(
             trajectory, y, temperature)
-        log_acc = torch.clamp(ll_y + ll_y2x - ll_x - ll_x2y,max=0.0)
+        log_acc = torch.clamp(ll_y + ll_y2x - ll_x - ll_x2y, max=0.0)
         y = self.select_sample(log_acc, x, y)
 
         return y, ll_y * temperature, log_acc.exp()
@@ -79,8 +79,8 @@ class iSCO:
         # gather2dst = x[self.edge_to]
         gather2src2 = torch.gather(x, -1, self.edge_from)
         gather2dst = torch.gather(x, -1, self.edge_to)
-        penalty = self.lam * torch.sum(gather2src2*gather2dst,dim=-1)
-        energy = torch.sum(x,dim=-1) - penalty
+        penalty = self.lam * torch.sum(gather2src2 * gather2dst, dim=-1)
+        energy = torch.sum(x, dim=-1) - penalty
 
         return energy / temperature
 

@@ -1,12 +1,14 @@
 import os
+from typing import Union, Optional
+
 import numpy as np
 import torch as th
 from torch import nn
 from torch.nn.utils import clip_grad_norm_
-from typing import Union, Optional
 
 from rlsolver.methods.eco_s2v.jumanji.train.config import Config
 from rlsolver.methods.eco_s2v.jumanji.train.replay_buffer import ReplayBuffer
+
 TEN = th.Tensor
 
 '''agent'''

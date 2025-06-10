@@ -2,7 +2,6 @@ from typing import Iterable, Optional
 
 import lightning.pytorch as pl
 import torch
-
 from lightning import Callback, Trainer
 from lightning.fabric.accelerators.cuda import num_cuda_devices
 from lightning.pytorch.accelerators import Accelerator
@@ -44,21 +43,21 @@ class RL4COTrainer(Trainer):
     """
 
     def __init__(
-        self,
-        accelerator: str | Accelerator = "auto",
-        callbacks: Optional[list[Callback]] = None,
-        logger: Optional[Logger | Iterable[Logger]] = None,
-        min_epochs: Optional[int] = None,
-        max_epochs: Optional[int] = None,
-        strategy: str | Strategy = "auto",
-        devices: list[int] | str | int = "auto",
-        gradient_clip_val: int | float = 1.0,
-        precision: str | int = "16-mixed",
-        reload_dataloaders_every_n_epochs: int = 1,
-        disable_profiling_executor: bool = True,
-        auto_configure_ddp: bool = True,
-        matmul_precision: str | int = "medium",
-        **kwargs,
+            self,
+            accelerator: str | Accelerator = "auto",
+            callbacks: Optional[list[Callback]] = None,
+            logger: Optional[Logger | Iterable[Logger]] = None,
+            min_epochs: Optional[int] = None,
+            max_epochs: Optional[int] = None,
+            strategy: str | Strategy = "auto",
+            devices: list[int] | str | int = "auto",
+            gradient_clip_val: int | float = 1.0,
+            precision: str | int = "16-mixed",
+            reload_dataloaders_every_n_epochs: int = 1,
+            disable_profiling_executor: bool = True,
+            auto_configure_ddp: bool = True,
+            matmul_precision: str | int = "medium",
+            **kwargs,
     ):
         # Disable JIT profiling executor. This reduces memory and increases speed.
         # Reference: https://github.com/HazyResearch/safari/blob/111d2726e7e2b8d57726b7a8b932ad8a4b2ad660/train.py#LL124-L129C17
@@ -121,12 +120,12 @@ class RL4COTrainer(Trainer):
         )
 
     def fit(
-        self,
-        model: "pl.LightningModule",
-        train_dataloaders: Optional[TRAIN_DATALOADERS | LightningDataModule] = None,
-        val_dataloaders: Optional[EVAL_DATALOADERS] = None,
-        datamodule: Optional[LightningDataModule] = None,
-        ckpt_path: Optional[str] = None,
+            self,
+            model: "pl.LightningModule",
+            train_dataloaders: Optional[TRAIN_DATALOADERS | LightningDataModule] = None,
+            val_dataloaders: Optional[EVAL_DATALOADERS] = None,
+            datamodule: Optional[LightningDataModule] = None,
+            ckpt_path: Optional[str] = None,
     ) -> None:
         """
         We override the `fit` method to automatically apply and handle RL4CO magic

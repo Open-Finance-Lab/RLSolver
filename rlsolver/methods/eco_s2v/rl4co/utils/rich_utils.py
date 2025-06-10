@@ -4,7 +4,6 @@ from typing import Sequence
 import rich
 import rich.syntax
 import rich.tree
-
 from hydra.core.hydra_config import HydraConfig
 from lightning.pytorch.utilities.rank_zero import rank_zero_only
 from omegaconf import DictConfig, OmegaConf, open_dict
@@ -17,18 +16,18 @@ log = pylogger.get_pylogger(__name__)
 
 @rank_zero_only
 def print_config_tree(
-    cfg: DictConfig,
-    print_order: Sequence[str] = (
-        # "data", # note: data is dealt with in model
-        "model",
-        "callbacks",
-        "logger",
-        "trainer",
-        "paths",
-        "extras",
-    ),
-    resolve: bool = True,
-    save_to_file: bool = False,
+        cfg: DictConfig,
+        print_order: Sequence[str] = (
+                # "data", # note: data is dealt with in model
+                "model",
+                "callbacks",
+                "logger",
+                "trainer",
+                "paths",
+                "extras",
+        ),
+        resolve: bool = True,
+        save_to_file: bool = False,
 ) -> None:
     """Prints content of DictConfig using Rich library and its tree structure.
     Args:

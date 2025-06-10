@@ -1,17 +1,13 @@
 # Base environment
 from rlsolver.methods.eco_s2v.rl4co.envs.common.base import RL4COEnvBase
 
-
-
 # Graph
-from rlsolver.methods.eco_s2v.rl4co.envs.graph import  MaxCutEnv
-
-
+from rlsolver.methods.eco_s2v.rl4co.envs.graph import MaxCutEnv
 
 # Register environments
 ENV_REGISTRY = {
 
-   "maxcut": MaxCutEnv,
+    "maxcut": MaxCutEnv,
 }
 
 

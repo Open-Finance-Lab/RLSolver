@@ -1,9 +1,7 @@
 import math
-
 from typing import Callable
 
 import torch
-
 from tensordict.tensordict import TensorDict
 from torch import Tensor
 
@@ -39,7 +37,7 @@ def dihedral_8_augmentation(xy: Tensor) -> Tensor:
 
 
 def dihedral_8_augmentation_wrapper(
-    xy: Tensor, reduce: bool = True, *args, **kw
+        xy: Tensor, reduce: bool = True, *args, **kw
 ) -> Tensor:
     """Wrapper for dihedral_8_augmentation. If reduce, only return the first 1/8 of the augmented data
     since the augmentation augments the data 8 times.
@@ -117,16 +115,16 @@ class StateAugmentation(object):
     """
 
     def __init__(
-        self,
-        num_augment: int = 8,
-        augment_fn: str | Callable = "symmetric",
-        first_aug_identity: bool = True,
-        normalize: bool = False,
-        feats: list = None,
+            self,
+            num_augment: int = 8,
+            augment_fn: str | Callable = "symmetric",
+            first_aug_identity: bool = True,
+            normalize: bool = False,
+            feats: list = None,
     ):
         self.augmentation = get_augment_function(augment_fn)
         assert not (
-            self.augmentation == dihedral_8_augmentation_wrapper and num_augment != 8
+                self.augmentation == dihedral_8_augmentation_wrapper and num_augment != 8
         ), "When using the `dihedral8` augmentation function, then num_augment must be 8"
 
         if feats is None:

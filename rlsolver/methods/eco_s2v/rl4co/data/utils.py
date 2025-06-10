@@ -1,7 +1,6 @@
 import os
 
 import numpy as np
-
 from tensordict.tensordict import TensorDict
 
 CURR_DIR = os.path.dirname(os.path.abspath(__file__))

@@ -1,12 +1,11 @@
 from typing import Callable, Optional
 
 import torch.nn as nn
-
 from torch import Tensor
 
+from rlsolver.methods.eco_s2v.rl4co.models.nn.attention import MultiHeadAttention
 from rlsolver.methods.eco_s2v.rl4co.models.nn.mlp import MLP
 from rlsolver.methods.eco_s2v.rl4co.models.nn.moe import MoE
-from rlsolver.methods.eco_s2v.rl4co.models.nn.attention import MultiHeadAttention
 from rlsolver.methods.eco_s2v.rl4co.models.nn.ops import Normalization, SkipConnection
 from rlsolver.methods.eco_s2v.rl4co.utils.pylogger import get_pylogger
 
@@ -26,14 +25,14 @@ class MultiHeadAttentionLayer(nn.Sequential):
     """
 
     def __init__(
-        self,
-        embed_dim: int,
-        num_heads: int = 8,
-        feedforward_hidden: int = 512,
-        normalization: Optional[str] = "batch",
-        bias: bool = True,
-        sdpa_fn: Optional[Callable] = None,
-        moe_kwargs: Optional[dict] = None,
+            self,
+            embed_dim: int,
+            num_heads: int = 8,
+            feedforward_hidden: int = 512,
+            normalization: Optional[str] = "batch",
+            bias: bool = True,
+            sdpa_fn: Optional[Callable] = None,
+            moe_kwargs: Optional[dict] = None,
     ):
         num_neurons = [feedforward_hidden] if feedforward_hidden > 0 else []
         if moe_kwargs is not None:
@@ -66,14 +65,14 @@ class GraphAttentionNetwork(nn.Module):
     """
 
     def __init__(
-        self,
-        num_heads: int,
-        embed_dim: int,
-        num_layers: int,
-        normalization: str = "batch",
-        feedforward_hidden: int = 512,
-        sdpa_fn: Optional[Callable] = None,
-        moe_kwargs: Optional[dict] = None,
+            self,
+            num_heads: int,
+            embed_dim: int,
+            num_layers: int,
+            normalization: str = "batch",
+            feedforward_hidden: int = 512,
+            sdpa_fn: Optional[Callable] = None,
+            moe_kwargs: Optional[dict] = None,
     ):
         super(GraphAttentionNetwork, self).__init__()
 

@@ -1,17 +1,19 @@
 import time
+
 import torch
 
-from rlsolver.methods.eco_s2v.util import test_network, load_graph_set_from_txt
+from rlsolver.methods.eco_s2v.config import *
+from rlsolver.methods.eco_s2v.config import INFERENCE_DEVICE
+from rlsolver.methods.eco_s2v.src.envs.spinsystem import SpinSystemFactory
 from rlsolver.methods.eco_s2v.src.envs.util import (SingleGraphGenerator,
                                                     RewardSignal, ExtraAction,
                                                     OptimisationTarget, SpinBasis,
                                                     DEFAULT_OBSERVABLES, Observable)
 from rlsolver.methods.eco_s2v.src.networks.mpnn import MPNN
-from rlsolver.methods.util_result import write_graph_result
-from rlsolver.methods.eco_s2v.config import *
+from rlsolver.methods.eco_s2v.util import test_network, load_graph_set_from_txt
 from rlsolver.methods.util import calc_txt_files_with_prefixes
-from rlsolver.methods.eco_s2v.src.envs.spinsystem import SpinSystemFactory
-from rlsolver.methods.eco_s2v.config import INFERENCE_DEVICE
+from rlsolver.methods.util_result import write_graph_result
+
 
 def run(save_loc="BA_40spin/eco",
         graph_save_loc="../../data/syn_BA",
@@ -55,7 +57,7 @@ def run(save_loc="BA_40spin/eco",
                     'stag_punishment': None,
                     'basin_reward': 1. / NUM_TRAIN_NODES,
                     'reversible_spins': True,
-                    'if_greedy':if_greedy}
+                    'if_greedy': if_greedy}
     elif ALG == Alg.s2v:
         env_args = {'observables': [Observable.SPIN_STATE],
                     'reward_signal': RewardSignal.DENSE,
@@ -68,7 +70,7 @@ def run(save_loc="BA_40spin/eco",
                     'stag_punishment': None,
                     'basin_reward': None,
                     'reversible_spins': False,
-                    'if_greedy':if_greedy}
+                    'if_greedy': if_greedy}
 
     if prefixes:
         file_names = calc_txt_files_with_prefixes(graph_save_loc, prefixes)
@@ -128,6 +130,7 @@ def run(save_loc="BA_40spin/eco",
                 write_graph_result(obj, run_duration, num_nodes, ALG.value, result, graph_dict, plus1=True)
 
             save_path = os.path.join(data_folder, fname).replace("\\", "/")
+
 
 if __name__ == "__main__":
     prefixes = INFERENCE_PREFIXES

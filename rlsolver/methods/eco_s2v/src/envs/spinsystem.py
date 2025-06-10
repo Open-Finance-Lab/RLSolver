@@ -4,18 +4,19 @@ from operator import matmul
 
 import numpy as np
 import torch.multiprocessing as mp
-# from numba import jit, float64, int64
 
 from rlsolver.methods.eco_s2v.src.envs.util import (EdgeType,
-                                                             RewardSignal,
-                                                             ExtraAction,
-                                                             OptimisationTarget,
-                                                             Observable,
-                                                             SpinBasis,
-                                                             DEFAULT_OBSERVABLES,
-                                                             GraphGenerator,
-                                                             RandomGraphGenerator,
-                                                             HistoryBuffer)
+                                                    RewardSignal,
+                                                    ExtraAction,
+                                                    OptimisationTarget,
+                                                    Observable,
+                                                    SpinBasis,
+                                                    DEFAULT_OBSERVABLES,
+                                                    GraphGenerator,
+                                                    RandomGraphGenerator,
+                                                    HistoryBuffer)
+
+# from numba import jit, float64, int64
 
 # A container for get_result function below. Works just like tuple, but prettier.
 ActionResult = namedtuple("action_result", ("snapshot", "observation", "reward", "is_done", "info"))
@@ -658,7 +659,8 @@ class SpinSystemUnbiased(SpinSystemBase):
     # @jit(float64[:](float64[:], float64[:, :]), nopython=True)
     def _get_immeditate_cuts_avaialable_jit(spins, matrix):
         return spins * matmul(matrix, spins)
- 
+
+
 class SpinSystemBiased(SpinSystemBase):
 
     def calculate_energy(self, spins=None):

@@ -1,9 +1,8 @@
-from typing import IO, Any, Optional, cast
 import time
+from typing import IO, Any, Optional, cast
 
 import torch
 import torch.nn as nn
-
 from lightning.fabric.utilities.types import _MAP_LOCATION_TYPE, _PATH
 from lightning.pytorch.core.saving import _load_from_checkpoint
 from tensordict import TensorDict
@@ -32,13 +31,13 @@ class REINFORCE(RL4COLitModule):
     """
 
     def __init__(
-        self,
-        env: RL4COEnvBase,
-        policy: nn.Module,
-        baseline: REINFORCEBaseline | str = "rollout",
-        baseline_kwargs: dict = {},
-        reward_scale: str = None,
-        **kwargs,
+            self,
+            env: RL4COEnvBase,
+            policy: nn.Module,
+            baseline: REINFORCEBaseline | str = "rollout",
+            baseline_kwargs: dict = {},
+            reward_scale: str = None,
+            **kwargs,
     ):
         super().__init__(env, policy, **kwargs)
         self.train_start_time = None
@@ -59,7 +58,7 @@ class REINFORCE(RL4COLitModule):
         self.advantage_scaler = RewardScaler(reward_scale)
 
     def shared_step(
-        self, batch: Any, batch_idx: int, phase: str, dataloader_idx: int = None
+            self, batch: Any, batch_idx: int, phase: str, dataloader_idx: int = None
     ):
         td = self.env.reset(batch)
         # Perform forward pass (i.e., constructing solution and computing log-likelihoods)
@@ -76,12 +75,12 @@ class REINFORCE(RL4COLitModule):
         return {"loss": out.get("loss", None), **metrics}
 
     def calculate_loss(
-        self,
-        td: TensorDict,
-        batch: TensorDict,
-        policy_out: dict,
-        reward: Optional[torch.Tensor] = None,
-        log_likelihood: Optional[torch.Tensor] = None,
+            self,
+            td: TensorDict,
+            batch: TensorDict,
+            policy_out: dict,
+            reward: Optional[torch.Tensor] = None,
+            log_likelihood: Optional[torch.Tensor] = None,
     ):
         """Calculate loss for REINFORCE algorithm.
 
@@ -171,13 +170,13 @@ class REINFORCE(RL4COLitModule):
 
     @classmethod
     def load_from_checkpoint(
-        cls,
-        checkpoint_path: _PATH | IO,
-        map_location: _MAP_LOCATION_TYPE = None,
-        hparams_file: Optional[_PATH] = None,
-        strict: bool = False,
-        load_baseline: bool = True,
-        **kwargs: Any,
+            cls,
+            checkpoint_path: _PATH | IO,
+            map_location: _MAP_LOCATION_TYPE = None,
+            hparams_file: Optional[_PATH] = None,
+            strict: bool = False,
+            load_baseline: bool = True,
+            **kwargs: Any,
     ) -> Self:
         """Load model from checkpoint/
 

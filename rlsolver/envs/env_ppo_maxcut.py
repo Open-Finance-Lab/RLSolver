@@ -1,15 +1,15 @@
-import torch as th
-from typing import List, Tuple
 import os
-import networkx as nx
-TEN = th.Tensor
+from typing import List, Tuple
 
+import networkx as nx
+import torch as th
+
+TEN = th.Tensor
 
 '''graph'''
 GraphList = List[Tuple[int, int, int]]  # 每条边两端点的索引以及边的权重 List[Tuple[Node0ID, Node1ID, WeightEdge]]
 IndexList = List[List[int]]  # 按索引顺序记录每个点的所有邻居节点 IndexList[Node0ID] = [Node1ID, ...]
 DataDir = './data/graph_max_cut'  # 保存图最大割的txt文件的目录，txt数据以稀疏的方式记录了GraphList，可以重建图的邻接矩阵
-
 
 '''load graph'''
 
@@ -125,6 +125,7 @@ def build_adjacency_indies(graph_list: GraphList, if_bidirectional: bool = False
 
 def obtain_num_nodes(graph_list: GraphList) -> int:
     return max([max(n0, n1) for n0, n1, distance in graph_list]) + 1
+
 
 class SimulatorGraphMaxCut:
     def __init__(self, args, graph_list: GraphList = (),

@@ -1,17 +1,17 @@
-import sys
 import os
+import sys
+
 cur_path = os.path.dirname(os.path.abspath(__file__))
 rlsolver_path = os.path.join(cur_path, '../../rlsolver')
 sys.path.append(os.path.dirname(rlsolver_path))
 
-import os
-import sys
-import time
 import torch as th
 
 from rlsolver.envs.env_mcpg_maxcut import (SimulatorMaxcut,
                                            update_xs_by_vs)
+
 TEN = th.Tensor
+
 
 class LocalSearch:
     def __init__(self, simulator: SimulatorMaxcut, num_nodes: int):
@@ -38,7 +38,7 @@ class LocalSearch:
             xs[sim_id] = _xs[_vs.argmax()]
         return xs
 
-    #self.simulator是并行
+    # self.simulator是并行
     def random_search(self, num_iters: int = 8, num_spin: int = 8, noise_std: float = 0.3):
         sim = self.simulator
         kth = self.num_nodes - num_spin

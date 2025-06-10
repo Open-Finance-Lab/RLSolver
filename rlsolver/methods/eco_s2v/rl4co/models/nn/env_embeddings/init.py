@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-
 from tensordict.tensordict import TensorDict
 
 from rlsolver.methods.eco_s2v.rl4co.models.nn.ops import PositionalEncoding
@@ -166,11 +165,11 @@ class VRPPolarInitEmbedding(nn.Module):
     """
 
     def __init__(
-        self,
-        embed_dim,
-        linear_bias=True,
-        node_dim: int = 3,
-        attach_cartesian_coords=False,
+            self,
+            embed_dim,
+            linear_bias=True,
+            node_dim: int = 3,
+            attach_cartesian_coords=False,
     ):
         super(VRPPolarInitEmbedding, self).__init__()
         self.node_dim = node_dim + (
@@ -363,9 +362,9 @@ class PDPInitEmbedding(nn.Module):
         depot, locs = td["locs"][..., 0:1, :], td["locs"][..., 1:, :]
         num_locs = locs.size(-2)
         pick_feats = torch.cat(
-            [locs[:, : num_locs // 2, :], locs[:, num_locs // 2 :, :]], -1
+            [locs[:, : num_locs // 2, :], locs[:, num_locs // 2:, :]], -1
         )  # [batch_size, graph_size//2, 4]
-        delivery_feats = locs[:, num_locs // 2 :, :]  # [batch_size, graph_size//2, 2]
+        delivery_feats = locs[:, num_locs // 2:, :]  # [batch_size, graph_size//2, 2]
         depot_embeddings = self.init_embed_depot(depot)
         pick_embeddings = self.init_embed_pick(pick_feats)
         delivery_embeddings = self.init_embed_delivery(delivery_feats)
@@ -433,9 +432,9 @@ class MDCPDPInitEmbedding(nn.Module):
         depot, locs = td["locs"][..., 0:num_depots, :], td["locs"][..., num_depots:, :]
         num_locs = locs.size(-2)
         pick_feats = torch.cat(
-            [locs[:, : num_locs // 2, :], locs[:, num_locs // 2 :, :]], -1
+            [locs[:, : num_locs // 2, :], locs[:, num_locs // 2:, :]], -1
         )  # [batch_size, graph_size//2, 4]
-        delivery_feats = locs[:, num_locs // 2 :, :]  # [batch_size, graph_size//2, 2]
+        delivery_feats = locs[:, num_locs // 2:, :]  # [batch_size, graph_size//2, 2]
         depot_embeddings = self.init_embed_depot(depot)
         pick_embeddings = self.init_embed_pick(pick_feats)
         delivery_embeddings = self.init_embed_delivery(delivery_feats)
@@ -445,11 +444,11 @@ class MDCPDPInitEmbedding(nn.Module):
 
 class JSSPInitEmbedding(nn.Module):
     def __init__(
-        self,
-        embed_dim,
-        linear_bias: bool = True,
-        scaling_factor: int = 1000,
-        num_op_feats=5,
+            self,
+            embed_dim,
+            linear_bias: bool = True,
+            scaling_factor: int = 1000,
+            num_op_feats=5,
     ):
         super(JSSPInitEmbedding, self).__init__()
         self.embed_dim = embed_dim
@@ -512,10 +511,10 @@ class FJSPInitEmbedding(JSSPInitEmbedding):
 
 class FJSPMatNetInitEmbedding(JSSPInitEmbedding):
     def __init__(
-        self,
-        embed_dim,
-        linear_bias: bool = False,
-        scaling_factor: int = 1000,
+            self,
+            embed_dim,
+            linear_bias: bool = False,
+            scaling_factor: int = 1000,
     ):
         super().__init__(embed_dim, linear_bias, scaling_factor)
         self.init_ma_embed = nn.Linear(1, self.embed_dim, bias=linear_bias)
@@ -566,6 +565,7 @@ class MTVRPInitEmbedding(VRPInitEmbedding):
         )
         return torch.cat((depot_embedding, node_embeddings), -2)
 
+
 class FLPInitEmbedding(nn.Module):
     def __init__(self, embed_dim: int):
         super().__init__()
@@ -574,9 +574,11 @@ class FLPInitEmbedding(nn.Module):
     def forward(self, td: TensorDict):
         hdim = self.projection(td["locs"])
         return hdim
-    
+
+
 class MaxCutInitEmbedding(nn.Module):
     def __init__(self, embed_dim: int):
         super().__init__()
+
     def forward(self, td: TensorDict):
         return td['adj']

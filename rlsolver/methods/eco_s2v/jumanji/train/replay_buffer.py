@@ -1,7 +1,8 @@
-import os
 import math
-import torch as th
+import os
 from typing import Tuple
+
+import torch as th
 
 from .config import Config
 

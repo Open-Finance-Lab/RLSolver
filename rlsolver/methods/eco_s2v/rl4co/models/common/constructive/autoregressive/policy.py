@@ -16,17 +16,17 @@ class AutoregressivePolicy(ConstructivePolicy):
     """
 
     def __init__(
-        self,
-        encoder: AutoregressiveEncoder,
-        decoder: AutoregressiveDecoder,
-        env_name: str = "tsp",
-        temperature: float = 1.0,
-        tanh_clipping: float = 0,
-        mask_logits: bool = True,
-        train_decode_type: str = "sampling",
-        val_decode_type: str = "greedy",
-        test_decode_type: str = "greedy",
-        **unused_kw,
+            self,
+            encoder: AutoregressiveEncoder,
+            decoder: AutoregressiveDecoder,
+            env_name: str = "tsp",
+            temperature: float = 1.0,
+            tanh_clipping: float = 0,
+            mask_logits: bool = True,
+            train_decode_type: str = "sampling",
+            val_decode_type: str = "greedy",
+            test_decode_type: str = "greedy",
+            **unused_kw,
     ):
         # We raise an error for the user if no decoder was provided
         if decoder is None:

@@ -1,5 +1,6 @@
 import os
 import sys
+
 cur_path = os.path.dirname(os.path.abspath(__file__))
 rlsolver_path = os.path.join(cur_path, '../../../rlsolver')
 sys.path.append(os.path.dirname(rlsolver_path))
@@ -8,7 +9,6 @@ import numpy as np
 import torch as th
 import sys
 import os
-
 
 from config import ConfigGraph, ConfigPolicy
 from graph_max_cut_trs import get_seq_graph, valid_net

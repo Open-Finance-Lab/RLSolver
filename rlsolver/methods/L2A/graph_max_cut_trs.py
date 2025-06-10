@@ -1,14 +1,15 @@
 import os
 import sys
-import torch as th
-import torch.nn as nn
 from typing import Tuple, Optional
 
+import torch as th
+import torch.nn as nn
+
 from config import ConfigGraph, ConfigPolicy
-from rlsolver.methods.util_evaluator import Evaluator
-from network import GraphTRS, create_mask
-from rlsolver.methods.util_read_data import load_graph_list,update_xs_by_vs, pick_xs_by_vs, GraphList, build_adjacency_bool
 from graph_embedding_pretrain import sort_adj_bools
+from network import GraphTRS, create_mask
+from rlsolver.methods.util_evaluator import Evaluator
+from rlsolver.methods.util_read_data import load_graph_list, update_xs_by_vs, pick_xs_by_vs, GraphList, build_adjacency_bool
 
 TEN = th.Tensor
 '''network'''
@@ -393,5 +394,3 @@ def valid_net(sim, net, evaluator, seq_graph: TEN, iter_i: int, graph_id: int,
             show_str = (f"  {t:4} value {best_vs.float().mean().long():6} < {best_vs.max():6} < {evaluator.best_v:6}"
                         f"  graph_id {graph_id}")
             evaluator.logging_print(show_str=show_str, if_show_x=if_show_x)
-
-

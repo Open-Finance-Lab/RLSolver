@@ -4,10 +4,10 @@ from abc import ABC, abstractmethod
 import networkx as nx
 import numpy as np
 import torch
-from rlsolver.methods.eco_s2v.config import *
+
 from rlsolver.methods.config import GraphType
-from rlsolver.methods.eco_s2v.src.envs.util import (EdgeType, RewardSignal, ExtraAction,
-                                                    OptimisationTarget, SpinBasis,DEFAULT_OBSERVABLES,Observable)
+from rlsolver.methods.eco_s2v.src.envs.util import (EdgeType)
+
 
 class GraphGenerator(ABC):
 
@@ -92,12 +92,14 @@ class RandomErdosRenyiGraphGenerator(GraphGenerator):
                 mask = 2. * torch.randint(0, 2, (self.n_spins, self.n_spins), device=self.device) - 1.
                 mask = torch.tril(mask) + torch.triu(mask.T, 1)
                 return mask
+
             self.get_connection_mask = get_connection_mask
         elif self.edge_type == EdgeType.RANDOM:
             def get_connection_mask():
                 mask = 2. * torch.randint(0, 2, (self.n_sims, self.n_spins, self.n_spins), dtype=torch.float32, device=self.device) - 1
                 mask = torch.tril(mask, diagonal=0) + torch.triu(mask.transpose(1, 2), diagonal=1)
                 return mask
+
             self.get_connection_mask = get_connection_mask
         else:
             raise NotImplementedError()
@@ -137,12 +139,14 @@ class RandomBarabasiAlbertGraphGenerator(GraphGenerator):
                 mask = 2. * torch.randint(0, 2, (self.n_spins, self.n_spins), device=self.device) - 1.
                 mask = torch.tril(mask) + torch.triu(mask.T, 1)
                 return mask
+
             self.get_connection_mask = get_connection_mask
         elif self.edge_type == EdgeType.RANDOM:
             def get_connection_mask():
                 mask = 2. * torch.randint(0, 2, (self.n_sims, self.n_spins, self.n_spins), dtype=torch.float32, device=self.device) - 1
                 mask = torch.tril(mask, diagonal=0) + torch.triu(mask.transpose(1, 2), diagonal=1)
                 return mask
+
             self.get_connection_mask = get_connection_mask
         else:
             raise NotImplementedError()
@@ -152,7 +156,7 @@ class RandomBarabasiAlbertGraphGenerator(GraphGenerator):
         直接在 PyTorch 中并行生成 Barabási–Albert 图
         """
         adj = torch.zeros((self.n_sims, self.n_spins, self.n_spins), device=self.device)
-        
+
         # 初始完全连通子图
         for i in range(self.m_insertion_edges + 1):
             adj[:, i, :i + 1] = 1
@@ -161,7 +165,7 @@ class RandomBarabasiAlbertGraphGenerator(GraphGenerator):
         for new_node in range(self.m_insertion_edges + 1, self.n_spins):
             degree = adj.sum(dim=-1)
             prob = degree / degree.sum(dim=-1, keepdim=True)
-            
+
             chosen_edges = torch.multinomial(prob, num_samples=self.m_insertion_edges, replacement=False)
             batch_indices = torch.arange(self.n_sims, device=self.device).repeat_interleave(self.m_insertion_edges)
             adj[batch_indices, new_node, chosen_edges.view(-1)] = 1
@@ -173,8 +177,10 @@ class RandomBarabasiAlbertGraphGenerator(GraphGenerator):
         adj = self.generate_barabasi_albert()
         # if self.seed is not None:
         adj = adj * self.get_connection_mask()
-        return self.pad_matrix(adj) if with_padding else adj    
-# class RandomBarabasiAlbertGraphGenerator:
+        return self.pad_matrix(adj) if with_padding else adj
+    # class RandomBarabasiAlbertGraphGenerator:
+
+
 #     def __init__(self, n_spins=20, m_insertion_edges=4, edge_type="DISCRETE", n_sims=8, device="cuda"):
 #         self.n_spins = n_spins
 #         self.m_insertion_edges = m_insertion_edges
@@ -341,7 +347,7 @@ class SingleGraphGenerator(GraphGenerator):
 
 
 class ValidationGraphGenerator(GraphGenerator):
-    def __init__(self, device,n_spins=20, edge_type=EdgeType.DISCRETE, n_sims=2 ** 3, seed=None,graph_type=GraphType.BA):
+    def __init__(self, device, n_spins=20, edge_type=EdgeType.DISCRETE, n_sims=2 ** 3, seed=None, graph_type=GraphType.BA):
         super().__init__(n_spins, edge_type, False, n_sims)
         self.seed = seed
         self.device = device
@@ -360,13 +366,13 @@ class ValidationGraphGenerator(GraphGenerator):
                 elif self.graph_type == GraphType.ER:
                     g = nx.erdos_renyi_graph(self.n_spins, 0.15, seed=seed)
                 adj[i] = torch.tensor(nx.to_numpy_array(g), dtype=torch.float32, device=self.device).fill_diagonal_(0)
-                seed += 1     
+                seed += 1
         return adj
 
 
 class SetGraphGenerator(GraphGenerator):
 
-    def __init__(self, matrices, biases=None, ordered=False,device="cuda"):
+    def __init__(self, matrices, biases=None, ordered=False, device="cuda"):
 
         if len(set([m.shape[0] - 1 for m in matrices])) == 1:
             n_spins = matrices[0].shape[0]
@@ -452,18 +458,19 @@ class PerturbedGraphGenerator(GraphGenerator):
         m = m + noise
 
         return self.pad_matrix(m) if with_padding else m
- 
+
+
 class HistoryBuffer():
-    def __init__(self,n_sims,device):
+    def __init__(self, n_sims, device):
         self.n_sims = n_sims
         self.buffer = None
-        self.device=device
+        self.device = device
 
     # def pack_spins(self,spins):
     #     n_sims, spin_dim = spins.shape
     #     assert spin_dim % 8 == 0, "spin_dim 必须是 8 的倍数"
     #     return spins.view(n_sims, -1, 8).mul(2**torch.arange(7, -1, -1, device=spins.device)).sum(dim=2).to(torch.uint8)
-    
+
     def pack_spins(self, spins_0):
         """
         Packs a 0/1 spin tensor into uint8 for efficient storage.
@@ -486,19 +493,20 @@ class HistoryBuffer():
             spins_padded = spins_0
             packed_dim = spin_dim // 8
 
-        packed_spins = spins_padded.view(n_sims, packed_dim, 8)\
-                                    .mul(2**torch.arange(7, -1, -1, device=spins_padded.device))\
-                                    .sum(dim=2)\
-                                    .to(torch.uint8)
+        packed_spins = spins_padded.view(n_sims, packed_dim, 8) \
+            .mul(2 ** torch.arange(7, -1, -1, device=spins_padded.device)) \
+            .sum(dim=2) \
+            .to(torch.uint8)
         return packed_spins
+
     def update(self, spins):
         """
         记录新的 spins，并返回哪些是新状态
         :param spins: (n_sims, spin_dim) 形状的 0/1 Tensor
         :return: (n_sims,) 形状的布尔 Tensor，表示哪些是新状态
         """
-        #spins_0的值是0或1，spins的值是1或-1
-        spins_0 = (spins+1)/2
+        # spins_0的值是0或1，spins的值是1或-1
+        spins_0 = (spins + 1) / 2
         spins_packed = self.pack_spins(spins_0)  # 压缩存储
 
         # 第一次更新时初始化 buffer
@@ -515,6 +523,5 @@ class HistoryBuffer():
 
         # 追加新状态
         self.buffer = torch.cat([self.buffer, spins_packed.unsqueeze(0)], dim=0)
-
 
         return updated

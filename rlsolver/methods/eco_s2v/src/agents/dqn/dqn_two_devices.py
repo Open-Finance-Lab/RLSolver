@@ -11,9 +11,9 @@ import torch
 import torch.nn.functional as F
 import torch.optim as optim
 
+from rlsolver.methods.eco_s2v.config import *
 from rlsolver.methods.eco_s2v.src.agents.dqn.utils import ReplayBuffer, Logger, TestMetric, set_global_seed
 from rlsolver.methods.eco_s2v.src.envs.util import ExtraAction
-from rlsolver.methods.eco_s2v.config import *
 
 
 class DQN:
@@ -279,9 +279,9 @@ class DQN:
         total_time = 0
         if self.logging:
             if not self.test_sampling_speed:
-                logger = Logger(save_path=self.logger_save_path, args=self.args)
+                logger = Logger(save_path=self.logger_save_path, args=self.args, n_sims=1)
             else:
-                logger = Logger(save_path=self.sampling_speed_save_path, args=self.args)
+                logger = Logger(save_path=self.sampling_speed_save_path, args=self.args, n_sims=1)
 
         path = self.network_save_path
         path_main, path_ext = os.path.splitext(path)
@@ -375,7 +375,6 @@ class DQN:
                         loss = self.train_step(transitions)
                         losses.append([timestep, loss])
                         losses_eps.append(loss)
-
 
                     # Periodically update target network
                     if timestep % self.update_target_frequency == 0:

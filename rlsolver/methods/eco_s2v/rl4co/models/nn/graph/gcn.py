@@ -2,7 +2,6 @@ from typing import Callable, Tuple
 
 import torch.nn as nn
 import torch.nn.functional as F
-
 from tensordict import TensorDict
 from torch import Tensor
 
@@ -15,7 +14,6 @@ from rlsolver.methods.eco_s2v.rl4co.utils.ops import get_full_graph_edge_index
 from rlsolver.methods.eco_s2v.rl4co.utils.pylogger import get_pylogger
 
 log = get_pylogger(__name__)
-
 
 EdgeIndexFnSignature = Callable[[TensorDict, int], Tensor]
 
@@ -38,15 +36,15 @@ class GCNEncoder(nn.Module):
     """
 
     def __init__(
-        self,
-        env_name: str,
-        embed_dim: int,
-        num_layers: int,
-        init_embedding: nn.Module = None,
-        residual: bool = True,
-        edge_idx_fn: EdgeIndexFnSignature = None,
-        dropout: float = 0.5,
-        bias: bool = True,
+            self,
+            env_name: str,
+            embed_dim: int,
+            num_layers: int,
+            init_embedding: nn.Module = None,
+            residual: bool = True,
+            edge_idx_fn: EdgeIndexFnSignature = None,
+            dropout: float = 0.5,
+            bias: bool = True,
     ):
         super().__init__()
 
@@ -73,7 +71,7 @@ class GCNEncoder(nn.Module):
         )
 
     def forward(
-        self, td: TensorDict, mask: Tensor | None = None
+            self, td: TensorDict, mask: Tensor | None = None
     ) -> Tuple[Tensor, Tensor]:
         """Forward pass of the encoder.
         Transform the input TensorDict into a latent representation.

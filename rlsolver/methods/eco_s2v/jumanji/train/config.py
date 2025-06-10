@@ -1,8 +1,9 @@
 import os
-import torch as th
-import numpy as np
-from typing import Tuple
 from multiprocessing import Pipe, Process
+from typing import Tuple
+
+import numpy as np
+import torch as th
 
 TEN = th.Tensor
 
@@ -23,9 +24,9 @@ class Config:
                         'max_step': 12345,
                         'state_dim': None,
                         'action_dim': None,
-                        'if_discrete': None, 
-                        "num_nodes":None}
-        
+                        'if_discrete': None,
+                        "num_nodes": None}
+
         env_args.setdefault('num_envs', 1)  # `num_envs=1` in default in single env.
         env_args.setdefault('max_step', 12345)  # `max_step=12345` in default, which is a large enough value.
         self.env_name = env_args['env_name']  # the name of environment. Be used to set 'cwd'.

@@ -2,6 +2,8 @@
 Implements a DQN learning agent.
 """
 
+import itertools
+import math
 import random
 import time
 from copy import deepcopy
@@ -11,13 +13,11 @@ import torch
 import torch.nn.functional as F
 import torch.optim as optim
 
-from rlsolver.methods.eco_s2v.src.agents.dqn.utils import  Logger, TestMetric, set_global_seed
+from rlsolver.methods.eco_s2v.config import *
+from rlsolver.methods.eco_s2v.src.agents.dqn.utils import Logger, TestMetric, set_global_seed
 from rlsolver.methods.eco_s2v.src.agents.dqn.utils import eeco_ReplayBuffer as ReplayBuffer
 from rlsolver.methods.eco_s2v.src.envs.util import ExtraAction
-from rlsolver.methods.eco_s2v.config import *
 
-import math
-import itertools
 
 class DQN:
     """
@@ -138,12 +138,12 @@ class DQN:
             # Other
             logging=True,
             seed=None,
-            test_sampling_speed = False,
-            logger_save_path = None,
-            sampling_patten = None,
-            buffer_device = None,
-            sampling_speed_save_path = None,
-            args = None,
+            test_sampling_speed=False,
+            logger_save_path=None,
+            sampling_patten=None,
+            buffer_device=None,
+            sampling_speed_save_path=None,
+            args=None,
     ):
 
         self.double_dqn = double_dqn
@@ -187,16 +187,16 @@ class DQN:
                 raise ValueError("loss must be 'huber', 'mse' or a callable")
 
         self.env = envs
-        matrix_index_cycle = itertools.cycle(range(math.ceil(self.replay_buffer_size/(self.env.max_steps*self.env.n_sims))))
-        self.n_matrix = math.ceil(self.replay_buffer_size/(self.env.max_steps*self.env.n_sims))*self.env.n_sims
+        matrix_index_cycle = itertools.cycle(range(math.ceil(self.replay_buffer_size / (self.env.max_steps * self.env.n_sims))))
+        self.n_matrix = math.ceil(self.replay_buffer_size / (self.env.max_steps * self.env.n_sims)) * self.env.n_sims
         self.acting_in_reversible_spin_env = self.env.reversible_spins
-        self.replay_buffer = ReplayBuffer(self.replay_buffer_size,sampling_patten=self.sampling_patten
-                                          ,device=self.buffer_device,n_matrix=self.n_matrix
-                                          ,matrix_index_cycle=matrix_index_cycle)
+        self.replay_buffer = ReplayBuffer(self.replay_buffer_size, sampling_patten=self.sampling_patten
+                                          , device=self.buffer_device, n_matrix=self.n_matrix
+                                          , matrix_index_cycle=matrix_index_cycle)
         self.seed = random.randint(0, 1000000) if seed is None else seed
-        
+
         set_global_seed(self.seed, self.env)
-        
+
         self.network = network().to(self.device)
         self.init_network_params = init_network_params
         self.init_weight_std = init_weight_std
@@ -253,25 +253,25 @@ class DQN:
     def get_random_replay_buffer(self):
         return random.sample(self.replay_buffers.items(), k=1)[0][1]
 
-    def learn(self, timesteps, start_time = None,verbose=False):
+    def learn(self, timesteps, start_time=None, verbose=False):
         start_time_of_learn = time.time()
         total_time = 0
 
         if self.logging:
             if not self.test_sampling_speed:
-                logger = Logger(save_path=self.logger_save_path,args=self.args)
+                logger = Logger(save_path=self.logger_save_path, args=self.args, n_sims=self.env.n_sims)
             else:
-                logger = Logger(save_path=self.sampling_speed_save_path,args=self.args)
+                logger = Logger(save_path=self.sampling_speed_save_path, args=self.args, n_sims=self.env.n_sims)
         path = self.network_save_path
         path_main, path_ext = os.path.splitext(path)
         if path_ext == '':
             path_ext += '.pth'
-        self.save(path_main +"_0"+ path_ext)
+        self.save(path_main + "_0" + path_ext)
         last_record_obj_time = time.time()
 
         # Initialise the state
         state = self.env.reset()
-        self.replay_buffer.record_matrix(state[:,7:,:])
+        self.replay_buffer.record_matrix(state[:, 7:, :])
         score = torch.zeros((self.env.n_sims), device=self.device, dtype=torch.float)
         losses_eps = []
         t1 = time.time()
@@ -281,12 +281,12 @@ class DQN:
         if_buffer_full = False
         for timestep in range(timesteps):
             start_time_this_step = time.time()
-            if timestep*self.env.n_sims>=self.replay_buffer_size:
+            if timestep * self.env.n_sims >= self.replay_buffer_size:
                 if_buffer_full = True
             if not is_training_ready:
                 # if all([len(rb) >= self.replay_start_size for rb in self.replay_buffers.values()]):
                 # if time
-                if self.replay_start_size <= timestep*self.env.n_sims:
+                if self.replay_start_size <= timestep * self.env.n_sims:
                     print('\nAll buffers have {} transitions stored - training is starting!\n'.format(
                         self.replay_start_size))
                     is_training_ready = True
@@ -305,10 +305,10 @@ class DQN:
 
             # Perform action in environment
             state_next, reward, done = self.env.step(action)
-            
+
             score += reward
             # Store transition in replay buffer
-            self.replay_buffer.add(state.half(), action, reward.half(), state_next.half(), done,score)
+            self.replay_buffer.add(state.half(), action, reward.half(), state_next.half(), done, score)
 
             if self.test_sampling_speed:  # save log
                 num_samples_per_second = (time.time() - start_time_this_step) / self.env.n_sims
@@ -323,7 +323,7 @@ class DQN:
                         self.env.current_step,
                         torch.mean(score),
                         loss_str,
-                        round(time.time() - t1, 3),))
+                        round(time.time() - t1, 3), ))
                 t1 = time.time()
                 state = self.env.reset()
                 self.replay_buffer.record_matrix(state[:, 7:, :])
@@ -339,7 +339,7 @@ class DQN:
                     if if_buffer_full:
                         transitions = self.replay_buffer.sample(self.minibatch_size)
                     else:
-                        transitions = self.replay_buffer.sample(self.minibatch_size, (timestep + 1)*self.env.n_sims)
+                        transitions = self.replay_buffer.sample(self.minibatch_size, (timestep + 1) * self.env.n_sims)
                     # Train on selected batch
                     loss = self.train_step(transitions)
                     losses.append([timestep, loss])
@@ -347,7 +347,7 @@ class DQN:
                 # Periodically update target network
                 if timestep % self.update_target_frequency == 0:
                     self.target_network.load_state_dict(self.network.state_dict())
-            if timestep  % self.test_obj_frequency == 0 and self.evaluate and is_training_ready:
+            if timestep % self.test_obj_frequency == 0 and self.evaluate and is_training_ready:
                 total_time += time.time() - start_time_of_learn
                 test_score = self.evaluate_agent()
                 start_time = time.time()
@@ -358,7 +358,7 @@ class DQN:
                     best_network = all([test_score < score for t, score in test_scores])
                 else:
                     raise NotImplementedError("{} is not a recognised TestMetric".format(self.test_metric))
-                
+
                 if self.logging:
                     if timestep == 0:
                         logger.add_scalar('step_vs_obj', 0, test_score)
@@ -368,7 +368,7 @@ class DQN:
                         logger.add_scalar('time_vs_obj', total_time, test_score)
 
                 if best_network:
-                    self.save(path_main +"_0"+ path_ext)
+                    self.save(path_main + "_0" + path_ext)
 
                 test_scores.append([timestep + 1, test_score])
 
@@ -376,7 +376,7 @@ class DQN:
             if (curr_time - last_record_obj_time >= self.save_network_frequency) and is_training_ready:
                 total_time += curr_time - start_time
 
-                path_main_ = path_main+ '_' + str(int(total_time))
+                path_main_ = path_main + '_' + str(int(total_time))
                 if self.logging:
                     logger.add_scalar('step_vs_loss', timestep - training_ready_step, loss)
                     logger.add_scalar('time_vs_loss', total_time, loss)
@@ -386,6 +386,7 @@ class DQN:
                 last_record_obj_time = curr_time
         if self.logging:
             logger.save()
+
     @torch.no_grad()
     def __only_bad_actions_allowed(self, state, network):
         x = (state[0, :] == self.allowed_action_state).nonzero()
@@ -399,7 +400,7 @@ class DQN:
         states = states.to(torch.float)
         rewards = rewards.to(torch.float)
         states_next = states_next.to(torch.float)
-            # Calculate target Q
+        # Calculate target Q
         with torch.no_grad():
 
             network_output = self.network(states_next.clone())
@@ -418,7 +419,7 @@ class DQN:
         # Calculate loss
         loss = self.loss(q_value, td_target.unsqueeze(-1), reduction='mean')
         # Update weights
-        
+
         self.optimizer.zero_grad()
         loss.backward()
         if self.max_grad_norm is not None:  # Optional gradient clipping
@@ -459,7 +460,7 @@ class DQN:
         elif timestep <= self.final_learning_rate_step:
             lr = self.peak_learning_rate - (self.peak_learning_rate - self.final_learning_rate) * (
                     (timestep - self.peak_learning_rate_step) / (
-                        self.final_learning_rate_step - self.peak_learning_rate_step)
+                    self.final_learning_rate_step - self.peak_learning_rate_step)
             )
         else:
             lr = None
@@ -469,7 +470,7 @@ class DQN:
                 g['lr'] = lr
 
     @torch.no_grad()
-    def predict(self, states,acting_in_reversible_spin_env=None):
+    def predict(self, states, acting_in_reversible_spin_env=None):
 
         if acting_in_reversible_spin_env is None:
             acting_in_reversible_spin_env = self.acting_in_reversible_spin_env
@@ -524,7 +525,7 @@ class DQN:
         if self.test_metric == TestMetric.ENERGY_ERROR:
             print("\n{}/{} graphs solved optimally".format(np.count_nonzero(np.array(test_scores) == 0),
                                                            self.test_episodes), end="")
-        test_env.matrix_obs,test_env.state = None,None
+        test_env.matrix_obs, test_env.state = None, None
 
         return torch.mean(test_scores)
 

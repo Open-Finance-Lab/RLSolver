@@ -2,7 +2,6 @@ from functools import lru_cache
 from typing import Optional
 
 import torch
-
 from einops import rearrange
 from tensordict import TensorDict
 from torch import Tensor
@@ -48,7 +47,7 @@ def unbatchify(x: Tensor | TensorDict, shape: tuple | int) -> Tensor | TensorDic
     """
     shape = [shape] if isinstance(shape, int) else shape
     for s in reversed(
-        shape
+            shape
     ):  # we need to reverse the shape to unbatchify in the right order
         x = _unbatchify_single(x, s) if s > 0 else x
     return x
@@ -120,8 +119,8 @@ def get_num_starts(td, env_name=None):
     num_starts = td["action_mask"].shape[-1]
     if env_name == "pdp":
         num_starts = (
-            num_starts - 1
-        ) // 2  # only half of the nodes (i.e. pickup nodes) can be start nodes
+                             num_starts - 1
+                     ) // 2  # only half of the nodes (i.e. pickup nodes) can be start nodes
     elif env_name in ["cvrp", "cvrptw", "sdvrp", "mtsp", "op", "pctsp", "spctsp"]:
         num_starts = num_starts - 1  # depot cannot be a start node
 
@@ -141,27 +140,27 @@ def select_start_nodes(td, env, num_starts):
     num_loc = env.generator.num_loc if hasattr(env.generator, "num_loc") else 0xFFFFFFFF
     if env.name in ["tsp", "atsp", "flp", "mcp"]:
         selected = (
-            torch.arange(num_starts, device=td.device).repeat_interleave(td.shape[0])
-            % num_loc
+                torch.arange(num_starts, device=td.device).repeat_interleave(td.shape[0])
+                % num_loc
         )
     elif env.name in ["jssp", "fjsp"]:
         raise NotImplementedError("Multistart not yet supported for FJSP/JSSP")
     else:
         # Environments with depot: we do not select the depot as a start node
         selected = (
-            torch.arange(num_starts, device=td.device).repeat_interleave(td.shape[0])
-            % num_loc
-            + 1
+                torch.arange(num_starts, device=td.device).repeat_interleave(td.shape[0])
+                % num_loc
+                + 1
         )
         if env.name == "op":
             if (td["action_mask"][..., 1:].float().sum(-1) < num_starts).any():
                 # for the orienteering problem, we may have some nodes that are not available
                 # so we need to resample from the distribution of available nodes
                 selected = (
-                    torch.multinomial(
-                        td["action_mask"][..., 1:].float(), num_starts, replacement=True
-                    )
-                    + 1
+                        torch.multinomial(
+                            td["action_mask"][..., 1:].float(), num_starts, replacement=True
+                        )
+                        + 1
                 )  # re-add depot index
                 selected = rearrange(selected, "b n -> (n b)")
     return selected
