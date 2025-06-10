@@ -368,7 +368,7 @@ class PrioritisedReplayBuffer:
 
 
 class Logger:
-    def __init__(self,save_path,args):
+    def __init__(self, save_path, args, n_sims):
         self._memory = {}
         self._saves = 0
         self._maxsize = NB_STEPS
@@ -376,6 +376,7 @@ class Logger:
         self.save_path = save_path
         self.result = {}
         self.result['args'] = str(args['args'])
+        self.result['n_sims'] = n_sims
         self.result['alg'] = ALG.value
 
     # def add_scalar(self, name, data, timestep):

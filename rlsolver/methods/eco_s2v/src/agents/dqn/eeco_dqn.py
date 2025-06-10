@@ -259,9 +259,9 @@ class DQN:
 
         if self.logging:
             if not self.test_sampling_speed:
-                logger = Logger(save_path=self.logger_save_path,args=self.args)
+                logger = Logger(save_path=self.logger_save_path,args=self.args, n_sims = self.env.n_sims)
             else:
-                logger = Logger(save_path=self.sampling_speed_save_path,args=self.args)
+                logger = Logger(save_path=self.sampling_speed_save_path,args=self.args, n_sims = self.env.n_sims)
         path = self.network_save_path
         path_main, path_ext = os.path.splitext(path)
         if path_ext == '':
