@@ -1,10 +1,8 @@
 import abc
-
 from typing import Optional, Tuple
 
 import torch
 import torch.nn.functional as F
-
 from tensordict.tensordict import TensorDict
 
 from rlsolver.methods.eco_s2v.rl4co.envs import RL4COEnvBase
@@ -54,7 +52,7 @@ def get_log_likelihood(logprobs, actions=None, mask=None, return_sum: bool = Tru
         logprobs[~mask] = 0
 
     assert (
-        logprobs > -1000
+            logprobs > -1000
     ).data.all(), "Logprobs should not be -inf, check sampling procedure!"
 
     # Calculate log_likelihood
@@ -138,13 +136,13 @@ def modify_logits_for_top_p_filtering(logits, top_p):
 
 
 def process_logits(
-    logits: torch.Tensor,
-    mask: torch.Tensor = None,
-    temperature: float = 1.0,
-    top_p: float = 0.0,
-    top_k: int = 0,
-    tanh_clipping: float = 0,
-    mask_logits: bool = True,
+        logits: torch.Tensor,
+        mask: torch.Tensor = None,
+        temperature: float = 1.0,
+        top_p: float = 0.0,
+        top_k: int = 0,
+        tanh_clipping: float = 0,
+        mask_logits: bool = True,
 ):
     """Convert logits to log probabilities with additional features like temperature scaling, top-k and top-p sampling.
 
@@ -215,21 +213,21 @@ class DecodingStrategy(metaclass=abc.ABCMeta):
     name = "base"
 
     def __init__(
-        self,
-        temperature: float = 1.0,
-        top_p: float = 0.0,
-        top_k: int = 0,
-        mask_logits: bool = True,
-        tanh_clipping: float = 0,
-        num_samples: Optional[int] = None,
-        multisample: bool = False,
-        num_starts: Optional[int] = None,
-        multistart: bool = False,
-        select_start_nodes_fn: Optional[callable] = None,
-        improvement_method_mode: bool = False,
-        select_best: bool = False,
-        store_all_logp: bool = False,
-        **kwargs,
+            self,
+            temperature: float = 1.0,
+            top_p: float = 0.0,
+            top_k: int = 0,
+            mask_logits: bool = True,
+            tanh_clipping: float = 0,
+            num_samples: Optional[int] = None,
+            multisample: bool = False,
+            num_starts: Optional[int] = None,
+            multistart: bool = False,
+            select_start_nodes_fn: Optional[callable] = None,
+            improvement_method_mode: bool = False,
+            select_best: bool = False,
+            store_all_logp: bool = False,
+            **kwargs,
     ) -> None:
         self.temperature = temperature
         self.top_p = top_p
@@ -238,11 +236,11 @@ class DecodingStrategy(metaclass=abc.ABCMeta):
         self.tanh_clipping = tanh_clipping
         # check if multistart (POMO) and multisample flags
         assert not (
-            multistart and multisample
+                multistart and multisample
         ), "Using both multistart and multisample is not supported"
         if num_samples and num_starts:
             assert not (
-                num_samples > 1 and num_starts > 1
+                    num_samples > 1 and num_starts > 1
             ), f"num_samples={num_samples} and num_starts={num_starts} are both > 1"
         if num_samples is not None:
             multisample = True if num_samples > 1 else False
@@ -264,12 +262,12 @@ class DecodingStrategy(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def _step(
-        self,
-        logprobs: torch.Tensor,
-        mask: torch.Tensor,
-        td: Optional[TensorDict] = None,
-        action: Optional[torch.Tensor] = None,
-        **kwargs,
+            self,
+            logprobs: torch.Tensor,
+            mask: torch.Tensor,
+            td: Optional[TensorDict] = None,
+            action: Optional[torch.Tensor] = None,
+            **kwargs,
     ) -> Tuple[torch.Tensor, torch.Tensor, TensorDict]:
         """Main decoding operation. This method should be called in a loop until all sequences are done.
 
@@ -282,7 +280,7 @@ class DecodingStrategy(metaclass=abc.ABCMeta):
         raise NotImplementedError("Must be implemented by subclass")
 
     def pre_decoder_hook(
-        self, td: TensorDict, env: RL4COEnvBase, action: Optional[torch.Tensor] = None
+            self, td: TensorDict, env: RL4COEnvBase, action: Optional[torch.Tensor] = None
     ):
         """Pre decoding hook. This method is called before the main decoding operation."""
 
@@ -332,10 +330,10 @@ class DecodingStrategy(metaclass=abc.ABCMeta):
         return td, env, self.num_starts
 
     def post_decoder_hook(
-        self, td: TensorDict, env: RL4COEnvBase
+            self, td: TensorDict, env: RL4COEnvBase
     ) -> Tuple[torch.Tensor, torch.Tensor, TensorDict, RL4COEnvBase]:
         assert (
-            len(self.logprobs) > 0
+                len(self.logprobs) > 0
         ), "No logprobs were collected because all environments were done. Check your initial state"
         logprobs = torch.stack(self.logprobs, 1)
         actions = torch.stack(self.actions, 1)
@@ -344,12 +342,12 @@ class DecodingStrategy(metaclass=abc.ABCMeta):
         return logprobs, actions, td, env
 
     def step(
-        self,
-        logits: torch.Tensor,
-        mask: torch.Tensor,
-        td: Optional[TensorDict] = None,
-        action: Optional[torch.Tensor] = None,
-        **kwargs,
+            self,
+            logits: torch.Tensor,
+            mask: torch.Tensor,
+            td: Optional[TensorDict] = None,
+            action: Optional[torch.Tensor] = None,
+            **kwargs,
     ) -> TensorDict:
         """Main decoding operation. This method should be called in a loop until all sequences are done.
 
@@ -431,7 +429,7 @@ class Greedy(DecodingStrategy):
     name = "greedy"
 
     def _step(
-        self, logprobs: torch.Tensor, mask: torch.Tensor, td: TensorDict, **kwargs
+            self, logprobs: torch.Tensor, mask: torch.Tensor, td: TensorDict, **kwargs
     ) -> Tuple[torch.Tensor, torch.Tensor, TensorDict]:
         """Select the action with the highest log probability"""
         selected = self.greedy(logprobs, mask)
@@ -442,7 +440,7 @@ class Sampling(DecodingStrategy):
     name = "sampling"
 
     def _step(
-        self, logprobs: torch.Tensor, mask: torch.Tensor, td: TensorDict, **kwargs
+            self, logprobs: torch.Tensor, mask: torch.Tensor, td: TensorDict, **kwargs
     ) -> Tuple[torch.Tensor, torch.Tensor, TensorDict]:
         """Sample an action with a multinomial distribution given by the log probabilities."""
         selected = self.sampling(logprobs, mask)
@@ -453,12 +451,12 @@ class Evaluate(DecodingStrategy):
     name = "evaluate"
 
     def _step(
-        self,
-        logprobs: torch.Tensor,
-        mask: torch.Tensor,
-        td: TensorDict,
-        action: torch.Tensor,
-        **kwargs,
+            self,
+            logprobs: torch.Tensor,
+            mask: torch.Tensor,
+            td: TensorDict,
+            action: torch.Tensor,
+            **kwargs,
     ) -> Tuple[torch.Tensor, torch.Tensor, TensorDict]:
         """The action is provided externally, so we just return the action"""
         selected = action
@@ -478,7 +476,7 @@ class BeamSearch(DecodingStrategy):
         self.beam_path = []
 
     def _step(
-        self, logprobs: torch.Tensor, mask: torch.Tensor, td: TensorDict, **kwargs
+            self, logprobs: torch.Tensor, mask: torch.Tensor, td: TensorDict, **kwargs
     ) -> Tuple[torch.Tensor, torch.Tensor, TensorDict]:
         selected, batch_beam_idx = self._make_beam_step(logprobs)
         # select the correct state representation, logprobs and mask according to beam parent

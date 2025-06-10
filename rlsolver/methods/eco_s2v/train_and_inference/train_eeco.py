@@ -1,16 +1,14 @@
-import matplotlib.pyplot as plt
-
 import rlsolver.methods.eco_s2v.src.envs.core as ising_env
-from rlsolver.methods.eco_s2v.util import (cal_txt_name)
+from rlsolver.methods.eco_s2v.config import *
 from rlsolver.methods.eco_s2v.src.agents.dqn.eeco_dqn import DQN
 from rlsolver.methods.eco_s2v.src.agents.dqn.utils import TestMetric
 from rlsolver.methods.eco_s2v.src.envs.eeco_util import (RandomBarabasiAlbertGraphGenerator,
                                                          RandomErdosRenyiGraphGenerator, ValidationGraphGenerator,
                                                          )
 from rlsolver.methods.eco_s2v.src.envs.util import (EdgeType, RewardSignal, ExtraAction,
-                                                    OptimisationTarget, SpinBasis,DEFAULT_OBSERVABLES)
+                                                    OptimisationTarget, SpinBasis, DEFAULT_OBSERVABLES)
 from rlsolver.methods.eco_s2v.src.networks.mpnn import MPNN
-from rlsolver.methods.eco_s2v.config import *
+from rlsolver.methods.eco_s2v.util import (cal_txt_name)
 
 try:
     import seaborn as sns
@@ -54,14 +52,14 @@ def run(save_loc):
 
     if GRAPH_TYPE == GraphType.ER:
         train_graph_generator = RandomErdosRenyiGraphGenerator(n_spins=n_spins_train, p_connection=0.15,
-                                                               edge_type=EdgeType.DISCRETE, n_sims=NUM_TRAIN_SIMS,device=TRAIN_DEVICE)
+                                                               edge_type=EdgeType.DISCRETE, n_sims=NUM_TRAIN_SIMS, device=TRAIN_DEVICE)
     if GRAPH_TYPE == GraphType.BA:
         train_graph_generator = RandomBarabasiAlbertGraphGenerator(n_spins=n_spins_train, m_insertion_edges=4,
-                                                                   edge_type=EdgeType.DISCRETE, n_sims=NUM_TRAIN_SIMS,device=TRAIN_DEVICE)
+                                                                   edge_type=EdgeType.DISCRETE, n_sims=NUM_TRAIN_SIMS, device=TRAIN_DEVICE)
 
-    validation_graph_generator = ValidationGraphGenerator(n_spins=NUM_VALIDATION_NODES,graph_type=GRAPH_TYPE,
-                                                        edge_type=EdgeType.DISCRETE,device=TRAIN_DEVICE,
-                                                        n_sims=NUM_VALIDATION_SIMS, seed=VALIDATION_SEED) 
+    validation_graph_generator = ValidationGraphGenerator(n_spins=NUM_VALIDATION_NODES, graph_type=GRAPH_TYPE,
+                                                          edge_type=EdgeType.DISCRETE, device=TRAIN_DEVICE,
+                                                          n_sims=NUM_VALIDATION_SIMS, seed=VALIDATION_SEED)
 
     ####
     # Pre-generated test graphs
@@ -74,17 +72,17 @@ def run(save_loc):
     ####################################################
 
     train_envs = ising_env.make("SpinSystem",
-                                 train_graph_generator,
-                                 int(n_spins_train * step_fact),
-                                 **env_args, device=TRAIN_DEVICE,
-                                 n_sims=NUM_TRAIN_SIMS)
+                                train_graph_generator,
+                                int(n_spins_train * step_fact),
+                                **env_args, device=TRAIN_DEVICE,
+                                n_sims=NUM_TRAIN_SIMS)
 
     n_spins_test = validation_graph_generator.get().shape[1]
     test_envs = ising_env.make("SpinSystem",
-                                validation_graph_generator,
-                                int(n_spins_test * step_fact),
-                                **env_args, device=TRAIN_DEVICE,
-                                n_sims=n_validations)
+                               validation_graph_generator,
+                               int(n_spins_test * step_fact),
+                               **env_args, device=TRAIN_DEVICE,
+                               n_sims=n_validations)
 
     pre_fix = save_loc + "/" + NEURAL_NETWORK_PREFIX
     pre_fix = cal_txt_name(pre_fix)
@@ -95,7 +93,6 @@ def run(save_loc):
     logger_save_path = pre_fix + f"/logger.json"
     sampling_speed_save_path = pre_fix + "/sampling_speed.json"
     print('pre_fix:', pre_fix.split("/")[-1])
-    
 
     ####################################################
     # SET UP AGENT
@@ -116,7 +113,7 @@ def run(save_loc):
         'init_weight_std': 0.01,
         'double_dqn': True,
         'clip_Q_targets': False,
-        'replay_start_size': REPLAY_START_SIZE ,
+        'replay_start_size': REPLAY_START_SIZE,
         'replay_buffer_size': REPLAY_BUFFER_SIZE,
         'gamma': gamma,
         'update_learning_rate': False,
@@ -136,7 +133,7 @@ def run(save_loc):
         'adam_epsilon': 1e-8,
         'logging': True,
         'evaluate': True,
-        'update_target_frequency': int(UPDATE_TARGET_FREQUENCY/32),
+        'update_target_frequency': int(UPDATE_TARGET_FREQUENCY / 32),
         'update_frequency': UPDATE_FREQUENCY,
         'save_network_frequency': SAVE_NETWORK_FREQUENCY,
         'loss': "mse",

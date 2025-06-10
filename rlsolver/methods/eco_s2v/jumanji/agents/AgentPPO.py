@@ -1,11 +1,8 @@
-import numpy as np
-import torch as th
 from torch import nn
-from torch.nn.utils import clip_grad_norm_
-from .AgentBase import AgentBase
 
-from rlsolver.methods.eco_s2v.src.networks.mpnn import MPNN
 from rlsolver.methods.eco_s2v.jumanji.train.config import *
+from rlsolver.methods.eco_s2v.src.networks.mpnn import MPNN
+from .AgentBase import AgentBase
 
 TEN = th.Tensor
 
@@ -48,27 +45,27 @@ class AgentPPO(AgentBase):
             `undones.shape == (horizon_len, num_envs)`
             `unmasks.shape == (horizon_len, num_envs)`
         """
-        states = th.zeros((horizon_len, self.num_envs, self.n_nodes+7,self.n_nodes), dtype=th.float32).to(self.device)
+        states = th.zeros((horizon_len, self.num_envs, self.n_nodes + 7, self.n_nodes), dtype=th.float32).to(self.device)
         actions = th.zeros((horizon_len, self.num_envs), dtype=th.long).to(self.device)
         logprobs = th.zeros((horizon_len, self.num_envs), dtype=th.float32).to(self.device)
         rewards = th.zeros((horizon_len, self.num_envs), dtype=th.float32).to(self.device)
         terminals = th.zeros((horizon_len, self.num_envs), dtype=th.bool).to(self.device)
         truncates = th.zeros((horizon_len, self.num_envs), dtype=th.bool).to(self.device)
- #################################
+        #################################
         state = env.get_observation()  # shape == (num_envs, state_dim) for a vectorized env.
-##########################
+        ##########################
         for t in range(horizon_len):
             action, logprob = self.explore_action(state)
 
             states[t] = state
             actions[t] = action
             logprobs[t] = logprob
-###########
+            ###########
             state, reward, terminal = env.step(action)  # next_state
             if terminal[0]:
                 # print(th.mean(env.best_score))
                 state = env.reset()
-##########
+            ##########
             rewards[t] = reward
             terminals[t] = terminal
 
@@ -76,9 +73,9 @@ class AgentPPO(AgentBase):
         undones = th.logical_not(terminals)
         unmasks = th.logical_not(truncates)
         return states, actions, logprobs, rewards, undones, unmasks
-    
-    def inference(self,env,max_steps):
-        state= env.reset()
+
+    def inference(self, env, max_steps):
+        state = env.reset()
         for i in range(max_steps):
             action, logprob = self.explore_action(state)
             state = env.step(action)[0]
@@ -87,8 +84,6 @@ class AgentPPO(AgentBase):
     def explore_action(self, state: TEN) -> tuple[TEN, TEN]:
         actions, logprobs = self.act.get_action(state)
         return actions, logprobs
-
- 
 
     def update_objectives(self, buffer: tuple[TEN, ...], update_t: int) -> tuple[float, float, float]:
         states, actions, unmasks, logprobs, advantages, reward_sums = buffer
@@ -126,7 +121,7 @@ class AgentPPO(AgentBase):
 
     def get_advantages(self, states: TEN, rewards: TEN, undones: TEN, unmasks: TEN, values: TEN) -> TEN:
         advantages = th.empty_like(values)  # advantage value
-#########
+        #########
         masks = undones * self.gamma
         horizon_len = rewards.shape[0]
 
@@ -174,10 +169,10 @@ class AgentA2C(AgentPPO):
         '''get advantages reward_sums'''
         with th.no_grad():
             states, actions, logprobs, rewards, undones, unmasks = buffer
-##################
+            ##################
             values = [self.cri(states[i].clone()) for i in range(0, buffer_size)]
             values = th.stack(values, dim=0)  # values.shape == (buffer_size, )
-#############
+            #############
             advantages = self.get_advantages(states, rewards, undones, unmasks, values)  # shape == (buffer_size, )
             reward_sums = advantages + values  # reward_sums.shape == (buffer_size, )
             del rewards, undones, values
@@ -205,7 +200,7 @@ class AgentA2C(AgentPPO):
 
     def update_objectives(self, buffer: tuple[TEN, ...], update_t: int) -> tuple[float, float]:
         states, actions, unmasks, logprobs, advantages, reward_sums = buffer
-########
+        ########
         buffer_size = states.shape[0]
         state = states[update_t]
         action = actions[update_t]
@@ -213,7 +208,7 @@ class AgentA2C(AgentPPO):
         # logprob = logprobs[indices]
         advantage = advantages[update_t]
         reward_sum = reward_sums[update_t]
-########
+        ########
         value = self.cri(state.clone())  # critic network predicts the reward_sum (Q value) of state
         obj_critic = (self.criterion(value, reward_sum) * unmask).mean()
         self.optimizer_backward(self.cri_optimizer, obj_critic)
@@ -223,7 +218,7 @@ class AgentA2C(AgentPPO):
         self.optimizer_backward(self.act_optimizer, -obj_actor)
         return obj_critic.item(), obj_actor.item()
 
-########    
+    ########
     def save(self, path):
         folder_path = os.path.dirname(path)
         if not os.path.exists(folder_path):
@@ -231,31 +226,31 @@ class AgentA2C(AgentPPO):
         if os.path.splitext(path)[-1] == '':
             path += '.pth'
         th.save(self.act.state_dict(), path)
+
+
 ###########
 class ActorPPO(th.nn.Module):
     def __init__(self):
         super().__init__()
         self.net = MPNN(n_obs_in=7,
-                              n_layers=3,
-                              n_features=64,
-                              n_hid_readout=[],
-                              tied_weights=False)
+                        n_layers=3,
+                        n_features=64,
+                        n_hid_readout=[],
+                        tied_weights=False)
 
         self.ActionDist = th.distributions.Categorical
         self.soft_max = nn.Softmax(dim=-1)
 
-
     def forward(self, state: TEN) -> TEN:
-        a_prob = th.softmax(self.net(state.clone()),dim=-1)  # action_prob without softmax
-        return a_prob 
-    
+        a_prob = th.softmax(self.net(state.clone()), dim=-1)  # action_prob without softmax
+        return a_prob
+
     def get_action(self, state: TEN) -> (TEN, TEN):
-        a_prob = th.softmax(self.net(state),dim=-1)
+        a_prob = th.softmax(self.net(state), dim=-1)
         a_dist = self.ActionDist(a_prob)
         action = a_dist.sample()
         logprob = a_dist.log_prob(action)
         return action, logprob
-    
 
     def get_logprob_entropy(self, state: TEN, action: TEN) -> (TEN, TEN):
         a_prob = self.soft_max(self.net(state.clone()))  # action.shape == (batch_size, 1), action.dtype = th.int
@@ -263,7 +258,8 @@ class ActorPPO(th.nn.Module):
         logprob = dist.log_prob(action)
         entropy = dist.entropy()
         return logprob, entropy
-    
+
+
 class CriticPPO(th.nn.Module):
     def __init__(self):
         super().__init__()
@@ -275,6 +271,6 @@ class CriticPPO(th.nn.Module):
 
     def forward(self, state: TEN) -> TEN:
         value = th.mean(self.net(state), dim=-1)
-        return value  
-    
-##########
+        return value
+
+        ##########

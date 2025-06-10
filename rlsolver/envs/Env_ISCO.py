@@ -1,6 +1,7 @@
 import torch
-from rlsolver.methods.config_env import *
 from torch.func import vmap
+
+from rlsolver.methods.config_env import *
 from rlsolver.methods.util import *
 
 
@@ -26,7 +27,7 @@ class ISCO_maxcut:
         ll_x2y = trajectory['ll_x2y']
         ll_y, ll_y2x = self.ll_y2x(
             trajectory, y, temperature)
-        log_acc = torch.clamp(ll_y + ll_y2x - ll_x - ll_x2y,max=0.0)
+        log_acc = torch.clamp(ll_y + ll_y2x - ll_x - ll_x2y, max=0.0)
         y = self.select_sample(log_acc, x, y)
 
         return y, ll_y * temperature, log_acc.exp()
@@ -86,6 +87,7 @@ class ISCO_maxcut:
         y, acc = mh_step(log_acc, x, y)
 
         return y
+
 
 class ISCO_graph_partitioning:
     def __init__(self, params_dict):
@@ -109,7 +111,7 @@ class ISCO_graph_partitioning:
         ll_x2y = trajectory['ll_x2y']
         ll_y, ll_y2x = self.ll_y2x(
             trajectory, y, temperature)
-        log_acc = torch.clamp(ll_y + ll_y2x - ll_x - ll_x2y,max=0.0)
+        log_acc = torch.clamp(ll_y + ll_y2x - ll_x - ll_x2y, max=0.0)
         y = self.select_sample(log_acc, x, y)
 
         return y, ll_y * temperature, log_acc.exp()
@@ -169,6 +171,7 @@ class ISCO_graph_partitioning:
         y, acc = mh_step(log_acc, x, y)
 
         return y
+
 
 class ISCO_number_partitioning:
     def __init__(self, params_dict):
@@ -192,7 +195,7 @@ class ISCO_number_partitioning:
         ll_x2y = trajectory['ll_x2y']
         ll_y, ll_y2x = self.ll_y2x(
             trajectory, y, temperature)
-        log_acc = torch.clamp(ll_y + ll_y2x - ll_x - ll_x2y,max=0.0)
+        log_acc = torch.clamp(ll_y + ll_y2x - ll_x - ll_x2y, max=0.0)
         y = self.select_sample(log_acc, x, y)
 
         return y, ll_y * temperature, log_acc.exp()
@@ -252,6 +255,7 @@ class ISCO_number_partitioning:
         y, acc = mh_step(log_acc, x, y)
 
         return y
+
 
 class ISCO_TSP:
     def __init__(self, params_dict):
@@ -275,7 +279,7 @@ class ISCO_TSP:
         ll_x2y = trajectory['ll_x2y']
         ll_y, ll_y2x = self.ll_y2x(
             trajectory, y, temperature)
-        log_acc = torch.clamp(ll_y + ll_y2x - ll_x - ll_x2y,max=0.0)
+        log_acc = torch.clamp(ll_y + ll_y2x - ll_x - ll_x2y, max=0.0)
         y = self.select_sample(log_acc, x, y)
 
         return y, ll_y * temperature, log_acc.exp()
@@ -335,6 +339,7 @@ class ISCO_TSP:
         y, acc = mh_step(log_acc, x, y)
 
         return y
+
 
 class ISCO_graph_coloring:
     def __init__(self, params_dict):
@@ -358,7 +363,7 @@ class ISCO_graph_coloring:
         ll_x2y = trajectory['ll_x2y']
         ll_y, ll_y2x = self.ll_y2x(
             trajectory, y, temperature)
-        log_acc = torch.clamp(ll_y + ll_y2x - ll_x - ll_x2y,max=0.0)
+        log_acc = torch.clamp(ll_y + ll_y2x - ll_x - ll_x2y, max=0.0)
         y = self.select_sample(log_acc, x, y)
 
         return y, ll_y * temperature, log_acc.exp()
@@ -418,6 +423,7 @@ class ISCO_graph_coloring:
         y, acc = mh_step(log_acc, x, y)
 
         return y
+
 
 class ISCO_portfolio_allocation:
     def __init__(self, params_dict):
@@ -441,7 +447,7 @@ class ISCO_portfolio_allocation:
         ll_x2y = trajectory['ll_x2y']
         ll_y, ll_y2x = self.ll_y2x(
             trajectory, y, temperature)
-        log_acc = torch.clamp(ll_y + ll_y2x - ll_x - ll_x2y,max=0.0)
+        log_acc = torch.clamp(ll_y + ll_y2x - ll_x - ll_x2y, max=0.0)
         y = self.select_sample(log_acc, x, y)
 
         return y, ll_y * temperature, log_acc.exp()
@@ -501,6 +507,7 @@ class ISCO_portfolio_allocation:
         y, acc = mh_step(log_acc, x, y)
 
         return y
+
 
 class ISCO_TNCO:
     def __init__(self, params_dict):
@@ -524,7 +531,7 @@ class ISCO_TNCO:
         ll_x2y = trajectory['ll_x2y']
         ll_y, ll_y2x = self.ll_y2x(
             trajectory, y, temperature)
-        log_acc = torch.clamp(ll_y + ll_y2x - ll_x - ll_x2y,max=0.0)
+        log_acc = torch.clamp(ll_y + ll_y2x - ll_x - ll_x2y, max=0.0)
         y = self.select_sample(log_acc, x, y)
 
         return y, ll_y * temperature, log_acc.exp()
@@ -584,6 +591,7 @@ class ISCO_TNCO:
         y, acc = mh_step(log_acc, x, y)
 
         return y
+
 
 class ISCO_BILP:
     def __init__(self, params_dict):
@@ -607,7 +615,7 @@ class ISCO_BILP:
         ll_x2y = trajectory['ll_x2y']
         ll_y, ll_y2x = self.ll_y2x(
             trajectory, y, temperature)
-        log_acc = torch.clamp(ll_y + ll_y2x - ll_x - ll_x2y,max=0.0)
+        log_acc = torch.clamp(ll_y + ll_y2x - ll_x - ll_x2y, max=0.0)
         y = self.select_sample(log_acc, x, y)
 
         return y, ll_y * temperature, log_acc.exp()
@@ -667,6 +675,7 @@ class ISCO_BILP:
         y, acc = mh_step(log_acc, x, y)
 
         return y
+
 
 class ISCO_VRP:
     def __init__(self, params_dict):
@@ -690,7 +699,7 @@ class ISCO_VRP:
         ll_x2y = trajectory['ll_x2y']
         ll_y, ll_y2x = self.ll_y2x(
             trajectory, y, temperature)
-        log_acc = torch.clamp(ll_y + ll_y2x - ll_x - ll_x2y,max=0.0)
+        log_acc = torch.clamp(ll_y + ll_y2x - ll_x - ll_x2y, max=0.0)
         y = self.select_sample(log_acc, x, y)
 
         return y, ll_y * temperature, log_acc.exp()
@@ -750,6 +759,8 @@ class ISCO_VRP:
         y, acc = mh_step(log_acc, x, y)
 
         return y
+
+
 class ISCO_MIS:
     def __init__(self, params_dict):
         self.batch_size = BATCH_SIZE
@@ -772,7 +783,7 @@ class ISCO_MIS:
         ll_x2y = trajectory['ll_x2y']
         ll_y, ll_y2x = self.ll_y2x(
             trajectory, y, temperature)
-        log_acc = torch.clamp(ll_y + ll_y2x - ll_x - ll_x2y,max=0.0)
+        log_acc = torch.clamp(ll_y + ll_y2x - ll_x - ll_x2y, max=0.0)
         y = self.select_sample(log_acc, x, y)
 
         return y, ll_y * temperature, log_acc.exp()
@@ -832,6 +843,7 @@ class ISCO_MIS:
         y, acc = mh_step(log_acc, x, y)
 
         return y
+
 
 class ISCO_set_cover:
     def __init__(self, params_dict):
@@ -855,7 +867,7 @@ class ISCO_set_cover:
         ll_x2y = trajectory['ll_x2y']
         ll_y, ll_y2x = self.ll_y2x(
             trajectory, y, temperature)
-        log_acc = torch.clamp(ll_y + ll_y2x - ll_x - ll_x2y,max=0.0)
+        log_acc = torch.clamp(ll_y + ll_y2x - ll_x - ll_x2y, max=0.0)
         y = self.select_sample(log_acc, x, y)
 
         return y, ll_y * temperature, log_acc.exp()
@@ -916,6 +928,7 @@ class ISCO_set_cover:
 
         return y
 
+
 class ISCO_knapsack:
     def __init__(self, params_dict):
         self.batch_size = BATCH_SIZE
@@ -938,7 +951,7 @@ class ISCO_knapsack:
         ll_x2y = trajectory['ll_x2y']
         ll_y, ll_y2x = self.ll_y2x(
             trajectory, y, temperature)
-        log_acc = torch.clamp(ll_y + ll_y2x - ll_x - ll_x2y,max=0.0)
+        log_acc = torch.clamp(ll_y + ll_y2x - ll_x - ll_x2y, max=0.0)
         y = self.select_sample(log_acc, x, y)
 
         return y, ll_y * temperature, log_acc.exp()

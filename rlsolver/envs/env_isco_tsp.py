@@ -16,45 +16,44 @@ class iSCO:
         self.nearest_indices = params_dict['nearest_indices']
         self.random_indices = params_dict['random_indices']
 
-
     def step(self, x, path_length, temperature):
         cur_x = x.clone()
-        traj = torch.zeros((BATCH_SIZE,3,path_length),dtype=torch.float,device=self.device)
+        traj = torch.zeros((BATCH_SIZE, 3, path_length), dtype=torch.float, device=self.device)
         for i in range(path_length):
-            cur_x, logits, trajectory,delta_yx = self.proposal(cur_x, temperature)
+            cur_x, logits, trajectory, delta_yx = self.proposal(cur_x, temperature)
             ll_x2y = trajectory['ll_x2y']
-            ll_y2x = self.y2x(logits,trajectory)
-            traj[:,0,i],traj[:,1,i],traj[:,2,i]=delta_yx,-ll_x2y,ll_y2x
-        log_acc=torch.clamp(torch.sum(traj,dim=(1,2)), max=0.0)
+            ll_y2x = self.y2x(logits, trajectory)
+            traj[:, 0, i], traj[:, 1, i], traj[:, 2, i] = delta_yx, -ll_x2y, ll_y2x
+        log_acc = torch.clamp(torch.sum(traj, dim=(1, 2)), max=0.0)
         y, accetped = self.select_sample(log_acc, x, cur_x)
 
         return y, torch.mean(log_acc.exp())
 
     def proposal(self, sample, temperature):
         x = sample.clone()
-        logits, log_prob, indices, ban_mask,delta_yx = self.get_local_dist(x, temperature)
-        selected_idx, ll_selected = math_util.multinomial(log_prob, torch.ones(BATCH_SIZE,dtype=torch.int64,device=self.device))
-        logits = logits*(1-2*selected_idx['selected_mask'])
-        swap_env_mask,swap_sample_mask = torch.where(((selected_idx['selected_mask'] == 1) & (~ban_mask)) == 1)
-        x = self.switch(sample,swap_env_mask,swap_sample_mask,indices)
+        logits, log_prob, indices, ban_mask, delta_yx = self.get_local_dist(x, temperature)
+        selected_idx, ll_selected = math_util.multinomial(log_prob, torch.ones(BATCH_SIZE, dtype=torch.int64, device=self.device))
+        logits = logits * (1 - 2 * selected_idx['selected_mask'])
+        swap_env_mask, swap_sample_mask = torch.where(((selected_idx['selected_mask'] == 1) & (~ban_mask)) == 1)
+        x = self.switch(sample, swap_env_mask, swap_sample_mask, indices)
         trajectory = {
             'll_x2y': torch.sum(ll_selected, dim=-1),
             'selected_idx': selected_idx,
         }
 
-        return x, logits, trajectory,torch.sum(delta_yx*selected_idx['selected_mask'],dim=-1)
+        return x, logits, trajectory, torch.sum(delta_yx * selected_idx['selected_mask'], dim=-1)
 
     def get_local_dist(self, sample, temperature):
         # log_prob是每点采样的权重，logratio是delta_yx
         x = sample.detach()
-        logratio, indices,ban_mask = self.opt_2(x, temperature)
-        logratio[ban_mask]=-1e6
+        logratio, indices, ban_mask = self.opt_2(x, temperature)
+        logratio[ban_mask] = -1e6
         logits = self.apply_weight_function_logscale(logratio)
         log_prob = torch.nn.functional.log_softmax(logits, dim=-1)
 
-        return logits, log_prob, indices, ban_mask,logratio
+        return logits, log_prob, indices, ban_mask, logratio
 
-    def y2x(self,logits, forward_trajectory):
+    def y2x(self, logits, forward_trajectory):
         log_prob = torch.nn.functional.log_softmax(logits, dim=-1)
         selected_mask = forward_trajectory['selected_idx']['selected_mask']
         order_info = forward_trajectory['selected_idx']['perturbed_ll']
@@ -65,9 +64,9 @@ class iSCO:
         ll_backwd = math_util.noreplacement_sampling_renormalize(backwd_ll)
         ll_y2x = torch.sum(torch.where(backwd_mask.bool(), ll_backwd, torch.tensor(0.0)), dim=-1)
 
-        return  ll_y2x
+        return ll_y2x
 
-    def opt_2(self, sample,temperature):
+    def opt_2(self, sample, temperature):
         batch_size = sample.shape[0]
         num_nodes = self.num_nodes  # 节点数量
 
@@ -165,27 +164,25 @@ class iSCO:
             )
         )
 
-        return -delta_yx/temperature, indices,combined_condition
+        return -delta_yx / temperature, indices, combined_condition
 
-    def switch(self,sample,swap_env_mask,swap_sample_mask,indices):
+    def switch(self, sample, swap_env_mask, swap_sample_mask, indices):
         x = sample.clone()
-        indices = indices[swap_env_mask,swap_sample_mask]
-        swap_sample_mask = (swap_sample_mask+1)%self.num_nodes
-        temp = x[swap_env_mask,swap_sample_mask]
-        x[swap_env_mask,swap_sample_mask] = x[swap_env_mask,indices]
-        x[swap_env_mask,indices] = temp
+        indices = indices[swap_env_mask, swap_sample_mask]
+        swap_sample_mask = (swap_sample_mask + 1) % self.num_nodes
+        temp = x[swap_env_mask, swap_sample_mask]
+        x[swap_env_mask, swap_sample_mask] = x[swap_env_mask, indices]
+        x[swap_env_mask, indices] = temp
         return x
 
     def calculate_distance(self, sample):
-
         distances = self.distance[sample[:, :-1], sample[:, 1:]]  # (num_envs, num_nodes - 1)
         total_distance = distances.sum(dim=1)  # (num_envs,)
         total_distance += self.distance[sample[:, -1], sample[:, 0]]
         return total_distance
 
     def random_gen_init_sample(self, params_dict):
-
-        sample = torch.stack([torch.randperm(self.num_nodes,dtype=torch.long,device=self.device) for _ in range(BATCH_SIZE)])
+        sample = torch.stack([torch.randperm(self.num_nodes, dtype=torch.long, device=self.device) for _ in range(BATCH_SIZE)])
         return sample
 
     def select_sample(self, log_acc, x, y):

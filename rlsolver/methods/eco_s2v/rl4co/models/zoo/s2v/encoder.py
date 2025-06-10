@@ -1,13 +1,13 @@
 from typing import Tuple
 
 import torch.nn as nn
-
 from tensordict import TensorDict
 from torch import Tensor
 
 from rlsolver.methods.eco_s2v.rl4co.envs import RL4COEnvBase
 from rlsolver.methods.eco_s2v.rl4co.models.common.constructive import AutoregressiveEncoder
 from rlsolver.methods.eco_s2v.rl4co.models.nn.env_embeddings import env_init_embedding
+
 
 class S2VModelEncoder(AutoregressiveEncoder):
     """Graph Attention Encoder as in Kool et al. (2019).
@@ -27,10 +27,10 @@ class S2VModelEncoder(AutoregressiveEncoder):
     """
 
     def __init__(
-        self,
-        init_embedding: nn.Module = None,
-        env_name: str = "tsp",
-        embed_dim: int = 128,
+            self,
+            init_embedding: nn.Module = None,
+            env_name: str = "tsp",
+            embed_dim: int = 128,
     ):
         super(S2VModelEncoder, self).__init__()
 
@@ -45,7 +45,7 @@ class S2VModelEncoder(AutoregressiveEncoder):
         )
 
     def forward(
-        self, td: TensorDict, mask: Tensor | None = None
+            self, td: TensorDict, mask: Tensor | None = None
     ) -> Tuple[Tensor, Tensor]:
         """Forward pass of the encoder.
         Transform the input TensorDict into a latent representation.

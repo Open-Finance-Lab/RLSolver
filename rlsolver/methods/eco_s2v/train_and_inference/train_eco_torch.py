@@ -1,19 +1,19 @@
-import matplotlib.pyplot as plt
 # from numba.cuda.cudadrv.nvrtc import NVRTC
 
+import torch
+
 import rlsolver.methods.eco_s2v.src.envs.core as ising_env
-from rlsolver.methods.eco_s2v.util import write_sampling_speed, load_graph_set_from_folder
+from rlsolver.methods.eco_s2v.config import *
+from rlsolver.methods.eco_s2v.plot import plot_scatter
 from rlsolver.methods.eco_s2v.src.agents.dqn.torch_dqn import DQN
 from rlsolver.methods.eco_s2v.src.agents.dqn.utils import TestMetric
 from rlsolver.methods.eco_s2v.src.envs.torch_util import (SetGraphGenerator,
-                                                    RandomBarabasiAlbertGraphGenerator, RandomErdosRenyiGraphGenerator,
-                                                    EdgeType, RewardSignal, ExtraAction,
-                                                    OptimisationTarget, SpinBasis,
-                                                    DEFAULT_OBSERVABLES)
+                                                          RandomBarabasiAlbertGraphGenerator, RandomErdosRenyiGraphGenerator,
+                                                          EdgeType, RewardSignal, ExtraAction,
+                                                          OptimisationTarget, SpinBasis,
+                                                          DEFAULT_OBSERVABLES)
 from rlsolver.methods.eco_s2v.src.networks.mpnn import MPNN
-from rlsolver.methods.eco_s2v.config import *
-import torch
-from rlsolver.methods.eco_s2v.plot import plot_scatter
+from rlsolver.methods.eco_s2v.util import write_sampling_speed, load_graph_set_from_folder
 
 try:
     import seaborn as sns
@@ -66,7 +66,7 @@ def run(save_loc):
     # Pre-generated test graphs
     ####
     graphs_test = load_graph_set_from_folder(NEURAL_NETWORK_SAVE_PATH)
-    graphs_test = [torch.tensor(m,dtype=torch.float,device=TRAIN_DEVICE) for m in graphs_test]
+    graphs_test = [torch.tensor(m, dtype=torch.float, device=TRAIN_DEVICE) for m in graphs_test]
     n_tests = len(graphs_test)
 
     test_graph_generator = SetGraphGenerator(graphs_test, ordered=True)
@@ -96,8 +96,8 @@ def run(save_loc):
     network_save_path = pre_fix + "/" + NEURAL_NETWORK_PREFIX + ".pth"
     test_save_path = pre_fix + "test_scores.pkl"
     loss_save_path = pre_fix + "losses.pkl"
-    logger_save_path  = pre_fix+"logger.txt"
-    sampling_speed_save_path = pre_fix+"sampling_speed.txt"
+    logger_save_path = pre_fix + "logger.txt"
+    sampling_speed_save_path = pre_fix + "sampling_speed.txt"
 
     ####################################################
     # SET UP AGENT
@@ -111,44 +111,44 @@ def run(save_loc):
                               n_hid_readout=[],
                               tied_weights=False)
     args = {
-    'envs': train_envs,
-    'network': network_fn,
-    'init_network_params': None,
-    'init_weight_std': 0.01,
-    'double_dqn': True,
-    'clip_Q_targets': False,
-    'replay_start_size': int(round(REPLAY_START_SIZE/(NUM_TRAIN_SIMS))),
-    'replay_buffer_size': REPLAY_BUFFER_SIZE,
-    'gamma': gamma,
-    'update_learning_rate': False,
-    'initial_learning_rate': 1e-4,
-    'peak_learning_rate': 1e-3,
-    'peak_learning_rate_step': 5000,
-    'final_learning_rate': 1e-4,
-    'final_learning_rate_step': 200000,
-    'minibatch_size': 64,
-    'max_grad_norm': None,
-    'weight_decay': 0,
-    'update_exploration': True,
-    'initial_exploration_rate': 1,
-    'final_exploration_rate': 0.05,
-    'final_exploration_step': FINAL_EXPLORATION_STEP,
-    'adam_epsilon': 1e-8,
-    'logging': True,
-    'evaluate': True,
-    'update_target_frequency': max(1, int(round(UPDATE_TARGET_FREQUENCY/(NUM_TRAIN_SIMS)))),
-    'update_frequency': max(1, int(UPDATE_FREQUENCY/(NUM_TRAIN_SIMS))),
-    'save_network_frequency': SAVE_NETWORK_FREQUENCY,
-    'loss': "mse",
-    'network_save_path': network_save_path,
-    'test_envs': test_envs,
-    'test_episodes': n_tests,
-    'test_obj_frequency': TEST_OBJ_FREQUENCY,
-    'test_save_path': test_save_path,
-    'test_metric': TestMetric.MAX_CUT,
-    'logger_save_path': logger_save_path,
-    'seed': None,
-    'test_sampling_speed': TEST_SAMPLING_SPEED
+        'envs': train_envs,
+        'network': network_fn,
+        'init_network_params': None,
+        'init_weight_std': 0.01,
+        'double_dqn': True,
+        'clip_Q_targets': False,
+        'replay_start_size': int(round(REPLAY_START_SIZE / (NUM_TRAIN_SIMS))),
+        'replay_buffer_size': REPLAY_BUFFER_SIZE,
+        'gamma': gamma,
+        'update_learning_rate': False,
+        'initial_learning_rate': 1e-4,
+        'peak_learning_rate': 1e-3,
+        'peak_learning_rate_step': 5000,
+        'final_learning_rate': 1e-4,
+        'final_learning_rate_step': 200000,
+        'minibatch_size': 64,
+        'max_grad_norm': None,
+        'weight_decay': 0,
+        'update_exploration': True,
+        'initial_exploration_rate': 1,
+        'final_exploration_rate': 0.05,
+        'final_exploration_step': FINAL_EXPLORATION_STEP,
+        'adam_epsilon': 1e-8,
+        'logging': True,
+        'evaluate': True,
+        'update_target_frequency': max(1, int(round(UPDATE_TARGET_FREQUENCY / (NUM_TRAIN_SIMS)))),
+        'update_frequency': max(1, int(UPDATE_FREQUENCY / (NUM_TRAIN_SIMS))),
+        'save_network_frequency': SAVE_NETWORK_FREQUENCY,
+        'loss': "mse",
+        'network_save_path': network_save_path,
+        'test_envs': test_envs,
+        'test_episodes': n_tests,
+        'test_obj_frequency': TEST_OBJ_FREQUENCY,
+        'test_save_path': test_save_path,
+        'test_metric': TestMetric.MAX_CUT,
+        'logger_save_path': logger_save_path,
+        'seed': None,
+        'test_sampling_speed': TEST_SAMPLING_SPEED
     }
     # if TEST_SAMPLING_SPEED:
     #         nb_steps = 2000
@@ -162,11 +162,11 @@ def run(save_loc):
     # TRAIN AGENT
     #############
     sampling_start_time = time.time()
-    agent.learn(timesteps=nb_steps, start_time=start,verbose=True)
-    print(time.time()-start)
+    agent.learn(timesteps=nb_steps, start_time=start, verbose=True)
+    print(time.time() - start)
     if TEST_SAMPLING_SPEED:
-        sampling_speed = NUM_TRAIN_SIMS*nb_steps/(time.time()-sampling_start_time)
-        write_sampling_speed(sampling_speed_save_path,sampling_speed)
+        sampling_speed = NUM_TRAIN_SIMS * nb_steps / (time.time() - sampling_start_time)
+        write_sampling_speed(sampling_speed_save_path, sampling_speed)
 
     else:
         plot_scatter(logger_save_path)

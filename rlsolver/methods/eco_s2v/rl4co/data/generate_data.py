@@ -10,7 +10,6 @@ from rlsolver.methods.eco_s2v.rl4co.utils.pylogger import get_pylogger
 
 log = get_pylogger(__name__)
 
-
 DISTRIBUTIONS_PER_PROBLEM = {
     "tsp": [None],
     "vrp": [None],
@@ -104,8 +103,8 @@ def generate_op_data(dataset_size, op_size, prize_type="const", max_lengths=None
         assert prize_type == "dist"
         prize_ = np.linalg.norm(depot[:, None, :] - loc, axis=-1)
         prize = (
-            1 + (prize_ / prize_.max(axis=-1, keepdims=True) * 99).astype(int)
-        ) / 100.0
+                        1 + (prize_ / prize_.max(axis=-1, keepdims=True) * 99).astype(int)
+                ) / 100.0
 
     # Max length is approximately half of optimal TSP tour, such that half (a bit more) of the nodes can be visited
     # which is maximally difficult as this has the largest number of possibilities
@@ -141,7 +140,7 @@ def generate_pctsp_data(dataset_size, pctsp_size, penalty_factor=3, max_lengths=
     # so the constraint will be that total prize >= (n / 2) / 2 = n / 4
     # equivalently, we divide all prizes by n / 4 and the total prize should be >= 1
     deterministic_prize = (
-        np.random.uniform(size=(dataset_size, pctsp_size)) * 4 / float(pctsp_size)
+            np.random.uniform(size=(dataset_size, pctsp_size)) * 4 / float(pctsp_size)
     )
 
     # In the deterministic setting, the stochastic_prize is not used and the deterministic prize is known
@@ -149,7 +148,7 @@ def generate_pctsp_data(dataset_size, pctsp_size, penalty_factor=3, max_lengths=
     # stochastic prize is only revealed once the node is visited
     # Stochastic prize is between (0, 2 * expected_prize) such that E(stochastic prize) = E(deterministic_prize)
     stochastic_prize = (
-        np.random.uniform(size=(dataset_size, pctsp_size)) * deterministic_prize * 2
+            np.random.uniform(size=(dataset_size, pctsp_size)) * deterministic_prize * 2
     )
 
     return {
@@ -162,13 +161,13 @@ def generate_pctsp_data(dataset_size, pctsp_size, penalty_factor=3, max_lengths=
 
 
 def generate_mdpp_data(
-    dataset_size,
-    size=10,
-    num_probes_min=2,
-    num_probes_max=5,
-    num_keepout_min=1,
-    num_keepout_max=50,
-    lock_size=True,
+        dataset_size,
+        size=10,
+        num_probes_min=2,
+        num_probes_max=5,
+        num_keepout_min=1,
+        num_keepout_max=50,
+        lock_size=True,
 ):
     """Generate data for the nDPP problem.
     If `lock_size` is True, then the size if fixed and we skip the `size` argument if it is not 10.
@@ -224,17 +223,17 @@ def generate_atsp_data(dataset_size, atsp_size, tmat_class: bool = True):
 
 
 def generate_dataset(
-    filename: str | list[str] | None = None,
-    data_dir: str = "data",
-    name: str | None = None,
-    problem: str | list[str] = "all",
-    data_distribution: str = "all",
-    dataset_size: int = 10000,
-    graph_sizes: int | list[int] = [20, 50, 100],
-    overwrite: bool = False,
-    seed: int = 1234,
-    disable_warning: bool = True,
-    distributions_per_problem: int | dict = None,
+        filename: str | list[str] | None = None,
+        data_dir: str = "data",
+        name: str | None = None,
+        problem: str | list[str] = "all",
+        data_distribution: str = "all",
+        dataset_size: int = 10000,
+        graph_sizes: int | list[int] = [20, 50, 100],
+        overwrite: bool = False,
+        seed: int = 1234,
+        disable_warning: bool = True,
+        distributions_per_problem: int | dict = None,
 ):
     """We keep a similar structure as in Kool et al. 2019 but save and load the data as npz
     This is way faster and more memory efficient than pickle and also allows for easy transfer to TensorDict
@@ -310,7 +309,7 @@ def generate_dataset(
                     fname = check_extension(filename, extension=".npz")
 
                 if not overwrite and os.path.isfile(
-                    check_extension(fname, extension=".npz")
+                        check_extension(fname, extension=".npz")
                 ):
                     if not disable_warning:
                         log.info(
@@ -370,7 +369,7 @@ if __name__ == "__main__":
         type=str,
         default="all",
         help="Problem, 'tsp', 'vrp', 'pctsp' or 'op_const', 'op_unif' or 'op_dist'"
-        " or 'all' to generate all",
+             " or 'all' to generate all",
     )
     parser.add_argument(
         "--data_distribution",

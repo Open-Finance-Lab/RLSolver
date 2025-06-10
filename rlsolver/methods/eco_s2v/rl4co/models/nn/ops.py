@@ -1,5 +1,4 @@
 import math
-
 from typing import Tuple
 
 import torch
@@ -19,7 +18,7 @@ class SkipConnection(nn.Module):
 
 class AdaptiveSequential(nn.Sequential):
     def forward(
-        self, *inputs: Tuple[torch.Tensor] | torch.Tensor
+            self, *inputs: Tuple[torch.Tensor] | torch.Tensor
     ) -> Tuple[torch.Tensor] | torch.Tensor:
         for module in self._modules.values():
             if type(inputs) == tuple:
@@ -129,7 +128,7 @@ class RandomEncoding(nn.Module):
         if classes is None:
             classes = torch.eye(s).unsqueeze(0).expand(b, s)
         assert (
-            classes.max() < self.max_classes
+                classes.max() < self.max_classes
         ), "number of classes larger than embedding table"
         classes = classes.unsqueeze(-1).expand(-1, -1, self.embed_dim)
         rand_idx = torch.rand(b, self.max_classes).argsort(dim=1)

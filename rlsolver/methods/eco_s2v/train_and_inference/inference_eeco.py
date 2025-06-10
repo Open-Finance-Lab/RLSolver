@@ -1,5 +1,5 @@
-import sys
 import os
+import sys
 
 cur_path = os.path.dirname(os.path.abspath(__file__))
 rlsolver_path = os.path.join(cur_path, '../../../../rlsolver')
@@ -8,18 +8,18 @@ sys.path.append(os.path.dirname(rlsolver_path))
 import time
 import torch
 import networkx as nx
-import shutil
 from rlsolver.methods.eco_s2v.src.envs.inference_network_env import SpinSystemFactory
 from rlsolver.methods.eco_s2v.util import eeco_test_network, load_graph_from_txt
 from rlsolver.methods.eco_s2v.src.envs.eeco_util import (SetGraphGenerator,
-                                                         RewardSignal, ExtraAction,
-                                                         OptimisationTarget, SpinBasis,
-                                                         DEFAULT_OBSERVABLES)
+                                                         )
+from rlsolver.methods.eco_s2v.src.envs.util import (RewardSignal, ExtraAction,
+                                                    OptimisationTarget, SpinBasis,
+                                                    DEFAULT_OBSERVABLES)
 from rlsolver.methods.eco_s2v.src.networks.mpnn import MPNN
 
 from rlsolver.methods.util_result import write_graph_result
 from rlsolver.methods.eco_s2v.config import *
-import json
+
 
 def run(graph_folder="../../data/syn_BA",
         if_greedy=False,
@@ -96,15 +96,15 @@ def run(graph_folder="../../data/syn_BA",
                     )
 
                     start_time = time.time()
-                    result, sol = eeco_test_network(network, test_env, USE_TENSOR_CORE_IN_INFERENCE,
-                                                    INFERENCE_DEVICE,local_search_frequency=LOCAL_SEARCH_FREQUENCY)
+                    result, sol = eeco_test_network(network, test_env, LOCAL_SEARCH_FREQUENCY)
 
                     if result['obj'] > best_obj:  # 记录最佳结果
                         best_obj = result['obj']
                         best_sol = result['sol']
                 run_duration = time.time() - start_time
-                sol = (best_sol + 1)/2
+                sol = (best_sol + 1) / 2
                 write_graph_result(best_obj, run_duration, sol.shape[0], ALG.value, sol.to(torch.int), file_list[i], plus1=True)
+
 
 if __name__ == "__main__":
     run(graph_folder='../../../rlsolver/data/syn_BA',

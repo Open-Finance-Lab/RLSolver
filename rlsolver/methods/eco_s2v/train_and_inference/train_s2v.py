@@ -1,16 +1,14 @@
-import matplotlib.pyplot as plt
-
 import rlsolver.methods.eco_s2v.src.envs.core as ising_env
-from rlsolver.methods.eco_s2v.util import (cal_txt_name)
+from rlsolver.methods.eco_s2v.config import *
 from rlsolver.methods.eco_s2v.src.agents.dqn.dqn import DQN
 from rlsolver.methods.eco_s2v.src.agents.dqn.utils import TestMetric
 from rlsolver.methods.eco_s2v.src.envs.util import (SetGraphGenerator,
                                                     RandomErdosRenyiGraphGenerator, RandomBarabasiAlbertGraphGenerator,
                                                     EdgeType, RewardSignal, ExtraAction,
-                                                    OptimisationTarget, SpinBasis,ValidationGraphGenerator,
+                                                    OptimisationTarget, SpinBasis, ValidationGraphGenerator,
                                                     Observable)
 from rlsolver.methods.eco_s2v.src.networks.mpnn import MPNN
-from rlsolver.methods.eco_s2v.config import *
+from rlsolver.methods.eco_s2v.util import (cal_txt_name)
 
 try:
     import seaborn as sns
@@ -57,19 +55,18 @@ def run(save_loc):
     if GRAPH_TYPE == GraphType.BA:
         train_graph_generator = RandomBarabasiAlbertGraphGenerator(n_spins=n_spins_train, m_insertion_edges=4,
                                                                    edge_type=EdgeType.DISCRETE)
-        
+
     validation_graph_generator = ValidationGraphGenerator(n_spins=n_spins_train, graph_type=GRAPH_TYPE,
                                                           edge_type=EdgeType.DISCRETE,
                                                           n_sims=NUM_VALIDATION_SIMS, seed=VALIDATION_SEED)
-    
+
     graphs_validation = validation_graph_generator.get()
 
-  
     ####
     # Pre-generated test graphs
     ####
     n_validations = len(graphs_validation)
-    validation_graph_generator = SetGraphGenerator(graphs_validation, ordered=True)  
+    validation_graph_generator = SetGraphGenerator(graphs_validation, ordered=True)
     ####################################################
     # SET UP TRAINING AND TEST ENVIRONMENTS
     ####################################################
@@ -88,8 +85,6 @@ def run(save_loc):
     ####################################################
     # SET UP FOLDERS FOR SAVING DATA
     ####################################################
-
-
 
     # pre_fix = save_loc + "/" + ALG.value + "_" + GRAPH_TYPE.value + "_" + str(NUM_TRAIN_NODES)
     pre_fix = save_loc + "/" + NEURAL_NETWORK_PREFIX
@@ -112,7 +107,7 @@ def run(save_loc):
                               n_features=64,
                               n_hid_readout=[],
                               tied_weights=False)
-    
+
     args = {
         'envs': train_envs,
         'network': network_fn,
@@ -156,7 +151,6 @@ def run(save_loc):
     }
     args['args'] = args
 
-
     # if TEST_SAMPLING_SPEED:
     #     nb_steps = int(1e3)
     #     args['test_obj_frequency'] = args['update_target_frequency'] = args['update_frequency'] = args[
@@ -168,7 +162,6 @@ def run(save_loc):
 
     print("\n Created DQN agent with network:\n\n", agent.network)
 
-
     #############
     # TRAIN AGENT
     #############
@@ -176,8 +169,6 @@ def run(save_loc):
     agent.learn(timesteps=nb_steps, start_time=start, verbose=True)
     # 训完之后会输出时间
     print(time.time() - start)
-
-
 
 
 if __name__ == "__main__":

@@ -11,9 +11,9 @@ import torch
 import torch.nn.functional as F
 import torch.optim as optim
 
+from rlsolver.methods.eco_s2v.config import *
 from rlsolver.methods.eco_s2v.src.agents.dqn.utils import ReplayBuffer, Logger, TestMetric, set_global_seed
 from rlsolver.methods.eco_s2v.src.envs.util import ExtraAction
-from rlsolver.methods.eco_s2v.config import *
 
 
 class DQN:
@@ -135,10 +135,10 @@ class DQN:
             # Other
             logging=True,
             seed=None,
-            test_sampling_speed = False,
-            logger_save_path = None,
-            sampling_speed_save_path = None,
-            args = None,
+            test_sampling_speed=False,
+            logger_save_path=None,
+            sampling_speed_save_path=None,
+            args=None,
     ):
 
         self.device = TRAIN_DEVICE
@@ -276,16 +276,16 @@ class DQN:
         total_time = 0
         if self.logging:
             if not self.test_sampling_speed:
-                logger = Logger(save_path=self.logger_save_path,args=self.args, n_sims = 1)
+                logger = Logger(save_path=self.logger_save_path, args=self.args, n_sims=1)
             else:
-                logger = Logger(save_path=self.sampling_speed_save_path,args=self.args, n_sims = 1)
+                logger = Logger(save_path=self.sampling_speed_save_path, args=self.args, n_sims=1)
 
         path = self.network_save_path
         path_main, path_ext = os.path.splitext(path)
         if path_ext == '':
             path_ext += '.pth'
-        self.save(path_main +"_0"+ path_ext)
-        last_record_obj_time = time.time()      
+        self.save(path_main + "_0" + path_ext)
+        last_record_obj_time = time.time()
 
         # Initialise the state
         state = torch.as_tensor(self.env.reset())
@@ -340,7 +340,8 @@ class DQN:
                 # Reinitialise the state
                 if verbose:
                     loss_str = "{:.2e}".format(np.mean(losses_eps)) if is_training_ready else "N/A"
-                    print("timestep : {}, episode time: {}, score : {}, mean loss: {}, time : {} s".format(
+                    print("timestep : {}, episode time: {}, score : {}, mean loss: {}, time : {} s" \
+                        .format(
                         (timestep + 1),
                         self.env.current_step,
                         np.round(score, 3),
@@ -405,9 +406,9 @@ class DQN:
                     and is_training_ready:
                 total_time += time.time() - start_time
 
-                path_main_ = path_main+ '_'+str(int(total_time))
+                path_main_ = path_main + '_' + str(int(total_time))
                 if self.logging:
-                    logger.add_scalar('time_vs_loss',  total_time, loss)
+                    logger.add_scalar('time_vs_loss', total_time, loss)
                     logger.add_scalar('step_vs_loss', timestep - training_ready_step, loss)
 
                 self.save(path_main_ + path_ext)
@@ -498,10 +499,9 @@ class DQN:
                     timestep / self.peak_learning_rate_step
             )
         elif timestep <= self.final_learning_rate_step:
-            lr = self.peak_learning_rate - (self.peak_learning_rate - self.final_learning_rate) * (
-                    (timestep - self.peak_learning_rate_step) / (
-                        self.final_learning_rate_step - self.peak_learning_rate_step)
-            )
+            lr = (self.peak_learning_rate - (self.peak_learning_rate - self.final_learning_rate)
+                  * ((timestep - self.peak_learning_rate_step) / (self.final_learning_rate_step - self.peak_learning_rate_step))
+                  )
         else:
             lr = None
 
@@ -566,7 +566,7 @@ class DQN:
 
             actions = self.predict(torch.FloatTensor(np.array(obs_batch)).to(self.device),
                                    testing_in_reversible_spin_env)
-            
+
             actions = np.array(actions)
             obs_batch = []
 

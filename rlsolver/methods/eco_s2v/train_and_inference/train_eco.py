@@ -1,9 +1,9 @@
-import matplotlib.pyplot as plt
 # from numba.cuda.cudadrv.nvrtc import NVRTC
 
 import rlsolver.methods.eco_s2v.src.envs.core as ising_env
 from rlsolver.methods.eco_s2v.util import (cal_txt_name)
 from ..config import *
+
 if USE_TWO_DEVICES_IN_ECOS2V:
     from rlsolver.methods.eco_s2v.src.agents.dqn.dqn_two_devices import DQN
 else:
@@ -105,7 +105,6 @@ def run(save_loc):
     sampling_speed_save_path = pre_fix + "/sampling_speed.json"
     print('pre_fix:', pre_fix)
 
-
     ####################################################
     # SET UP AGENT
     ####################################################
@@ -176,7 +175,6 @@ def run(save_loc):
     agent.learn(timesteps=nb_steps, start_time=start, verbose=True)
     # 训完之后会输出时间
     print(time.time() - start)
-
 
 
 if __name__ == "__main__":

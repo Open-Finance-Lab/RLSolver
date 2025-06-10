@@ -1,13 +1,11 @@
 import itertools
 import math
 import warnings
-
 from typing import Callable, Optional
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
 from einops import rearrange
 
 from rlsolver.methods.eco_s2v.rl4co.models.nn.moe import MoE
@@ -17,7 +15,7 @@ log = get_pylogger(__name__)
 
 
 def scaled_dot_product_attention_simple(
-    q, k, v, attn_mask=None, dropout_p=0.0, is_causal=False
+        q, k, v, attn_mask=None, dropout_p=0.0, is_causal=False
 ):
     """Simple (exact) Scaled Dot-Product Attention in RL4CO without customized kernels (i.e. no Flash Attention)."""
 
@@ -82,15 +80,15 @@ class MultiHeadAttention(nn.Module):
     """
 
     def __init__(
-        self,
-        embed_dim: int,
-        num_heads: int,
-        bias: bool = True,
-        attention_dropout: float = 0.0,
-        causal: bool = False,
-        device: str = None,
-        dtype: torch.dtype = None,
-        sdpa_fn: Optional[Callable] = None,
+            self,
+            embed_dim: int,
+            num_heads: int,
+            bias: bool = True,
+            attention_dropout: float = 0.0,
+            causal: bool = False,
+            device: str = None,
+            dtype: torch.dtype = None,
+            sdpa_fn: Optional[Callable] = None,
     ) -> None:
         factory_kwargs = {"device": device, "dtype": dtype}
         super().__init__()
@@ -103,7 +101,7 @@ class MultiHeadAttention(nn.Module):
         assert self.embed_dim % num_heads == 0, "self.kdim must be divisible by num_heads"
         self.head_dim = self.embed_dim // num_heads
         assert (
-            self.head_dim % 8 == 0 and self.head_dim <= 128
+                self.head_dim % 8 == 0 and self.head_dim <= 128
         ), "Only support head_dim <= 128 and divisible by 8"
 
         self.Wqkv = nn.Linear(embed_dim, 3 * embed_dim, bias=bias, **factory_kwargs)
@@ -164,14 +162,14 @@ class MultiHeadCrossAttention(nn.Module):
     """
 
     def __init__(
-        self,
-        embed_dim: int,
-        num_heads: int,
-        bias: bool = False,
-        attention_dropout: float = 0.0,
-        device: str = None,
-        dtype: torch.dtype = None,
-        sdpa_fn: Optional[Callable | nn.Module] = None,
+            self,
+            embed_dim: int,
+            num_heads: int,
+            bias: bool = False,
+            attention_dropout: float = 0.0,
+            device: str = None,
+            dtype: torch.dtype = None,
+            sdpa_fn: Optional[Callable | nn.Module] = None,
     ) -> None:
         factory_kwargs = {"device": device, "dtype": dtype}
         super().__init__()
@@ -187,7 +185,7 @@ class MultiHeadCrossAttention(nn.Module):
         assert self.embed_dim % num_heads == 0, "self.kdim must be divisible by num_heads"
         self.head_dim = self.embed_dim // num_heads
         assert (
-            self.head_dim % 8 == 0 and self.head_dim <= 128
+                self.head_dim % 8 == 0 and self.head_dim <= 128
         ), "Only support head_dim <= 128 and divisible by 8"
 
         self.Wq = nn.Linear(embed_dim, embed_dim, bias=bias, **factory_kwargs)
@@ -243,14 +241,14 @@ class PointerAttention(nn.Module):
     """
 
     def __init__(
-        self,
-        embed_dim: int,
-        num_heads: int,
-        mask_inner: bool = True,
-        out_bias: bool = False,
-        check_nan: bool = True,
-        sdpa_fn: Callable | str = "default",
-        **kwargs,
+            self,
+            embed_dim: int,
+            num_heads: int,
+            mask_inner: bool = True,
+            out_bias: bool = False,
+            check_nan: bool = True,
+            sdpa_fn: Callable | str = "default",
+            **kwargs,
     ):
         super(PointerAttention, self).__init__()
         self.num_heads = num_heads
@@ -352,14 +350,14 @@ class PointerAttnMoE(PointerAttention):
     """
 
     def __init__(
-        self,
-        embed_dim: int,
-        num_heads: int,
-        mask_inner: bool = True,
-        out_bias: bool = False,
-        check_nan: bool = True,
-        sdpa_fn: Optional[Callable] = None,
-        moe_kwargs: Optional[dict] = None,
+            self,
+            embed_dim: int,
+            num_heads: int,
+            mask_inner: bool = True,
+            out_bias: bool = False,
+            check_nan: bool = True,
+            sdpa_fn: Optional[Callable] = None,
+            moe_kwargs: Optional[dict] = None,
     ):
         super(PointerAttnMoE, self).__init__(
             embed_dim, num_heads, mask_inner, out_bias, check_nan, sdpa_fn
@@ -500,7 +498,7 @@ class PolyNetAttention(PointerAttention):
     """
 
     def __init__(
-        self, k: int, embed_dim: int, poly_layer_dim: int, num_heads: int, **kwargs
+            self, k: int, embed_dim: int, poly_layer_dim: int, num_heads: int, **kwargs
     ):
         super(PolyNetAttention, self).__init__(embed_dim, num_heads, **kwargs)
 
@@ -534,7 +532,7 @@ class PolyNetAttention(PointerAttention):
         num_solutions = glimpse.shape[1]
         z = self.binary_vectors.repeat(math.ceil(num_solutions / self.k), 1)[
             :num_solutions
-        ]
+            ]
         z = z[None].expand(glimpse.shape[0], num_solutions, self.binary_vector_dim)
 
         # PolyNet layers

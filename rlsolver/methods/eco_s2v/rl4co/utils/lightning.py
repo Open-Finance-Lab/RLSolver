@@ -2,7 +2,6 @@ import os
 
 import lightning as L
 import torch
-
 from omegaconf import DictConfig
 
 # from rl4co.
@@ -35,7 +34,7 @@ def remove_key(config, key="wandb"):
 
 
 def clean_hydra_config(
-    config, keep_value_only=True, remove_keys="wandb", clean_cfg_path=True
+        config, keep_value_only=True, remove_keys="wandb", clean_cfg_path=True
 ):
     """Clean hydra config by nesting dictionary and cleaning values"""
     # Remove keys containing `remove_keys`

@@ -28,7 +28,7 @@ def create_optimizer(parameters, optimizer_name: str, **optimizer_kwargs) -> Opt
 
 
 def create_scheduler(
-    optimizer: Optimizer, scheduler_name: str, **scheduler_kwargs
+        optimizer: Optimizer, scheduler_name: str, **scheduler_kwargs
 ) -> torch.optim.lr_scheduler.LRScheduler:
     """Create scheduler for optimizer. If `scheduler_name` is not found, raise ValueError."""
     if scheduler_name in get_pytorch_lr_schedulers():

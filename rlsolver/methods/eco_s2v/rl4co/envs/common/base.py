@@ -1,10 +1,8 @@
 import abc
-
 from os.path import join as pjoin
 from typing import Iterable, Optional
 
 import torch
-
 from tensordict.tensordict import TensorDict
 from torchrl.envs import EnvBase
 
@@ -43,23 +41,23 @@ class RL4COEnvBase(EnvBase, metaclass=abc.ABCMeta):
     batch_locked = False
 
     def __init__(
-        self,
-        *,
-        data_dir: str = "data/",
-        train_file: str = None,
-        val_file: str = None,
-        test_file: str = None,
-        val_dataloader_names: list = None,
-        test_dataloader_names: list = None,
-        check_solution: bool = True,
-        dataset_cls: callable = TensorDictDataset,
-        seed: int = None,
-        device: str = "cpu",
-        batch_size: torch.Size = None,
-        run_type_checks: bool = False,
-        allow_done_after_reset: bool = False,
-        _torchrl_mode: bool = False,
-        **kwargs,
+            self,
+            *,
+            data_dir: str = "data/",
+            train_file: str = None,
+            val_file: str = None,
+            test_file: str = None,
+            val_dataloader_names: list = None,
+            test_dataloader_names: list = None,
+            check_solution: bool = True,
+            dataset_cls: callable = TensorDictDataset,
+            seed: int = None,
+            device: str = "cpu",
+            batch_size: torch.Size = None,
+            run_type_checks: bool = False,
+            allow_done_after_reset: bool = False,
+            _torchrl_mode: bool = False,
+            **kwargs,
     ):
         super().__init__(
             device=device,
@@ -180,7 +178,7 @@ class RL4COEnvBase(EnvBase, metaclass=abc.ABCMeta):
         raise NotImplementedError
 
     def get_reward(
-        self, td: TensorDict, actions: torch.Tensor, check_solution: Optional[bool] = None
+            self, td: TensorDict, actions: torch.Tensor, check_solution: Optional[bool] = None
     ) -> torch.Tensor:
         """Function to compute the reward. Can be called by the agent to compute the reward of the current state
         This is faster than calling step() and getting the reward from the returned TensorDict at each time for CO tasks
@@ -217,10 +215,10 @@ class RL4COEnvBase(EnvBase, metaclass=abc.ABCMeta):
         raise NotImplementedError
 
     def replace_selected_actions(
-        self,
-        cur_actions: torch.Tensor,
-        new_actions: torch.Tensor,
-        selection_mask: torch.Tensor,
+            self,
+            cur_actions: torch.Tensor,
+            new_actions: torch.Tensor,
+            selection_mask: torch.Tensor,
     ) -> torch.Tensor:
         """
         Replace selected current actions with updated actions based on `selection_mask`.
@@ -228,7 +226,7 @@ class RL4COEnvBase(EnvBase, metaclass=abc.ABCMeta):
         raise NotImplementedError
 
     def local_search(
-        self, td: TensorDict, actions: torch.Tensor, **kwargs
+            self, td: TensorDict, actions: torch.Tensor, **kwargs
     ) -> torch.Tensor:
         """Function to improve the solution. Can be called by the agent to improve the current state
         This is called with the full solution (i.e. all actions) at the end of the episode
@@ -303,10 +301,10 @@ class RL4COEnvBase(EnvBase, metaclass=abc.ABCMeta):
 
     @staticmethod
     def solve(
-        instances: TensorDict,
-        max_runtime: float,
-        num_procs: int = 1,
-        **kwargs,
+            instances: TensorDict,
+            max_runtime: float,
+            num_procs: int = 1,
+            **kwargs,
     ) -> tuple[torch.Tensor, torch.Tensor]:
         """Classical solver for the environment. This is a wrapper for the baselines solver.
 
@@ -338,7 +336,6 @@ class RL4COEnvBase(EnvBase, metaclass=abc.ABCMeta):
         # self.rng.set_state(state["rng"])
 
 
-
 class ImprovementEnvBase(RL4COEnvBase, metaclass=abc.ABCMeta):
     """Base class for Improvement environments based on RL4CO EnvBase.
     Note that this class assumes that the solution is stored in a linked list format.
@@ -348,8 +345,8 @@ class ImprovementEnvBase(RL4COEnvBase, metaclass=abc.ABCMeta):
     """
 
     def __init__(
-        self,
-        **kwargs,
+            self,
+            **kwargs,
     ):
         super().__init__(**kwargs)
 
@@ -384,7 +381,7 @@ class ImprovementEnvBase(RL4COEnvBase, metaclass=abc.ABCMeta):
         pre = torch.zeros((batch_size), device=rec.device).long()
         for i in range(seq_length):
             visited_time[torch.arange(batch_size), rec[torch.arange(batch_size), pre]] = (
-                i + 1
+                    i + 1
             )
             pre = rec[torch.arange(batch_size), pre]
 

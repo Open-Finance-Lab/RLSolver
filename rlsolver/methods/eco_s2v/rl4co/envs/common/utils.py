@@ -1,9 +1,7 @@
 import abc
-
 from typing import Callable
 
 import torch
-
 from tensordict.tensordict import TensorDict
 from torch.distributions import Exponential, Normal, Poisson, Uniform
 
@@ -32,11 +30,11 @@ class Generator(metaclass=abc.ABCMeta):
 
 
 def get_sampler(
-    val_name: str,
-    distribution: int | float | str | type | Callable,
-    low: float = 0,
-    high: float = 1.0,
-    **kwargs,
+        val_name: str,
+        distribution: int | float | str | type | Callable,
+        low: float = 0,
+        high: float = 1.0,
+        **kwargs,
 ):
     """Get the sampler for the variable with the given distribution.
     If kwargs are passed, they will be parsed e.g. with `val_name` + `_dist_arg` (e.g. `loc_std` for Normal distribution).
@@ -62,20 +60,20 @@ def get_sampler(
         return Uniform(low=low, high=high)
     elif distribution == Normal or distribution == "normal" or distribution == "gaussian":
         assert (
-            kwargs.get(val_name + "_mean", None) is not None
+                kwargs.get(val_name + "_mean", None) is not None
         ), "mean is required for Normal distribution"
         assert (
-            kwargs.get(val_name + "_std", None) is not None
+                kwargs.get(val_name + "_std", None) is not None
         ), "std is required for Normal distribution"
         return Normal(loc=kwargs[val_name + "_mean"], scale=kwargs[val_name + "_std"])
     elif distribution == Exponential or distribution == "exponential":
         assert (
-            kwargs.get(val_name + "_rate", None) is not None
+                kwargs.get(val_name + "_rate", None) is not None
         ), "rate is required for Exponential/Poisson distribution"
         return Exponential(rate=kwargs[val_name + "_rate"])
     elif distribution == Poisson or distribution == "poisson":
         assert (
-            kwargs.get(val_name + "_rate", None) is not None
+                kwargs.get(val_name + "_rate", None) is not None
         ), "rate is required for Exponential/Poisson distribution"
         return Poisson(rate=kwargs[val_name + "_rate"])
     elif distribution == "center":

@@ -18,13 +18,13 @@ class S2VModel(REINFORCE):
     """
 
     def __init__(
-        self,
-        env: RL4COEnvBase,
-        policy: S2VModelPolicy = None,
-        baseline: REINFORCEBaseline | str = "rollout",
-        policy_kwargs={},
-        baseline_kwargs={},
-        **kwargs,
+            self,
+            env: RL4COEnvBase,
+            policy: S2VModelPolicy = None,
+            baseline: REINFORCEBaseline | str = "rollout",
+            policy_kwargs={},
+            baseline_kwargs={},
+            **kwargs,
     ):
         if policy is None:
             policy = S2VModelPolicy(env_name=env.name, **policy_kwargs)

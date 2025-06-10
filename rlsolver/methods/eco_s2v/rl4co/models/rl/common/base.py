@@ -1,12 +1,10 @@
 import abc
-
+import time
 from functools import partial
 from typing import Any, Iterable
 
 import torch
 import torch.nn as nn
-import time
-
 from lightning import LightningModule
 from torch.utils.data import DataLoader
 
@@ -47,31 +45,31 @@ class RL4COLitModule(LightningModule, metaclass=abc.ABCMeta):
     """
 
     def __init__(
-        self,
-        env: RL4COEnvBase,
-        policy: nn.Module,
-        batch_size: int = 512,
-        val_batch_size: list[int] | int = None,
-        test_batch_size: list[int] | int = None,
-        train_data_size: int = 100_000,
-        val_data_size: int = 10_000,
-        test_data_size: int = 10_000,
-        optimizer: str | torch.optim.Optimizer | partial = "Adam",
-        optimizer_kwargs: dict = {"lr": 1e-4},
-        lr_scheduler: str | torch.optim.lr_scheduler.LRScheduler | partial = None,
-        lr_scheduler_kwargs: dict = {
-            "milestones": [80, 95],
-            "gamma": 0.1,
-        },
-        lr_scheduler_interval: str = "epoch",
-        lr_scheduler_monitor: str = "val/reward",
-        generate_default_data: bool = False,
-        shuffle_train_dataloader: bool = False,
-        dataloader_num_workers: int = 0,
-        data_dir: str = "data/",
-        log_on_step: bool = True,
-        metrics: dict = {},
-        **litmodule_kwargs,
+            self,
+            env: RL4COEnvBase,
+            policy: nn.Module,
+            batch_size: int = 512,
+            val_batch_size: list[int] | int = None,
+            test_batch_size: list[int] | int = None,
+            train_data_size: int = 100_000,
+            val_data_size: int = 10_000,
+            test_data_size: int = 10_000,
+            optimizer: str | torch.optim.Optimizer | partial = "Adam",
+            optimizer_kwargs: dict = {"lr": 1e-4},
+            lr_scheduler: str | torch.optim.lr_scheduler.LRScheduler | partial = None,
+            lr_scheduler_kwargs: dict = {
+                "milestones": [80, 95],
+                "gamma": 0.1,
+            },
+            lr_scheduler_interval: str = "epoch",
+            lr_scheduler_monitor: str = "val/reward",
+            generate_default_data: bool = False,
+            shuffle_train_dataloader: bool = False,
+            dataloader_num_workers: int = 0,
+            data_dir: str = "data/",
+            log_on_step: bool = True,
+            metrics: dict = {},
+            **litmodule_kwargs,
     ):
         super().__init__(**litmodule_kwargs)
 
@@ -107,6 +105,7 @@ class RL4COLitModule(LightningModule, metaclass=abc.ABCMeta):
 
         self.shuffle_train_dataloader = shuffle_train_dataloader
         self.dataloader_num_workers = dataloader_num_workers
+
     def on_train_start(self):
         self.train_start_time = time.time()
 
@@ -216,7 +215,7 @@ class RL4COLitModule(LightningModule, metaclass=abc.ABCMeta):
             }
 
     def log_metrics(
-        self, metric_dict: dict, phase: str, dataloader_idx: int | None = None
+            self, metric_dict: dict, phase: str, dataloader_idx: int | None = None
     ):
         """Log metrics to logger and progress bar"""
         metrics = getattr(self, f"{phase}_metrics")

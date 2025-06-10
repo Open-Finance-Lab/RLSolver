@@ -1,5 +1,6 @@
 import sys
 import os
+
 cur_path = os.path.dirname(os.path.abspath(__file__))
 rlsolver_path = os.path.join(cur_path, '../../../rlsolver')
 sys.path.append(os.path.dirname(rlsolver_path))
@@ -27,11 +28,10 @@ def main(_):
         poisson_sample = torch.poisson(torch.tensor([mu]))
         path_length = int(min(99.0, max(1.0, int(poisson_sample.item()))))
         temperature = sampler.init_temperature - step / sampler.chain_length * (
-                    sampler.init_temperature - sampler.final_temperature)
+                sampler.init_temperature - sampler.final_temperature)
         sample, acc = sampler.step(sample, path_length, temperature)
         acc = acc.item()
         mu = min(float(params_dict['num_nodes']), max(1.0, (mu + 0.01 * (acc - 0.574))))
-
 
     distance = sampler.calculate_distance(sample)
     distance, distance_index = torch.max(distance, dim=0)

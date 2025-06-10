@@ -1,5 +1,4 @@
 import copy
-
 from typing import Optional
 
 from tensordict import TensorDict
@@ -22,12 +21,12 @@ class CriticNetwork(nn.Module):
     """
 
     def __init__(
-        self,
-        encoder: nn.Module,
-        value_head: Optional[nn.Module] = None,
-        embed_dim: int = 128,
-        hidden_dim: int = 512,
-        customized: bool = False,
+            self,
+            encoder: nn.Module,
+            value_head: Optional[nn.Module] = None,
+            embed_dim: int = 128,
+            hidden_dim: int = 512,
+            customized: bool = False,
     ):
         super(CriticNetwork, self).__init__()
 
@@ -63,7 +62,7 @@ class CriticNetwork(nn.Module):
 
 
 def create_critic_from_actor(
-    policy: nn.Module, backbone: str = "encoder", **critic_kwargs
+        policy: nn.Module, backbone: str = "encoder", **critic_kwargs
 ):
     # we reuse the network of the policy's backbone, such as an encoder
     encoder = getattr(policy, backbone, None)

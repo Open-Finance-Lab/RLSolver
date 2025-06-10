@@ -1,22 +1,20 @@
-import sys
 import os
+import sys
+
 cur_path = os.path.dirname(os.path.abspath(__file__))
 rlsolver_path = os.path.join(cur_path, '../../rlsolver')
 sys.path.append(os.path.dirname(rlsolver_path))
-
-import os
-import sys
-import time
-import torch as th
 
 from rlsolver.methods.util_read_data import (load_graph_list, GraphList,
                                              build_adjacency_bool,
                                              build_adjacency_indies,
                                              obtain_num_nodes,
-                                             update_xs_by_vs,)
+                                             update_xs_by_vs, )
 from rlsolver.methods.util import gpu_info_str, evolutionary_replacement
 from rlsolver.methods.config import *
+
 TEN = th.Tensor
+
 
 class SimulatorMaxcut:
     def __init__(self, sim_name: str = 'max_cut', graph_list: GraphList = [],
@@ -227,6 +225,7 @@ def check_local_search():
           f"\nbest_v {evaluator.best_v}"
           f"\nbest_x_str {evaluator.best_x_str}")
 
+
 import os
 import sys
 import time
@@ -234,7 +233,7 @@ import torch as th
 import torch.nn as nn
 from torch.nn.utils import clip_grad_norm_
 
-from rlsolver.methods.util_evaluator import X_G14, X_G15, X_G49, X_G50, X_G22, X_G55, X_G70
+from rlsolver.methods.util_evaluator import X_G14, X_G70
 from rlsolver.methods.util_evaluator import Evaluator, EncoderBase64
 
 # TODO plan to remove
@@ -242,9 +241,6 @@ from rlsolver.methods.util_evaluator import Evaluator, EncoderBase64
 TEN = th.Tensor
 
 '''local search'''
-
-
-
 
 
 def update_xs_by_vs(xs0, vs0, xs1, vs1, if_maximize: bool = True):
@@ -515,6 +511,8 @@ def search_and_evaluate_local_search():
 
 from rlsolver.envs.env_mcpg_maxcut import SimulatorMaxcut
 from rlsolver.methods.util_read_data import read_graphlist
+
+
 def check_solution_x():
     filename = '../data/syn_BA/BA_100_ID0.txt'
     graph = read_graphlist(filename)

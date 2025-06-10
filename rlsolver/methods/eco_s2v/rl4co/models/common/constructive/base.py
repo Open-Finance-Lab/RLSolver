@@ -1,9 +1,7 @@
 import abc
-
 from typing import Any, Callable, Optional, Tuple
 
 import torch.nn as nn
-
 from tensordict import TensorDict
 from torch import Tensor
 
@@ -42,7 +40,7 @@ class ConstructiveDecoder(nn.Module, metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def forward(
-        self, td: TensorDict, hidden: Any = None, num_starts: int = 0
+            self, td: TensorDict, hidden: Any = None, num_starts: int = 0
     ) -> Tuple[Tensor, Tensor]:
         """Obtain logits for current action to the next ones
 
@@ -57,7 +55,7 @@ class ConstructiveDecoder(nn.Module, metaclass=abc.ABCMeta):
         raise NotImplementedError("Implement me in subclass!")
 
     def pre_decoder_hook(
-        self, td: TensorDict, env: RL4COEnvBase, hidden: Any = None, num_starts: int = 0
+            self, td: TensorDict, env: RL4COEnvBase, hidden: Any = None, num_starts: int = 0
     ) -> Tuple[TensorDict, RL4COEnvBase, Any]:
         """By default, we don't need to do anything here.
 
@@ -120,17 +118,17 @@ class ConstructivePolicy(nn.Module):
     """
 
     def __init__(
-        self,
-        encoder: ConstructiveEncoder | Callable,
-        decoder: ConstructiveDecoder | Callable,
-        env_name: str = "tsp",
-        temperature: float = 1.0,
-        tanh_clipping: float = 0,
-        mask_logits: bool = True,
-        train_decode_type: str = "sampling",
-        val_decode_type: str = "greedy",
-        test_decode_type: str = "greedy",
-        **unused_kw,
+            self,
+            encoder: ConstructiveEncoder | Callable,
+            decoder: ConstructiveDecoder | Callable,
+            env_name: str = "tsp",
+            temperature: float = 1.0,
+            tanh_clipping: float = 0,
+            mask_logits: bool = True,
+            train_decode_type: str = "sampling",
+            val_decode_type: str = "greedy",
+            test_decode_type: str = "greedy",
+            **unused_kw,
     ):
         super(ConstructivePolicy, self).__init__()
 
@@ -155,19 +153,19 @@ class ConstructivePolicy(nn.Module):
         self.test_decode_type = test_decode_type
 
     def forward(
-        self,
-        td: TensorDict,
-        env: Optional[str | RL4COEnvBase] = None,
-        phase: str = "train",
-        calc_reward: bool = True,
-        return_actions: bool = True,
-        return_entropy: bool = False,
-        return_hidden: bool = False,
-        return_init_embeds: bool = False,
-        return_sum_log_likelihood: bool = True,
-        actions=None,
-        max_steps=1_000_000,
-        **decoding_kwargs,
+            self,
+            td: TensorDict,
+            env: Optional[str | RL4COEnvBase] = None,
+            phase: str = "train",
+            calc_reward: bool = True,
+            return_actions: bool = True,
+            return_entropy: bool = False,
+            return_hidden: bool = False,
+            return_init_embeds: bool = False,
+            return_sum_log_likelihood: bool = True,
+            actions=None,
+            max_steps=1_000_000,
+            **decoding_kwargs,
     ) -> dict:
         """Forward pass of the policy.
 
@@ -229,7 +227,6 @@ class ConstructivePolicy(nn.Module):
         while not td["done"].all():
             # breakpoint()
             logits, mask = self.decoder(td, hidden, num_starts)
-
 
             td = decode_strategy.step(
                 logits,

@@ -1,36 +1,35 @@
 import pickle
-import networkx as nx
-import time
-import numpy as np
-import scipy as sp
-import pandas as pd
-import torch
 import string
-import tqdm
-
+import time
 from collections import namedtuple
 from copy import deepcopy
 
+import networkx as nx
+import numpy as np
+import pandas as pd
+import scipy as sp
+import torch
+import tqdm
+
 import rlsolver.methods.eco_s2v.src.envs.core as ising_env
-from rlsolver.methods.eco_s2v.src.envs.util import (SingleGraphGenerator, SpinBasis)
-from rlsolver.methods.eco_s2v.src.agents.solver import Network, Greedy
 from rlsolver.methods.eco_s2v.config import *
+from rlsolver.methods.eco_s2v.src.agents.solver import Network, Greedy
+from rlsolver.methods.eco_s2v.src.envs.util import (SingleGraphGenerator, SpinBasis)
 
 
 ####################################################
 # TESTING ON GRAPHS
 ####################################################
 
-def eeco_test_network(network, test_env, if_tensor_core=True,device=None,local_search_frequency=LOCAL_SEARCH_FREQUENCY):
-    start_time_1 = time.time()
+def eeco_test_network(network, test_env, local_search_frequency):
     result = {}
     obj_vs_time = {}
-    start_time = time.time()
     test_scores = test_env.get_best_cut()
     obj_vs_time["0"] = test_scores
 
     if USE_TENSOR_CORE_IN_INFERENCE:
         network.half()
+
     @torch.no_grad()
     def predict(network, states):
         qs = network(states, USE_TENSOR_CORE_IN_INFERENCE)
@@ -40,44 +39,46 @@ def eeco_test_network(network, test_env, if_tensor_core=True,device=None,local_s
             actions = qs.argmax(-1, True)
         return actions
 
-    done = torch.zeros(( test_env.n_sims), dtype=torch.bool, device=test_env.device)
+    done = torch.zeros((test_env.n_sims), dtype=torch.bool, device=test_env.device)
     # obs = torch.cat((test_env.state, test_env.matrix_obs.unsqueeze(0).expand(test_env.n_sims,-1,-1)), dim=-2)
     state = test_env.get_observation()
     if USE_TENSOR_CORE_IN_INFERENCE:
-        actions = predict(network,state.to(torch.float16)).squeeze(-1)
+        actions = predict(network, state.to(torch.float16)).squeeze(-1)
     else:
-        actions = predict(network,state).squeeze(-1)
+        actions = predict(network, state).squeeze(-1)
 
     for i in tqdm.tqdm(range(test_env.max_steps)):
         state, done = test_env.step(actions)
-        
+
         if (i + 1) % local_search_frequency == 0 and USE_LOCAL_SEARCH:
             spins = local_search(state)
-            state[:,0,:] = spins
+            state[:, 0, :] = spins
 
         if USE_TENSOR_CORE_IN_INFERENCE:
-            actions = predict(network,state.to(torch.float16)).squeeze(-1)
+            actions = predict(network, state.to(torch.float16)).squeeze(-1)
         else:
-            actions = predict(network,state).squeeze(-1)
+            actions = predict(network, state).squeeze(-1)
     test_scores = test_env.get_best_cut()
-    obj,obj_indices = torch.max(test_scores, dim=0)
+    obj, obj_indices = torch.max(test_scores, dim=0)
     sol = test_env.best_spins[obj_indices]
     result["obj"] = obj.item()
     result["sol"] = sol
     for key, value in obj_vs_time.items():
         obj_vs_time[key] = value.item()
-    return result,sol.cpu().numpy()
+    return result, sol.cpu().numpy()
+
 
 def local_search(state):
-    spins = state[:,0,:]*2-1
-    matrix = state[:,7:,:]
-    delta_score = (torch.matmul(spins,matrix[0])* spins)
-    max_score_change,max_indices = torch.max(delta_score,dim=-1)
+    spins = state[:, 0, :] * 2 - 1
+    matrix = state[:, 7:, :]
+    delta_score = (torch.matmul(spins, matrix[0]) * spins)
+    max_score_change, max_indices = torch.max(delta_score, dim=-1)
     flip_condition = max_score_change > 0
     batch_indices = torch.arange(spins.size(0), device=spins.device)
     # delta_score_temp = delta_score[batch_indices,max_indices]
-    spins[batch_indices,max_indices] *= (-1 * flip_condition.to(torch.float32))
+    spins[batch_indices, max_indices] *= (-1 * flip_condition.to(torch.float32))
     return (spins + 1) / 2
+
 
 def test_network(network, env_args, graphs_test, device=None, step_factor=1, batched=True,
                  n_attempts=50, return_raw=False, return_history=False, max_batch_size=None):
@@ -256,7 +257,7 @@ def __test_network_batched(network, env_args, graphs_test, device=None, step_fac
             print("Finished agent testing batch {}.".format(i_batch))
             if env_args['if_greedy']:
                 if env_args["reversible_spins"]:
-                    print("Running greedy solver with {} random initialisations of spins for batch {}...".format(batch_size,                                                                                      i_batch), end="...")
+                    print("Running greedy solver with {} random initialisations of spins for batch {}...".format(batch_size, i_batch), end="...")
                     for env in greedy_envs:
                         Greedy(env).solve()
                         cut = env.get_best_cut()
@@ -577,17 +578,19 @@ def mk_dir(export_dir, quite=False):
     else:
         print('dir already exists: ', export_dir)
 
-def write_sampling_speed(sampling_speed_save_path, sampling_speed,n_train_sims=None):
+
+def write_sampling_speed(sampling_speed_save_path, sampling_speed, n_train_sims=None):
     with open(sampling_speed_save_path, 'a') as f:
         f.write(f"\n//ALG:{ALG.value} //GRAPH:{GRAPH_TYPE.value}_{NUM_TRAIN_NODES} //sampling speed:")
         if n_train_sims is not None:
             f.write(f"n_sims:{n_train_sims}\n")
         f.write(f"{str(sampling_speed)}samples/s\n")
 
+
 def cal_txt_name(*args):
     new_filenames = []
     for arg in args:
-        file_path  = arg
+        file_path = arg
         while os.path.exists(file_path):
             lowercase_letters = string.ascii_lowercase
             random_int = np.random.randint(0, len(lowercase_letters))
@@ -605,4 +608,3 @@ def cal_txt_name(*args):
     if len(new_filenames) == 1:
         return new_filenames[0]
     return tuple(new_filenames)
-        

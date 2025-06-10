@@ -1,17 +1,17 @@
+import copy
+import math
+import random
+
 import lightning.pytorch as pl
 import torch
-import math
-import copy
-from torch.optim import Adam
-
 from lightning import Callback
 from rlsolver.methods.rl4co_maxcut import utils
-import random
+from torch.optim import Adam
+
 log = utils.get_pylogger(__name__)
 
 
 class ReptileCallback(Callback):
-
     """ Meta training framework for addressing the generalization issue (implement the Reptile algorithm only)
     Based on Manchanda et al. 2022 (https://arxiv.org/abs/2206.00787) and Zhou et al. 2023 (https://arxiv.org/abs/2305.19587)
 
@@ -25,6 +25,7 @@ class ReptileCallback(Callback):
         - data_type: type of the tasks, chosen from ["size", "distribution", "size_distribution"]
         - print_log: whether to print the specific task sampled in each inner-loop optimization
     """
+
     def __init__(self,
                  num_tasks: int,
                  alpha: float,
@@ -33,7 +34,7 @@ class ReptileCallback(Callback):
                  max_size: int,
                  sch_bar: float = 0.9,
                  data_type: str = "size",
-                 print_log: bool =True):
+                 print_log: bool = True):
 
         super().__init__()
 
@@ -56,7 +57,7 @@ class ReptileCallback(Callback):
             self.selected_tasks[0] = (pl_module.env.generator.num_loc, 0, 0)
         elif self.data_type == "size":
             pl_module.env.generator.loc_distribution = "uniform"
-            self.selected_tasks[0] = (pl_module.env.generator.num_loc, )
+            self.selected_tasks[0] = (pl_module.env.generator.num_loc,)
         elif self.data_type == "distribution":
             pl_module.env.generator.loc_distribution = "gaussian_mixture"
             self.selected_tasks[0] = (0, 0)
@@ -68,18 +69,18 @@ class ReptileCallback(Callback):
         self._alpha_scheduler()
 
         # Reinitialize the task model with the parameters of the meta model
-        if trainer.current_epoch %  self.num_tasks == 0: # Save the meta model
+        if trainer.current_epoch % self.num_tasks == 0:  # Save the meta model
             self.meta_model_state_dict = copy.deepcopy(pl_module.state_dict())
             self.task_models = []
             # Print sampled tasks
             if self.print_log:
-                print('\n>> Meta epoch: {} (Exact epoch: {}), Training task: {}'.format(trainer.current_epoch//self.num_tasks, trainer.current_epoch, self.selected_tasks))
+                print('\n>> Meta epoch: {} (Exact epoch: {}), Training task: {}'.format(trainer.current_epoch // self.num_tasks, trainer.current_epoch, self.selected_tasks))
         else:
             pl_module.load_state_dict(self.meta_model_state_dict)
 
         # Reinitialize the optimizer every epoch
-        lr_decay = 0.1 if trainer.current_epoch+1 == int(self.sch_bar * trainer.max_epochs) else 1
-        old_lr  = trainer.optimizers[0].param_groups[0]['lr']
+        lr_decay = 0.1 if trainer.current_epoch + 1 == int(self.sch_bar * trainer.max_epochs) else 1
+        old_lr = trainer.optimizers[0].param_groups[0]['lr']
         new_optimizer = Adam(pl_module.parameters(), lr=old_lr * lr_decay)
         trainer.optimizers = [new_optimizer]
 
@@ -90,11 +91,11 @@ class ReptileCallback(Callback):
             else:
                 print('>> Training task: {}'.format(self.task_params))
 
-    def on_train_epoch_end(self,  trainer: pl.Trainer, pl_module: pl.LightningModule):
+    def on_train_epoch_end(self, trainer: pl.Trainer, pl_module: pl.LightningModule):
 
         # Save the task model
         self.task_models.append(copy.deepcopy(pl_module.state_dict()))
-        if (trainer.current_epoch+1) % self.num_tasks == 0:
+        if (trainer.current_epoch + 1) % self.num_tasks == 0:
             # Outer-loop optimization (update the meta model with the parameters of the task model)
             with torch.no_grad():
                 state_dict = {params_key: (self.meta_model_state_dict[params_key] +
@@ -109,7 +110,7 @@ class ReptileCallback(Callback):
             self._sample_task()
 
         # Load new training task (Update the environment) for the next meta-training iteration
-        self._load_task(pl_module, task_idx = (trainer.current_epoch+1) % self.num_tasks)
+        self._load_task(pl_module, task_idx=(trainer.current_epoch + 1) % self.num_tasks)
 
     def _sample_task(self):
 
@@ -129,11 +130,11 @@ class ReptileCallback(Callback):
             pl_module.env.generator.num_loc = self.task_params[0]
             pl_module.env.generator.num_modes = self.task_params[1]
             pl_module.env.generator.cdist = self.task_params[2]
-        elif self.data_type == "distribution": # fixed size
+        elif self.data_type == "distribution":  # fixed size
             assert len(self.task_params) == 2
             pl_module.env.generator.num_modes = self.task_params[0]
             pl_module.env.generator.cdist = self.task_params[1]
-        elif self.data_type == "size": # fixed distribution
+        elif self.data_type == "size":  # fixed distribution
             assert len(self.task_params) == 1
             pl_module.env.generator.num_loc = self.task_params[0]
 
@@ -167,4 +168,3 @@ class ReptileCallback(Callback):
         print(">> Training task set: {}".format(task_set))
 
         return task_set
-

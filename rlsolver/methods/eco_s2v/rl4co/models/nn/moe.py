@@ -144,7 +144,7 @@ class MoE(nn.Module):
         self.register_buffer("mean", torch.tensor([0.0]))
         self.register_buffer("std", torch.tensor([1.0]))
         breakpoint()
-        assert(self.k <= self.num_experts)
+        assert (self.k <= self.num_experts)
 
     def cv_squared(self, x):
         """The squared coefficient of variation of a sample.
@@ -161,7 +161,7 @@ class MoE(nn.Module):
 
         if x.shape[0] == 1:
             return torch.tensor([0], device=x.device, dtype=x.dtype)
-        return x.float().var() / (x.float().mean()**2 + eps)
+        return x.float().var() / (x.float().mean() ** 2 + eps)
 
     def _gates_to_load(self, gates):
         """Compute the true load per expert, given the gates.
@@ -201,8 +201,8 @@ class MoE(nn.Module):
         threshold_if_out = torch.unsqueeze(torch.gather(top_values_flat, 0, threshold_positions_if_out), 1)
         # is each value currently in the top k.
         normal = Normal(self.mean, self.std)
-        prob_if_in = normal.cdf((clean_values - threshold_if_in)/noise_stddev)
-        prob_if_out = normal.cdf((clean_values - threshold_if_out)/noise_stddev)
+        prob_if_in = normal.cdf((clean_values - threshold_if_in) / noise_stddev)
+        prob_if_out = normal.cdf((clean_values - threshold_if_out) / noise_stddev)
         prob = torch.where(is_in, prob_if_in, prob_if_out)
         return prob
 

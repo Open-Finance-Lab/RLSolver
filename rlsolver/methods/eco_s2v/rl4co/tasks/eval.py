@@ -1,8 +1,6 @@
 import time
 
 import numpy as np
-import torch
-
 from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
 
@@ -42,7 +40,7 @@ class EvalBase:
             actions_list = []
 
             for batch in tqdm(
-                dataloader, disable=not self.progress, desc=f"Running {self.name}"
+                    dataloader, disable=not self.progress, desc=f"Running {self.name}"
             ):
                 td = batch.to(next(policy.parameters()).device)
                 td = self.env.reset(td)
@@ -158,15 +156,15 @@ class SamplingEval(EvalBase):
     name = "sampling"
 
     def __init__(
-        self,
-        env,
-        samples,
-        softmax_temp=None,
-        select_best=True,
-        temperature=1.0,
-        top_p=0.0,
-        top_k=0,
-        **kwargs,
+            self,
+            env,
+            samples,
+            softmax_temp=None,
+            select_best=True,
+            temperature=1.0,
+            top_p=0.0,
+            top_k=0,
+            **kwargs,
     ):
         check_unused_kwargs(self, kwargs)
         super().__init__(env, kwargs.get("progress", True))
@@ -250,13 +248,13 @@ class GreedyMultiStartAugmentEval(EvalBase):
     name = "multistart_greedy_augment"
 
     def __init__(
-        self,
-        env,
-        num_starts=None,
-        num_augment=8,
-        force_dihedral_8=False,
-        feats=None,
-        **kwargs,
+            self,
+            env,
+            num_starts=None,
+            num_augment=8,
+            force_dihedral_8=False,
+            feats=None,
+            **kwargs,
     ):
         check_unused_kwargs(self, kwargs)
         super().__init__(env, kwargs.get("progress", True))
@@ -264,7 +262,7 @@ class GreedyMultiStartAugmentEval(EvalBase):
         assert num_starts is not None, "Must specify num_starts"
         self.num_starts = num_starts
         assert not (
-            num_augment != 8 and force_dihedral_8
+                num_augment != 8 and force_dihedral_8
         ), "Cannot force dihedral 8 when num_augment != 8"
         self.augmentation = StateAugmentation(
             num_augment=num_augment,
@@ -333,19 +331,19 @@ def get_automatic_batch_size(eval_fn, start_batch_size=8192, max_batch_size=4096
 
 
 def evaluate_policy(
-    env,
-    policy,
-    dataset,
-    method="greedy",
-    batch_size=None,
-    max_batch_size=4096,
-    start_batch_size=8192,
-    auto_batch_size=True,
-    samples=1280,
-    softmax_temp=1.0,
-    num_augment=8,
-    force_dihedral_8=True,
-    **kwargs,
+        env,
+        policy,
+        dataset,
+        method="greedy",
+        batch_size=None,
+        max_batch_size=4096,
+        start_batch_size=8192,
+        auto_batch_size=True,
+        samples=1280,
+        softmax_temp=1.0,
+        num_augment=8,
+        force_dihedral_8=True,
+        **kwargs,
 ):
     num_loc = getattr(env.generator, "num_loc", None)
 
@@ -390,7 +388,7 @@ def evaluate_policy(
 
     if auto_batch_size:
         assert (
-            batch_size is None
+                batch_size is None
         ), "Cannot specify batch_size when auto_batch_size is True"
         batch_size = get_automatic_batch_size(
             eval_fn, max_batch_size=max_batch_size, start_batch_size=start_batch_size

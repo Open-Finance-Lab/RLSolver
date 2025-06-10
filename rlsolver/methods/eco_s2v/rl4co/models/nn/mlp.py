@@ -7,15 +7,15 @@ log = get_pylogger(__name__)
 
 class MLP(nn.Module):
     def __init__(
-        self,
-        input_dim: int,
-        output_dim: int,
-        num_neurons: list[int] = [64, 32],
-        dropout_probs: None | list[float] = None,
-        hidden_act: str = "ReLU",
-        out_act: str = "Identity",
-        input_norm: str = "None",
-        output_norm: str = "None",
+            self,
+            input_dim: int,
+            output_dim: int,
+            num_neurons: list[int] = [64, 32],
+            dropout_probs: None | list[float] = None,
+            hidden_act: str = "ReLU",
+            out_act: str = "Identity",
+            input_norm: str = "None",
+            output_norm: str = "None",
     ):
         super(MLP, self).__init__()
 

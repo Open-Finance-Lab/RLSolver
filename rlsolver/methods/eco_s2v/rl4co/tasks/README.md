@@ -28,6 +28,7 @@ python rl4co/tasks/eval.py --problem tsp --data-path data/tsp/tsp50_test_seed123
 ```
 
 Arguments guideline:
+
 - `--problem`: the problem name, e.g., `tsp`, `cvrp`, `pdp`, etc. This should be consistent with the `env.name`. Default is `tsp`.
 - `--generator-params`: the generator parameters for the test instances. You could specify the `num_loc` etc. Default is `{'num_loc': 50}`.
 - `--data-path`: the path to the test instances data file. Default is `data/tsp/tsp50_test_seed1234.npz`.
@@ -37,9 +38,10 @@ Arguments guideline:
 - `--method`: the evaluation method, e.g., `greedy`, `sampling`, `multistart_greedy`, `augment_dihedral_8`, `augment`, `multistart_greedy_augment_dihedral_8`, and `multistart_greedy_augment`. Default is `greedy`.
 - `--save-results`: whether to save the evaluation results as a `.pkl` file. Deafult is `True`. The results include `actions`, `rewards`, `inference_time`, and `avg_reward`.
 - `--save-path`: the path to save the evaluation results. Default is `results/`.
-- `--num-instances`: the number of test instances to evaluate. Default is `1000`. 
+- `--num-instances`: the number of test instances to evaluate. Default is `1000`.
 
 If you use the `sampling` method, you may need to specify the following parameters:
+
 - `--samples`: the number of samples for the sampling method. Default is `1280`.
 - `--temperature`: the temperature for the sampling method. Default is `1.0`.
 - `--top-p`: the top-p for the sampling method. Default is `0.0`, i.e. not activated.
@@ -47,6 +49,7 @@ If you use the `sampling` method, you may need to specify the following paramete
 - `--select-best`: whether to select the best action from the sampling results. If `False`, the results will include all sampled rewards, i.e., `[num_instances * num_samples]`.
 
 If you use the `augment` method, you may need to specify the following parameters:
+
 - `--num-augments`: the number of augmented instances for the augment method. Default is `8`.
 - `--force-dihedral-8`: whether to force the augmented instances to be dihedral 8. Default is `True`.
 

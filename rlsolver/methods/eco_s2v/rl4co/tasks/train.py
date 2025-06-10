@@ -4,16 +4,14 @@ import hydra
 import lightning as L
 import pyrootutils
 import torch
-
 from lightning import Callback, LightningModule
 from lightning.pytorch.loggers import Logger
 from omegaconf import DictConfig
-
 from rlsolver.methods.rl4co_maxcut import utils
+
 from rlsolver.methods.eco_s2v.rl4co.utils import RL4COTrainer
 
 pyrootutils.setup_root(__file__, indicator=".gitignore", pythonpath=True)
-
 
 log = utils.get_pylogger(__name__)
 

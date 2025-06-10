@@ -4,7 +4,6 @@ import copy
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
 from scipy.stats import ttest_rel
 from tensordict import TensorDict
 from torch.utils.data import DataLoader, Dataset
@@ -29,7 +28,7 @@ class REINFORCEBaseline(nn.Module, metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def eval(
-        self, td: TensorDict, reward: torch.Tensor, env: RL4COEnvBase = None, **kwargs
+            self, td: TensorDict, reward: torch.Tensor, env: RL4COEnvBase = None, **kwargs
     ):
         """Evaluate baseline"""
         raise NotImplementedError
@@ -174,7 +173,7 @@ class RolloutBaseline(REINFORCEBaseline):
         self._update_policy(*args, **kw)
 
     def _update_policy(
-        self, policy, env, batch_size=64, device="cpu", dataset_size=None, dataset=None
+            self, policy, env, batch_size=64, device="cpu", dataset_size=None, dataset=None
     ):
         """Update policy (=actor) and rollout baseline values"""
         self.policy = copy.deepcopy(policy).to(device)
@@ -200,7 +199,7 @@ class RolloutBaseline(REINFORCEBaseline):
         return reward, 0
 
     def epoch_callback(
-        self, policy, env, batch_size=64, device="cpu", epoch=None, dataset_size=None
+            self, policy, env, batch_size=64, device="cpu", epoch=None, dataset_size=None
     ):
         """Challenges the current baseline with the policy and replaces the baseline policy if it is improved"""
         log.info("Evaluating candidate policy on evaluation dataset")

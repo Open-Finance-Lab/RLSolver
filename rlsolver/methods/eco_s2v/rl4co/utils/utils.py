@@ -2,15 +2,12 @@ import importlib
 import platform
 import sys
 import warnings
-
 from importlib.util import find_spec
 from typing import Callable
 
 import hydra
-
 from lightning import Callback
 from lightning.pytorch.loggers.logger import Logger
-
 # Import the necessary PyTorch Lightning component
 from lightning.pytorch.trainer.connectors.accelerator_connector import (
     _AcceleratorConnector,

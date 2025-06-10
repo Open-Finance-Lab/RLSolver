@@ -2,7 +2,6 @@ from typing import Callable, Union
 
 import torch
 import torch.nn as nn
-
 from torch import Tensor
 
 try:
@@ -60,11 +59,11 @@ class TSPEdgeEmbedding(nn.Module):
     node_dim = 1
 
     def __init__(
-        self,
-        embed_dim,
-        linear_bias=True,
-        sparsify=True,
-        k_sparse: Union[int, Callable[[int], int], None] = None,
+            self,
+            embed_dim,
+            linear_bias=True,
+            sparsify=True,
+            k_sparse: Union[int, Callable[[int], int], None] = None,
     ):
         assert Batch is not None, (
             "torch_geometric not found. Please install torch_geometric using instructions from "

@@ -1,10 +1,6 @@
-from dataclasses import dataclass, fields
 from typing import Tuple
 
-import torch
 import torch.nn as nn
-
-from einops import rearrange
 from tensordict import TensorDict
 from torch import Tensor
 
@@ -16,14 +12,13 @@ from rlsolver.methods.eco_s2v.rl4co.utils.pylogger import get_pylogger
 log = get_pylogger(__name__)
 
 
-
 class S2VModelDecoder(AutoregressiveDecoder):
 
     def __init__(
-        self,
-        env_name: str = "tsp",
-        context_embedding: nn.Module = None,
-        embed_dim: int = 128,
+            self,
+            env_name: str = "tsp",
+            context_embedding: nn.Module = None,
+            embed_dim: int = 128,
     ):
         super().__init__()
         if isinstance(env_name, RL4COEnvBase):
@@ -37,20 +32,19 @@ class S2VModelDecoder(AutoregressiveDecoder):
         self.embed_dim = embed_dim
 
     def forward(
-        self,
-        td: TensorDict,
-        cached: None,
-        num_starts: int = 0,
+            self,
+            td: TensorDict,
+            cached: None,
+            num_starts: int = 0,
     ) -> Tuple[Tensor, Tensor]:
-
-        logits = self.context_embedding(self.embed_dim,td)
+        logits = self.context_embedding(self.embed_dim, td)
         # Compute logits
         mask = td["action_mask"]
 
         return logits, mask
 
     def pre_decoder_hook(
-        self, td, env, embeddings, num_starts: int = 0
+            self, td, env, embeddings, num_starts: int = 0
     ) -> Tuple[TensorDict, RL4COEnvBase, int]:
         """Precompute the embeddings cache before the decoder is called"""
         return td, env, 0

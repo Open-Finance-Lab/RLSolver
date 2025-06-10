@@ -4,6 +4,7 @@ from enum import Enum
 
 import networkx as nx
 import numpy as np
+
 from rlsolver.methods.config import GraphType
 
 
@@ -324,7 +325,7 @@ class SingleGraphGenerator(GraphGenerator):
 
 
 class ValidationGraphGenerator(GraphGenerator):
-    def __init__(self, n_spins=20,graph_type=GraphType.BA,edge_type=EdgeType.DISCRETE, n_sims=2 ** 3, seed=None):
+    def __init__(self, n_spins=20, graph_type=GraphType.BA, edge_type=EdgeType.DISCRETE, n_sims=2 ** 3, seed=None):
         super().__init__(n_spins, edge_type, False)
         self.n_sims = n_sims
         self.seed = seed

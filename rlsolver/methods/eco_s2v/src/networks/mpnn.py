@@ -1,7 +1,9 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
 from ...config import *
+
 
 class MPNN(nn.Module):
     def __init__(self,
@@ -40,7 +42,7 @@ class MPNN(nn.Module):
         return norm.float()
 
     # @torch.autocast(device_type="cuda")
-    def forward(self, obs_,use_tensor_core=False):
+    def forward(self, obs_, use_tensor_core=False):
         obs = obs_.clone()
         if obs.dim() == 2:
             obs = obs.unsqueeze(0)
@@ -166,7 +168,7 @@ class ReadoutLayer(nn.Module):
             features = layer(features)
             if i < len(self.layers_readout) - 1:
                 features = F.relu(features)
-                #调试
+                # 调试
                 # out = features
             else:
                 out = features
