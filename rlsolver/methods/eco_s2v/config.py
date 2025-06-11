@@ -16,10 +16,10 @@ class Alg(Enum):
     rl4co = 'rl4co'
 
 
-TRAIN_INFERENCE = 1  # 0: train, 1: inference
+TRAIN_INFERENCE = 0  # 0: train, 1: inference
 assert TRAIN_INFERENCE in [0, 1]
 
-ALG = Alg.eco  # Alg
+ALG = Alg.s2v  # Alg
 GRAPH_TYPE = GraphType.BA
 
 # 训练的参数
