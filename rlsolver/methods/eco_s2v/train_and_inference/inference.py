@@ -45,20 +45,7 @@ def run(save_loc="BA_40spin/eco",
     # SET UP ENVIRONMENTAL AND VARIABLES
     ####################################################
 
-    if ALG == Alg.eco:
-        env_args = {'observables': DEFAULT_OBSERVABLES,
-                    'reward_signal': RewardSignal.BLS,
-                    'extra_action': ExtraAction.NONE,
-                    'optimisation_target': OptimisationTarget.CUT,
-                    'spin_basis': SpinBasis.BINARY,
-                    'norm_rewards': True,
-                    'memory_length': None,
-                    'horizon_length': None,
-                    'stag_punishment': None,
-                    'basin_reward': 1. / NUM_TRAIN_NODES,
-                    'reversible_spins': True,
-                    'if_greedy': if_greedy}
-    elif ALG == Alg.s2v:
+    if ALG in [Alg.s2v]:
         env_args = {'observables': [Observable.SPIN_STATE],
                     'reward_signal': RewardSignal.DENSE,
                     'extra_action': ExtraAction.NONE,
@@ -71,7 +58,19 @@ def run(save_loc="BA_40spin/eco",
                     'basin_reward': None,
                     'reversible_spins': False,
                     'if_greedy': if_greedy}
-
+    else:
+        env_args = {'observables': DEFAULT_OBSERVABLES,
+                    'reward_signal': RewardSignal.BLS,
+                    'extra_action': ExtraAction.NONE,
+                    'optimisation_target': OptimisationTarget.CUT,
+                    'spin_basis': SpinBasis.BINARY,
+                    'norm_rewards': True,
+                    'memory_length': None,
+                    'horizon_length': None,
+                    'stag_punishment': None,
+                    'basin_reward': 1. / NUM_TRAIN_NODES,
+                    'reversible_spins': True,
+                    'if_greedy': if_greedy}
     if prefixes:
         file_names = calc_txt_files_with_prefixes(graph_save_loc, prefixes)
 

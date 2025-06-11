@@ -337,7 +337,7 @@ class DQN:
             self.replay_buffer.add(state, action, reward, state_next, done)
 
             if self.test_sampling_speed:  # save log
-                num_samples_per_second = (time.time() - start_time_this_step) / self.env.n_sims
+                num_samples_per_second = (time.time() - start_time_this_step) / 1
                 logger.add_scalar('step_vs_num_samples_per_second', timestep, num_samples_per_second)
 
             if done:
