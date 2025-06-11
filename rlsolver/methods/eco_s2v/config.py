@@ -16,10 +16,10 @@ class Alg(Enum):
     rl4co = 'rl4co'
 
 
-TRAIN_INFERENCE = 1  # 0: train, 1: inference
+TRAIN_INFERENCE = 0  # 0: train, 1: inference
 assert TRAIN_INFERENCE in [0, 1]
 
-ALG = Alg.eco  # Alg
+ALG = Alg.s2v  # Alg
 GRAPH_TYPE = GraphType.BA
 
 # 训练的参数
@@ -28,7 +28,7 @@ SAMPLE_GPU_ID_IN_ECO_S2V = -1 if ALG in [Alg.eco, Alg.s2v] else None
 USE_TWO_DEVICES_IN_ECOS2V = True if ALG in [Alg.eco, Alg.s2v] else False
 BUFFER_GPU_ID = TRAIN_GPU_ID
 NUM_TRAIN_NODES = 20
-NUM_TRAIN_SIMS = 2 ** 8
+NUM_TRAIN_SIMS = 2 ** 1
 NUM_VALIDATION_NODES = NUM_TRAIN_NODES
 VALIDATION_SEED = 10
 NUM_VALIDATION_SIMS = 2 ** 4

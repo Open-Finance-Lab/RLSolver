@@ -125,7 +125,7 @@ def __test_network_batched(network, env_args, graphs_test, device=None, step_fac
             return actions
         else:
             if qs.dim() == 1:
-                x = (states.squeeze()[:, 0] == allowed_action_state).nonzero()
+                x = (states.squeeze()[0, :] == allowed_action_state).nonzero()
                 actions = [x[qs[x].argmax().item()].item()]
             else:
                 disallowed_actions_mask = (states[:, :, 0] != allowed_action_state)
