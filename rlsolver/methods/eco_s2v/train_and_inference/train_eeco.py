@@ -47,7 +47,7 @@ def run(save_loc):
     ####################################################
     # SET UP TRAINING AND TEST GRAPHS
     ####################################################
-    start = time.time()
+    start_time = time.time()
     n_spins_train = NUM_TRAIN_NODES
 
     if GRAPH_TYPE == GraphType.ER:
@@ -162,8 +162,7 @@ def run(save_loc):
     #############
     # TRAIN AGENT
     #############
-    sampling_start_time = time.time()
-    agent.learn(timesteps=nb_steps, start_time=start, verbose=True)
+    agent.learn(timesteps=nb_steps, start_time=start_time, verbose=True)
 
 
 if __name__ == "__main__":

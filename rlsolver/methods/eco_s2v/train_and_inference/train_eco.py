@@ -2,9 +2,9 @@
 
 import rlsolver.methods.eco_s2v.src.envs.core as ising_env
 from rlsolver.methods.eco_s2v.util import (cal_txt_name)
-from ..config import *
+from rlsolver.methods.eco_s2v.config import *
 
-if USE_TWO_DEVICES_IN_ECOS2V:
+if USE_TWO_DEVICES_IN_ECO_S2V:
     from rlsolver.methods.eco_s2v.src.agents.dqn.dqn_two_devices import DQN
 else:
     from rlsolver.methods.eco_s2v.src.agents.dqn.dqn import DQN
@@ -54,7 +54,7 @@ def run(save_loc):
     ####################################################
     # SET UP TRAINING AND TEST GRAPHS
     ####################################################
-    start = time.time()
+    start_time = time.time()
     n_spins_train = NUM_TRAIN_NODES
 
     if GRAPH_TYPE == GraphType.ER:
@@ -171,10 +171,8 @@ def run(save_loc):
     #############
     # TRAIN AGENT
     #############
-    sampling_start_time = time.time()
-    agent.learn(timesteps=nb_steps, start_time=start, verbose=True)
-    # 训完之后会输出时间
-    print(time.time() - start)
+    agent.learn(timesteps=nb_steps, start_time=start_time, verbose=True)
+    print(time.time() - start_time)
 
 
 if __name__ == "__main__":
