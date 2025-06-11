@@ -210,11 +210,10 @@ def __test_network_batched(network, env_args, graphs_test, device=None, step_fac
             print("done.")
 
             # Calculate the max cut acting w.r.t. the network
-            t_start = time.time()
+            start_time = time.time()
             # pool = mp.Pool(processes=16)
             k = 0
             while i_comp_batch < batch_size:
-                t1 = time.time()
                 # Note: Do not convert list of np.arrays to FloatTensor, it is very slow!
                 # see: https://github.com/pytorch/pytorch/issues/13918
                 # Hence, here we convert a list of np arrays to a np array.
@@ -252,7 +251,7 @@ def __test_network_batched(network, env_args, graphs_test, device=None, step_fac
                 #       "Env steps : {}/{}".format(k/batch_size,n_steps),
                 #       'Time: {0:.3g}s'.format(time.time()-t1))
 
-            t_total += (time.time() - t_start)
+            t_total += (time.time() - start_time)
             i_batch += 1
             print("Finished agent testing batch {}.".format(i_batch))
             if env_args['if_greedy']:
@@ -403,9 +402,9 @@ def __test_network_sequential(network, env_args, graphs_test, step_factor=1,
             greedy_env = deepcopy(test_env)
             greedy_agent = Greedy(greedy_env)
 
-            tstart = time.time()
+            start_time2 = time.time()
             net_agent.solve()
-            times.append(time.time() - tstart)
+            times.append(time.time() - start_time2)
 
             cut = test_env.get_best_cut()
             if cut > best_cut:

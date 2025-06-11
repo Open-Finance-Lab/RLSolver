@@ -142,7 +142,7 @@ class DQN:
     ):
 
         self.train_device = TRAIN_DEVICE
-        self.sample_device = SAMPLES_DEVICE_IN_ECO_S2V
+        self.sample_device = SAMPLE_DEVICE_IN_ECO_S2V
 
         self.double_dqn = double_dqn
 

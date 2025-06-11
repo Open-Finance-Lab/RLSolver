@@ -289,7 +289,7 @@ def run_column_generation():
         for (i, j) in graph.edges:
             graph.edges[(i, j)]["cost"] = graph.edges[(i, j)]["dist"] - duals[i]
 
-        start = time.time()
+        start_time2 = time.time()
         if Config.USE_ESPPRC_IMPACT_AS_INIT_IN_CG == 0:
             new_paths, new_dists = ESPPRC1_unidirectional(orig_name, customers, graph)
         elif Config.USE_ESPPRC_IMPACT_AS_INIT_IN_CG == 1:
@@ -300,7 +300,7 @@ def run_column_generation():
             new_dists = calc_dists_of_paths(paths, graph)
 
         reduced_costs = calc_reduced_costs(new_paths, duals, graph)
-        duration = time.time() - start
+        duration = time.time() - start_time2
         running_duration_in_ESPPRC += duration
 
         best_reduced_cost = Config.INF

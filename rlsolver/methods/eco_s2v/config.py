@@ -22,10 +22,10 @@ assert TRAIN_INFERENCE in [0, 1]
 ALG = Alg.s2v  # Alg
 GRAPH_TYPE = GraphType.BA
 
-# 训练的参数
+# params of training
 TRAIN_GPU_ID = 0
 SAMPLE_GPU_ID_IN_ECO_S2V = -1 if ALG in [Alg.eco, Alg.s2v] else None
-USE_TWO_DEVICES_IN_ECOS2V = True if ALG in [Alg.eco, Alg.s2v] else False
+USE_TWO_DEVICES_IN_ECO_S2V = True if ALG in [Alg.eco, Alg.s2v] else False
 BUFFER_GPU_ID = TRAIN_GPU_ID
 NUM_TRAIN_NODES = 20
 NUM_TRAIN_SIMS = 2 ** 8
@@ -34,7 +34,7 @@ VALIDATION_SEED = 10
 NUM_VALIDATION_SIMS = 2 ** 4
 TEST_SAMPLING_SPEED = True  # False by default
 
-# 推理的参数
+# params of inference
 INFERENCE_GPU_ID = 0
 NUM_GENERATED_INSTANCES_IN_SELECT_BEST = 10  # select_best_neural_network
 NUM_TRAINED_NODES_IN_INFERENCE = 20  # also used in select_best_neural_network
@@ -57,7 +57,7 @@ NEURAL_NETWORK_PREFIX = ALG.value + "_" + GRAPH_TYPE.value + "_" + str(NUM_TRAIN
 
 UPDATE_FREQUENCY = 32
 TRAIN_DEVICE = calc_device(TRAIN_GPU_ID)
-SAMPLES_DEVICE_IN_ECO_S2V = None if SAMPLE_GPU_ID_IN_ECO_S2V is None else calc_device(SAMPLE_GPU_ID_IN_ECO_S2V)
+SAMPLE_DEVICE_IN_ECO_S2V = None if SAMPLE_GPU_ID_IN_ECO_S2V is None else calc_device(SAMPLE_GPU_ID_IN_ECO_S2V)
 INFERENCE_DEVICE = calc_device(INFERENCE_GPU_ID)
 BUFFER_DEVICE = calc_device(BUFFER_GPU_ID)
 

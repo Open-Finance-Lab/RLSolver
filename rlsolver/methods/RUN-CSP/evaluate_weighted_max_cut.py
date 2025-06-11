@@ -31,10 +31,7 @@ def evaluate_boosted(network, eval_instances, t_max, attempts=64):
 
     conflict_ratios = []
     for i, instance in enumerate(eval_instances):
-        # start = time.time()
         output_dict = network.predict_boosted(instance, iterations=t_max, attempts=attempts)
-        # end = time.time()
-        # print(f'Total Time: {end - start}s')
 
         all_assignment = output_dict['all_assignments']
         best_per_attempt = [np.max([compute_weighted_score(instance, all_assignment[a, :, t]) for t in range(t_max)]) for a in range(attempts)]
