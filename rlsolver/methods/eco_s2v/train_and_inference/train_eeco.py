@@ -133,7 +133,7 @@ def run(save_loc):
         'adam_epsilon': 1e-8,
         'logging': True,
         'evaluate': True,
-        'update_target_frequency': int(UPDATE_TARGET_FREQUENCY / 32),
+        'update_target_frequency': UPDATE_TARGET_FREQUENCY,
         'update_frequency': UPDATE_FREQUENCY,
         'save_network_frequency': SAVE_NETWORK_FREQUENCY,
         'loss': "mse",

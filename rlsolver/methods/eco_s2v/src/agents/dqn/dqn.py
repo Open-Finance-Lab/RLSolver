@@ -260,16 +260,6 @@ class DQN:
 
     def get_random_replay_buffer(self):
         return random.sample(sorted(self.replay_buffers.items()), k=1)[0][1]
-        # for key, value in self.replay_buffers.items():
-        #     print("key: \n", key)
-        #     print("value: ")
-        #     value.print()
-        # res = random.sample(self.replay_buffers.items(), k=1)[0][1]
-        # items = self.replay_buffers.items()
-        # res = random.sample(items, k=1)[0][1]
-        # print("type of res:", type(res))
-        # print("res:", res.print())
-        # return res
 
     def learn(self, start_time, timesteps, verbose=False):
 
@@ -299,6 +289,7 @@ class DQN:
         is_training_ready = False
 
         for timestep in range(timesteps):
+            print("step: ", timestep)
             start_time_this_step = time.time()
             if not is_training_ready:
                 if all([len(rb) >= self.replay_start_size for rb in self.replay_buffers.values()]):
@@ -342,7 +333,7 @@ class DQN:
                     loss_str = "{:.2e}".format(np.mean(losses_eps)) if is_training_ready else "N/A"
                     print("timestep : {}, episode time: {}, score : {}, mean loss: {}, time : {} s" \
                         .format(
-                        (timestep + 1),
+                        timestep,
                         self.env.current_step,
                         np.round(score, 3),
                         loss_str,
@@ -400,14 +391,14 @@ class DQN:
                 #         path_ext += '.pth'
                 #     self.save(path_main + path_ext)
 
-                test_scores.append([timestep + 1, test_score])
+                test_scores.append([timestep, test_score])
 
             if time.time() - last_record_obj_time >= self.save_network_frequency \
                     and is_training_ready:
                 total_time += time.time() - start_time
 
                 path_main_ = path_main + '_' + str(int(total_time))
-                if self.logging:
+                if is_training_ready and timestep % self.update_frequency == 0 and self.logging:
                     logger.add_scalar('time_vs_loss', total_time, loss)
                     logger.add_scalar('step_vs_loss', timestep - training_ready_step, loss)
 
