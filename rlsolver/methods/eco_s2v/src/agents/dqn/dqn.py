@@ -292,17 +292,6 @@ class DQN:
             print("step: ", timestep)
             start_time_this_step = time.time()
             if not is_training_ready:
-                # print("self.replay_buffers.values(): ", self.replay_buffers.values())
-                all_greater = True
-                for rb in self.replay_buffers.values():
-                    len_rb = len(rb)
-                    print("len_rb: ", len_rb)
-                    if len_rb < self.replay_start_size:
-                        all_greater = False
-                        break
-                print("all_greater: ", all_greater)
-                if all_greater:
-                    aaa = 1
                 if all([len(rb) >= self.replay_start_size for rb in self.replay_buffers.values()]):
                     print('\nAll buffers have {} transitions stored - training is starting!\n'.format(
                         self.replay_start_size))
