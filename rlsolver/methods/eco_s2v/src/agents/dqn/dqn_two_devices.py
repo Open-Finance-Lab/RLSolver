@@ -435,8 +435,6 @@ class DQN:
                 if self.double_dqn:
                     network_preds = self.network(states_next.float())
                     # Set the Q-value of disallowed actions to a large negative number (-10000) so they are not selected.
-                    # print("disallowed_actions_mask.device: ", disallowed_actions_mask.device)
-                    # print("network_preds.device: ", network_preds.device)
                     if disallowed_actions_mask.device != network_preds.device:
                         disallowed_actions_mask = disallowed_actions_mask.to(network_preds.device)
                     network_preds_allowed = network_preds.masked_fill(disallowed_actions_mask, -10000)
