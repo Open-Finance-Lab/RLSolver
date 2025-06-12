@@ -19,11 +19,11 @@ class Alg(Enum):
 TRAIN_INFERENCE = 0  # 0: train, 1: inference
 assert TRAIN_INFERENCE in [0, 1]
 
-ALG = Alg.s2v  # Alg
+ALG = Alg.eco  # Alg
 GRAPH_TYPE = GraphType.BA
 
 # params of training
-TRAIN_GPU_ID = 0
+TRAIN_GPU_ID = -1
 SAMPLE_GPU_ID_IN_ECO_S2V = -1 if ALG in [Alg.eco, Alg.s2v] else None
 USE_TWO_DEVICES_IN_ECO_S2V = True if ALG in [Alg.eco, Alg.s2v] else False
 BUFFER_GPU_ID = TRAIN_GPU_ID
@@ -63,8 +63,8 @@ BUFFER_DEVICE = calc_device(BUFFER_GPU_ID)
 
 if GRAPH_TYPE == GraphType.BA:
     if NUM_TRAIN_NODES == 20:
-        NB_STEPS = 1000  # 25000
-        REPLAY_BUFFER_SIZE = 500
+        NB_STEPS = 500  # 25000
+        REPLAY_BUFFER_SIZE = 300
     elif NUM_TRAIN_NODES == 40:
         NB_STEPS = 250000
         REPLAY_BUFFER_SIZE = 5000
@@ -100,10 +100,10 @@ elif GRAPH_TYPE == GraphType.ER:
 FINAL_EXPLORATION_STEP = int(0.8 * NB_STEPS)
 NUM_TEST_OBJ = 5000
 TEST_OBJ_FREQUENCY = max(1, int(NB_STEPS / NUM_TEST_OBJ))
-SAVE_NETWORK_FREQUENCY = 50 if NUM_TRAIN_NODES <= 100 else 500  # seconds
+SAVE_NETWORK_FREQUENCY = 10 if NUM_TRAIN_NODES <= 100 else 500  # seconds
 if NUM_TRAIN_NODES <= 80:
     UPDATE_TARGET_FREQUENCY = 1000
-    REPLAY_START_SIZE = 500
+    REPLAY_START_SIZE = 50
 elif NUM_TRAIN_NODES <= 100:
     UPDATE_TARGET_FREQUENCY = 2500
     REPLAY_START_SIZE = 1500

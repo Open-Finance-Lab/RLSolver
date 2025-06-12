@@ -319,7 +319,7 @@ class DQN:
                 if verbose:
                     loss_str = "{:.2e}".format(np.mean(losses_eps)) if is_training_ready else "N/A"
                     print("timestep : {}, episode time: {}, score : {}, mean loss: {}, time : {} s".format(
-                        (timestep + 1),
+                        timestep,
                         self.env.current_step,
                         torch.mean(score),
                         loss_str,
@@ -370,7 +370,7 @@ class DQN:
                 if best_network:
                     self.save(path_main + "_0" + path_ext)
 
-                test_scores.append([timestep + 1, test_score])
+                test_scores.append([timestep, test_score])
 
             curr_time = time.time()
             if (curr_time - last_record_obj_time >= self.save_network_frequency) and is_training_ready:
