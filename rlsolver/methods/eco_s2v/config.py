@@ -19,11 +19,11 @@ class Alg(Enum):
 TRAIN_INFERENCE = 0  # 0: train, 1: inference
 assert TRAIN_INFERENCE in [0, 1]
 
-ALG = Alg.eco  # Alg
+ALG = Alg.s2v  # Alg
 GRAPH_TYPE = GraphType.BA
 
 # params of training
-TRAIN_GPU_ID = -1
+TRAIN_GPU_ID = 0
 SAMPLE_GPU_ID_IN_ECO_S2V = -1 if ALG in [Alg.eco, Alg.s2v] else None
 USE_TWO_DEVICES_IN_ECO_S2V = True if ALG in [Alg.eco, Alg.s2v] else False
 BUFFER_GPU_ID = TRAIN_GPU_ID
