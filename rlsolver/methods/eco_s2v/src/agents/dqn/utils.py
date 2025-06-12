@@ -55,9 +55,6 @@ class ReplayBuffer:
         else:
             self._memory[self._position] = Transition(*args)
             self._position = (self._position + 1) % self._capacity
-            # print("self._memory.items(): ", self._memory.items())
-            # print("len(self._memory.items()): ", len(self._memory.items()))
-            # print("self._position: ", self._position)
 
     def _prepare_sample(self, batch_size, device=None):
         self.next_batch_size = batch_size

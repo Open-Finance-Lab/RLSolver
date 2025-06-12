@@ -530,11 +530,8 @@ class DQN:
             else:
                 # disallowed_actions_mask = (states[:, :, 0] != self.allowed_action_state)
                 disallowed_actions_mask = (states[:, 0, :] != self.allowed_action_state)
-                print("qs.device: ", qs.device)
-                print("disallowed_actions_mask.device: ", disallowed_actions_mask.device)
                 if qs.device != disallowed_actions_mask.device:
                     disallowed_actions_mask =disallowed_actions_mask.to(qs.device)
-                print("disallowed_actions_mask.device: ", disallowed_actions_mask.device)
                 qs_allowed = qs.masked_fill(disallowed_actions_mask, -10000)
                 actions = qs_allowed.argmax(1, True).squeeze(1).cpu().numpy()
             return actions
