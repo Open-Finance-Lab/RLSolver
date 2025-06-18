@@ -1,6 +1,6 @@
 # RLSolver: GPU-based Massively Parallel Environments for Large-Scale Combinatorial Optimization (CO) Problems Using Reinforcement Learning
 
-[docs](https://rlsolvers.readthedocs.io/index.html)
+[RLSolver docs](https://rlsolvers.readthedocs.io/index.html)
 
 [RLSolver Competition docs](https://rlsolver-competition.readthedocs.io/en/latest/index.html)
 
