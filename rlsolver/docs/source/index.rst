@@ -1,7 +1,6 @@
 Welcome to RLSolver!
 ====================
 
-…your intro text…
 
 .. toctree::
    :maxdepth: 1
