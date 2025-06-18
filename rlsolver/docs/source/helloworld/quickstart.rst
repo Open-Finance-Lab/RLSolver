@@ -59,7 +59,7 @@ In `config.py`, we select a CO problem:
 
 2. **Training**  
 
-Take S2V-DQN as an example, as proposed by Dai et al. (2017) in Learning Combinatorial Optimization Algorithms over Graphs. (https://arxiv.org/abs/1704.01665)). 
+Take S2V-DQN as an example, as proposed by Dai et al. (2017) in `Learning Combinatorial Optimization Algorithms over Graphs <https://arxiv.org/abs/1704.01665>`_.
 
 In ``..methods\eco_s2v\config.py``, we set parameters as follows:
 
@@ -133,4 +133,4 @@ Run method in command line:
 
 **References**
 
-- Dai, H., Khalil, E. B., Zhang, Y., Dilkina, B., & Song, L. (2017). [Learning Combinatorial Optimization Algorithms over Graphs](https://arxiv.org/abs/1704.01665). *arXiv preprint arXiv:1704.01665*.
+- Dai, H., Khalil, E. B., Zhang, Y., Dilkina, B., & Song, L. (2017). `Learning Combinatorial Optimization Algorithms over Graphs <https://arxiv.org/abs/1704.01665>`_. *arXiv preprint arXiv:1704.01665*.
