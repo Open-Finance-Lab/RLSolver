@@ -17,7 +17,7 @@ Example: `gset_14.txt` (an undirected graph with 800 nodes and 4694 edges):
 
 .. code-block:: text
 
-   800 4694          # #nodes = 800, #edges = 4694
+   800 4694          # nodes = 800, edges = 4694
    1 7 1             # node 1 connects with node 7, weight = 1
    1 10 1            # node 1 connects with node 10, weight = 1
    1 12 1            # node 1 connects with node 12, weight = 1
@@ -27,9 +27,10 @@ Store Solution
 ----------------------
 
 The solution will be stored in the folder `result`.  
+
 Take graph maxcut as an example. The result includes the objective value, number of nodes, algorithm name, and the solution.
 
-Example result for `data/BA_100_ID0.txt` stored in `result/BA_100_ID0.txt`:
+Example result for ``data/BA_100_ID0.txt`` stored in ``result/BA_100_ID0.txt``:
 
 .. code-block:: text
 

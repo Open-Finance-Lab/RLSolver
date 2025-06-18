@@ -5,9 +5,9 @@ Welcome to RLSolver!
 
 .. toctree::
    :maxdepth: 1
-   :caption: RLSolver Competition 2025
+   :titlesonly:
 
-   competition/index
+   competition/rlsolver_link
 
 .. toctree::
    :maxdepth: 1
