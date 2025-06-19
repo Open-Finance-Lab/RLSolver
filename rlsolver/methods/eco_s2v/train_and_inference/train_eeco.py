@@ -71,17 +71,18 @@ def run(save_loc):
     # SET UP TRAINING AND TEST ENVIRONMENTS
     ####################################################
 
+    device = SAMPLE_DEVICE_IN_ECO_S2V if USE_TWO_DEVICES_IN_ECO_S2V else TRAIN_DEVICE
     train_envs = ising_env.make("SpinSystem",
                                 train_graph_generator,
                                 int(n_spins_train * step_fact),
-                                **env_args, device=TRAIN_DEVICE,
+                                **env_args, device=device,
                                 n_sims=NUM_TRAIN_SIMS)
 
     n_spins_test = validation_graph_generator.get().shape[1]
     test_envs = ising_env.make("SpinSystem",
                                validation_graph_generator,
                                int(n_spins_test * step_fact),
-                               **env_args, device=TRAIN_DEVICE,
+                               **env_args, device=device,
                                n_sims=n_validations)
 
     pre_fix = save_loc + "/" + NEURAL_NETWORK_PREFIX
@@ -148,7 +149,8 @@ def run(save_loc):
         'seed': None,
         'test_sampling_speed': TEST_SAMPLING_SPEED,
         'sampling_patten': "best_score",
-        'buffer_device': BUFFER_DEVICE,
+        'sample_device': device, # added
+        'buffer_device': BUFFER_DEVICE, # added
     }
     args['args'] = args
     # if TEST_SAMPLING_SPEED:

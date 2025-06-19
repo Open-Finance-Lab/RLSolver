@@ -141,13 +141,15 @@ class DQN:
             test_sampling_speed=False,
             logger_save_path=None,
             sampling_patten=None,
+            sample_device=None,
             buffer_device=None,
             sampling_speed_save_path=None,
             args=None,
     ):
 
         self.double_dqn = double_dqn
-        self.device = TRAIN_DEVICE
+        self.train_device = TRAIN_DEVICE
+        self.sample_device = sample_device
         self.buffer_device = buffer_device
         self.replay_start_size = replay_start_size
         self.replay_buffer_size = replay_buffer_size
@@ -197,7 +199,7 @@ class DQN:
 
         set_global_seed(self.seed, self.env)
 
-        self.network = network().to(self.device)
+        self.network = network().to(self.train_device)
         self.init_network_params = init_network_params
         self.init_weight_std = init_weight_std
         if self.init_network_params != None:
@@ -213,7 +215,7 @@ class DQN:
                 with torch.no_grad():
                     self.network.apply(init_weights)
 
-        self.target_network = network().to(self.device)
+        self.target_network = network().to(self.train_device)
         self.target_network.load_state_dict(self.network.state_dict())
         for param in self.target_network.parameters():
             param.requires_grad = False
@@ -271,8 +273,13 @@ class DQN:
 
         # Initialise the state
         state = self.env.reset()
+        state = state.to(self.sample_device)
         self.replay_buffer.record_matrix(state[:, 7:, :])
-        score = torch.zeros((self.env.n_sims), device=self.device, dtype=torch.float)
+        if USE_TWO_DEVICES_IN_ECO_S2V:
+            score = torch.zeros((self.env.n_sims), device=self.sample_device, dtype=torch.float)
+        else:
+            score = torch.zeros((self.env.n_sims), device=self.train_device, dtype=torch.float)
+
         losses_eps = []
         t1 = time.time()
         test_scores = []
@@ -293,7 +300,8 @@ class DQN:
                     training_ready_step = timestep
 
             # Choose action
-            action = self.act(state.to(self.device).float(), is_training_ready=is_training_ready)
+            state_device = self.sample_device if USE_TWO_DEVICES_IN_ECO_S2V else self.train_device
+            action = self.act(state.to(state_device).float(), is_training_ready=is_training_ready).to(state_device)
 
             # Update epsilon
             if self.update_exploration:
@@ -306,12 +314,16 @@ class DQN:
             # Perform action in environment
             state_next, reward, done = self.env.step(action)
 
+            # print("score.device: ", score.device)
+            # print("reward.device: ", reward.device)
+            # if score.device != reward.device:
+            #     aaa = 1
             score += reward
             # Store transition in replay buffer
             self.replay_buffer.add(state.half(), action, reward.half(), state_next.half(), done, score)
 
             if self.test_sampling_speed:  # save log
-                num_samples_per_second = (time.time() - start_time_this_step) / self.env.n_sims
+                num_samples_per_second = self.env.n_sims / (time.time() - start_time_this_step)
                 logger.add_scalar('step_vs_num_samples_per_second', timestep, num_samples_per_second)
 
             if done[0]:
@@ -327,7 +339,8 @@ class DQN:
                 t1 = time.time()
                 state = self.env.reset()
                 self.replay_buffer.record_matrix(state[:, 7:, :])
-                score = torch.zeros((self.env.n_sims), device=self.device, dtype=torch.float)
+                score_device = SAMPLE_DEVICE_IN_ECO_S2V if USE_TWO_DEVICES_IN_ECO_S2V else TRAIN_DEVICE
+                score = torch.zeros((self.env.n_sims), device=score_device, dtype=torch.float)
                 losses_eps = []
             else:
                 state = state_next
@@ -335,7 +348,7 @@ class DQN:
                 # Update the main network
                 if timestep % self.update_frequency == 0:
                     # Sample a batch of transitions
-                    # transitions = self.get_random_replay_buffer().sample(self.minibatch_size, self.device)
+                    # transitions = self.get_random_replay_buffer().sample(self.minibatch_size, self.train_device)
                     if if_buffer_full:
                         transitions = self.replay_buffer.sample(self.minibatch_size)
                     else:
@@ -377,7 +390,7 @@ class DQN:
                 total_time += curr_time - start_time
 
                 path_main_ = path_main + '_' + str(int(total_time))
-                if self.logging:
+                if self.logging and timestep % self.update_frequency == 0:
                     logger.add_scalar('step_vs_loss', timestep - training_ready_step, loss)
                     logger.add_scalar('time_vs_loss', total_time, loss)
 
@@ -390,7 +403,7 @@ class DQN:
     @torch.no_grad()
     def __only_bad_actions_allowed(self, state, network):
         x = (state[0, :] == self.allowed_action_state).nonzero()
-        q_next = network(state.to(self.device).float())[x].max()
+        q_next = network(state.to(self.train_device).float())[x].max()
         return True if q_next < 0 else False
 
     # def train_step(self, transitions,scaler):
@@ -436,8 +449,9 @@ class DQN:
             if self.acting_in_reversible_spin_env:
                 # 在可逆环境中，随机选择动作
                 # action = np.random.randint(0, self.env.action_space.n)
+                action_device = self.sample_device if USE_TWO_DEVICES_IN_ECO_S2V else self.train_device
                 action = torch.randint(0, self.env.action_space.n,
-                                       (self.env.n_sims,), device=self.device,
+                                       (self.env.n_sims,), device=action_device,
                                        dtype=torch.long)
             else:
                 # 从尚未翻转的 spin 中随机选择一个
@@ -475,6 +489,7 @@ class DQN:
         if acting_in_reversible_spin_env is None:
             acting_in_reversible_spin_env = self.acting_in_reversible_spin_env
 
+        states = states.to(self.train_device)
         qs = self.network(states)
 
         if acting_in_reversible_spin_env:
@@ -503,12 +518,15 @@ class DQN:
         test_env = deepcopy(self.test_envs[0])
 
         # self.predict(obs).squeeze(-1)
-        done = torch.zeros((test_env.n_sims), dtype=torch.bool, device=test_env.device)
-        actions = self.predict(obs).squeeze(-1)
 
+        done = torch.zeros((test_env.n_sims), dtype=torch.bool, device=test_env.device)
+        actions_device = SAMPLE_DEVICE_IN_ECO_S2V if USE_TWO_DEVICES_IN_ECO_S2V else TRAIN_DEVICE
+        actions = self.predict(obs).squeeze(-1)
+        actions = actions.to(actions_device)
         while not done[0]:
             obs, rew, done = test_env.step(actions)
             actions = self.predict(obs).squeeze(-1)
+            actions = actions.to(actions_device)
 
             if self.test_metric == TestMetric.CUMULATIVE_REWARD:
                 test_scores += rew
@@ -538,4 +556,4 @@ class DQN:
         torch.save(self.network.state_dict(), path)
 
     def load(self, path):
-        self.network.load_state_dict(torch.load(path, map_location=self.device))
+        self.network.load_state_dict(torch.load(path, map_location=self.train_device))
