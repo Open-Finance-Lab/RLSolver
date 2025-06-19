@@ -38,8 +38,7 @@ class SpinSystemFactory(object):
             init_snap=None,
             seed=None,
             device=None,
-            n_sims=None,
-            if_greedy=False):
+            n_sims=None):
 
         if graph_generator.biased:
             return SpinSystemBiased(graph_generator, max_steps,
@@ -172,9 +171,11 @@ class SpinSystemBase(ABC):
         if self.gg.biased:
             # self.matrix, self.bias = self.gg.get(with_padding=(self.extra_action != ExtraAction.NONE))
             self.matrix, self.bias = self.gg.get()
+            self.bias = self.bias.to(self.device)
         else:
             # self.matrix = self.gg.get(with_padding=(self.extra_action != ExtraAction.NONE))
             self.matrix = self.gg.get()
+        self.matrix = self.matrix.to(self.device)
         self._reset_graph_observables()
         spinsOne = torch.ones(self.n_sims, self.n_spins, device=self.device)
         local_rewards_available = self._get_immeditate_cuts_avaialable(spinsOne, self.matrix)
@@ -355,6 +356,10 @@ class SpinSystemBase(ABC):
         else:
             # Perform the action and calculate the score change.
             sim_indices = torch.arange(self.state.size(0))
+            # print("sim_indices.device: ", sim_indices.device)
+            # print("action.device: ", action.device)
+            # print("new_state.device: ", new_state.device)
+            # print("self.state.device: ", self.state.device)
             new_state[sim_indices, 0, action] = -self.state[sim_indices, 0, action]
             if self.gg.biased:
                 delta_score = self._calculate_score_change(new_state[:, 0, :self.n_spins], self.matrix, self.bias,
