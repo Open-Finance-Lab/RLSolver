@@ -171,6 +171,7 @@ rlsolver
           └──eco
           └──s2v
           └──jumanji
+          └──rl4co
     └──iSCO
     └──config.py
     └──genetic_algorithm.py
