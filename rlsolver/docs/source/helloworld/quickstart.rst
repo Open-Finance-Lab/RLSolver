@@ -17,7 +17,7 @@ Example: `gset_14.txt` (an undirected graph with 800 nodes and 4694 edges):
 
 .. code-block:: text
 
-   800 4694          # #nodes = 800, #edges = 4694
+   800 4694          # nodes = 800, edges = 4694
    1 7 1             # node 1 connects with node 7, weight = 1
    1 10 1            # node 1 connects with node 10, weight = 1
    1 12 1            # node 1 connects with node 12, weight = 1
@@ -27,9 +27,10 @@ Store Solution
 ----------------------
 
 The solution will be stored in the folder `result`.  
+
 Take graph maxcut as an example. The result includes the objective value, number of nodes, algorithm name, and the solution.
 
-Example result for `data/BA_100_ID0.txt` stored in `result/BA_100_ID0.txt`:
+Example result for ``data/BA_100_ID0.txt`` stored in ``result/BA_100_ID0.txt``:
 
 .. code-block:: text
 
@@ -58,7 +59,9 @@ In `config.py`, we select a CO problem:
 
 2. **Training**  
 
-Take S2V-DQN as an example. In `config.py`, we set parameters as follows:
+Take S2V-DQN as an example, as proposed by Dai et al. (2017) in `Learning Combinatorial Optimization Algorithms over Graphs <https://arxiv.org/abs/1704.01665>`_.
+
+In ``..methods\eco_s2v\config.py``, we set parameters as follows:
 
 .. code-block:: python
 
@@ -83,7 +86,7 @@ In the inference stage, we should select dataset(s). Take S2V-DQN as an example:
    directory_data = '../data/syn_BA'  # the directory of datasets
    prefixes = ['BA_100_']             # select the BA graphs with 100 nodes
 
-In `config.py`, we set the parameters:
+In ``..methods\eco_s2v\config.py``, we set the parameters:
 
 .. code-block:: python
 
@@ -101,7 +104,7 @@ Instance-wise
 
 1. **Select problem**  
 
-In `config.py`, we select a CO problem:
+In ``..methods\config.py``, we select a CO problem:
 
 .. code-block:: python
 
@@ -109,7 +112,7 @@ In `config.py`, we select a CO problem:
 
 2. **Select dataset(s)**  
 
-In `config.py`, we select dataset(s):
+In ``..methods\config.py``, we select dataset(s):
 
 .. code-block:: python
 
@@ -127,3 +130,7 @@ Run method in command line:
    python methods/simulated_annealing.py     # run simulated annealing
    python methods/mcpg.py                    # run MCPG
    python methods/iSCO/main.py               # run iSCO
+
+**References**
+
+- Dai, H., Khalil, E. B., Zhang, Y., Dilkina, B., & Song, L. (2017). `Learning Combinatorial Optimization Algorithms over Graphs <https://arxiv.org/abs/1704.01665>`_. *arXiv preprint arXiv:1704.01665*.
