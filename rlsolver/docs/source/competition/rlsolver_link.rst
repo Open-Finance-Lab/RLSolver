@@ -1,6 +1,6 @@
 .. _rlsolver-redirect:
 
-RLSOLVER COMPETITION 2025
+RLSOLVER Contest 2025
 ==========================
 
 Click [here](https://rlsolver-competition.readthedocs.io/en/latest/) to go to the homepage.
