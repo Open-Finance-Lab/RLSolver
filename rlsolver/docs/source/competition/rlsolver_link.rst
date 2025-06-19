@@ -1,10 +1,7 @@
-.. _rlsolver-redirect:
+.. _rlsolver-contests:
 
-RLSOLVER COMPETITION 2025
-==========================
+RLSOLVER CONTESTS
+=================
 
-Click [here](https://rlsolver-competition.readthedocs.io/en/latest/) to go to the homepage.
-
-.. raw:: html
-
-   <meta http-equiv="refresh" content="0; URL=https://rlsolver-competition.readthedocs.io/en/latest/">
+- `RLSolver contest 2025 docs <https://github.com/Open-Finance-Lab/RLSolver_Competition_2025>`_
+- `RLSolver contest 2025 website <https://rlsolver-competition.readthedocs.io/en/latest/>`_
