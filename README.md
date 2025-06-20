@@ -2,7 +2,7 @@
 
 [RLSolver docs](https://rlsolvers.readthedocs.io/index.html)
 
-[RLSolver Contest docs](https://rlsolver_contest.readthedocs.io/en/latest/index.html)
+[RLSolver Contest docs](https://rlsolver-competition.readthedocs.io/en/latest/rlsolver_2025/competition/graph_instance.html#)
 
 [RLSolver Contest 2025](https://open-finance-lab.github.io/RLSolver_Contest_2025/)
 
