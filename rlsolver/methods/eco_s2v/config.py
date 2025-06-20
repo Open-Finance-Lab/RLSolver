@@ -11,7 +11,7 @@ class Alg(Enum):
     eco = 'eco'
     s2v = 's2v'
     eco_torch = 'eco_torch'
-    eeco = 'None'
+    eeco = 'eeco'
     jumanji = 'jumanji'
     rl4co = 'rl4co'
 
@@ -24,9 +24,9 @@ GRAPH_TYPE = GraphType.BA
 
 # params of training
 TRAIN_GPU_ID = 0
-SAMPLE_GPU_ID_IN_ECO_S2V = -1 if ALG in [Alg.eco, Alg.s2v] else None
-USE_TWO_DEVICES_IN_ECO_S2V = True if ALG in [Alg.eco, Alg.s2v] else False
-BUFFER_GPU_ID = TRAIN_GPU_ID
+SAMPLE_GPU_ID_IN_ECO_S2V = -1 if ALG in [Alg.eco, Alg.s2v, Alg.eeco] else None
+USE_TWO_DEVICES_IN_ECO_S2V = True if ALG in [Alg.eco, Alg.s2v, Alg.eeco] else False
+BUFFER_GPU_ID = SAMPLE_GPU_ID_IN_ECO_S2V if USE_TWO_DEVICES_IN_ECO_S2V else TRAIN_GPU_ID
 NUM_TRAIN_NODES = 20
 NUM_TRAIN_SIMS = 2 ** 8
 NUM_VALIDATION_NODES = NUM_TRAIN_NODES
