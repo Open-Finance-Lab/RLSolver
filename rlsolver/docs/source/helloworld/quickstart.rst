@@ -61,7 +61,7 @@ In `config.py`, we select a CO problem:
 
 Take S2V-DQN as an example, as proposed by Dai et al. (2017) in `Learning Combinatorial Optimization Algorithms over Graphs <https://arxiv.org/abs/1704.01665>`_.
 
-In ``..methods\eco_s2v\config.py``, we set parameters as follows:
+In ``rlsolver/methods/eco_s2v/config.py``, we set parameters as follows:
 
 .. code-block:: python
 
@@ -86,7 +86,7 @@ In the inference stage, we should select dataset(s). Take S2V-DQN as an example:
    directory_data = '../data/syn_BA'  # the directory of datasets
    prefixes = ['BA_100_']             # select the BA graphs with 100 nodes
 
-In ``..methods\eco_s2v\config.py``, we set the parameters:
+In ``rlsolver/methods/eco_s2v/config.py``, we set the parameters:
 
 .. code-block:: python
 
@@ -104,7 +104,7 @@ Instance-wise
 
 1. **Select problem**  
 
-In ``..methods\config.py``, we select a CO problem:
+In ``rlsolver/methods/config.py``, we select a CO problem:
 
 .. code-block:: python
 
@@ -112,12 +112,12 @@ In ``..methods\config.py``, we select a CO problem:
 
 2. **Select dataset(s)**  
 
-In ``..methods\config.py``, we select dataset(s):
+In ``rlsolver/methods/config.py``, we select dataset(s):
 
 .. code-block:: python
 
-   directory_data = '../data/syn_BA'  # the directory of datasets
-   prefixes = ['BA_100_']             # select the BA graphs with 100 nodes
+   DIRECTORY_DATA = "../data/syn_BA"  # the directory of datasets
+   PREFIXES = ["BA_100_ID0"]             # select the BA graphs with 100 nodes
 
 3. **Run method**  
 
