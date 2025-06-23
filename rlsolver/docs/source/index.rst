@@ -21,14 +21,15 @@ Welcome to RLSolver!
 
    overview/Introduction
    overview/CO_problems
-   overview/Methods
+
 
 .. toctree::
    :maxdepth: 2
    :caption: Methods
 
-   Methods/Conventional_methods
+   Methods/Overview
    Methods/RL_methods
+   Methods/Conventional_methods
 
 .. toctree::
    :maxdepth: 3
