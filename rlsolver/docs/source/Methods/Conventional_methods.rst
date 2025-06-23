@@ -20,7 +20,7 @@ Although not an RL method, the greedy baseline provides a simple, interpretable 
 
 1. **Set problem and dataset**  
 
-   In ``methods/config.py``, set the following:
+   In ``rlsolver/methods/config.py``, set the following:
 
    .. code-block:: python
 
@@ -36,7 +36,7 @@ Although not an RL method, the greedy baseline provides a simple, interpretable 
 
    .. code-block:: console
 
-      python methods/greedy.py
+      python rlsolver/methods/greedy.py
 
    This script runs `greedy_maxcut()` using the specified file(s) under `data/gset/`.
 
