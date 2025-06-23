@@ -44,8 +44,6 @@ Although not an RL method, the greedy baseline provides a simple, interpretable 
 
    After running the greedy algorithm, the results will be saved to:
 
-   .. code-block:: text
-
       rlsolver/result/syn_BA/
 
    Each result file corresponds to one test instance and contains:
@@ -58,8 +56,6 @@ Although not an RL method, the greedy baseline provides a simple, interpretable 
      For MaxCut, labels represent two sets in the cut.
 
    The file is automatically generated and named based on the instance prefix and a unique suffix, such as:
-
-   .. code-block:: text
 
       BA_100_ID0_3.txt
 
