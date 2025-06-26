@@ -5,7 +5,7 @@ The following table lists common graph datasets and the combinatorial optimizati
 
 .. list-table::
    :header-rows: 1
-   :widths:  15 85
+   :widths:  15 15 85
 
    * - **Dataset**
      - **Synthetic/Realistic**
