@@ -30,11 +30,11 @@ The solution will be stored in the folder `result`.
 
 Take graph maxcut as an example. The result includes the objective value, number of nodes, algorithm name, and the solution.
 
-Example result for ``data/BA_100_ID0.txt`` stored in ``result/BA_100_ID0.txt``:
+Example result for ``data/syn_BA/BA_100_ID0.txt`` stored in ``result/syn_BA/BA_100_ID0.txt``:
 
 .. code-block:: text
 
-   // obj: 273.0                   # objective value
+   // obj: 273.0        # objective value
    // running_duration: 71.9577648639679
    // num_nodes: 100
    // alg_name: greedy
