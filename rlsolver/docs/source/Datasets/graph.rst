@@ -17,7 +17,6 @@ The following table lists common graph datasets and the combinatorial optimizati
      - Maxcut, Graph Partitioning, Graph Coloring, MIS
    * - `GSET <https://web.stanford.edu/~yyye/yyye/Gset/>`_
      - Maxcut, Graph Partitioning, Graph Coloring, MIS  
-       *(supports multiple graph CO problems)*
    * - TSPLIB
      - Traveling Salesman Problem (TSP)
    * - Solomon Instances
