@@ -61,43 +61,112 @@ In `config.py`, we select a CO problem:
 
 Take S2V-DQN as an example, as proposed by Dai et al. (2017) in `Learning Combinatorial Optimization Algorithms over Graphs <https://arxiv.org/abs/1704.01665>`_.
 
-In ``rlsolver/methods/eco_s2v/config.py``, we set parameters as follows:
+During training, the reinforcement learning agent explores how graph structures relate to optimal (or near-optimal) solutions such as maximum cuts.  
+Through repeated trial and reward, it gradually learns a general strategy that can be applied to new, unseen graphs with similar characteristics.
 
-.. code-block:: python
+2.1. **Set basic config**:
 
-   ALG = Alg.s2v
-   TRAIN_INFERENCE = 0  # 0 = train, 1 = inference
-   NUM_TRAIN_NODES = 200
+   Edit `rlsolver/methods/eco_s2v/config.py <https://github.com/Open-Finance-Lab/RLSolver/blob/master/rlsolver/methods/eco_s2v/config.py>`_.  
+  .. code-block:: python
 
-Run method in command line:
+      ALG = Alg.s2v                                   # select s2v as the RL method
+      GRAPH_TYPE = GraphType.BA                       # use BA (Barabási–Albert) graph distribution
+      NUM_TRAIN_NODES = 20                            # each training graph has 20 nodes
+      TRAIN_INFERENCE = 0                             # 0 = train mode; 1 = inference mode
 
-.. code-block:: bash
+2.2. **Run training**:
 
-   python methods/eco_s2v/main.py   # train S2V-DQN
-   python methods/L2A/main.py       # run dREINFORCE
+  Run `rlsolver/methods/eco_s2v/main.py <https://github.com/Open-Finance-Lab/RLSolver/blob/master/rlsolver/methods/eco_s2v/main.py>`_.
 
-3. **Inference** 
- 
-In the inference stage, we should select dataset(s). Take S2V-DQN as an example:
+   .. code-block:: text
 
-.. code-block:: python
+      python rlsolver/methods/eco_s2v/main.py 
 
-   TRAIN_NODES_IN_INFERENCE = 200
-   directory_data = '../data/syn_BA'  # the directory of datasets
-   prefixes = ['BA_100_']             # select the BA graphs with 100 nodes
+   This will generate a folder:  rlsolver/methods/eco_s2v/pretrained_agent/tmp/s2v_BA_20spin_b/
 
-In ``rlsolver/methods/eco_s2v/config.py``, we set the parameters:
+   Inside this folder, multiple `.pth` model snapshots will be saved over time.
 
-.. code-block:: python
+   .. image:: /_static/example_s2v_training.png
 
-   TRAIN_INFERENCE = 1  # 0 = train, 1 = inference
+2.3. **Select the best model from this folder**:
 
-Run method in command line:
+   Edit `rlsolver/methods/eco_s2v/config.py <https://github.com/Open-Finance-Lab/RLSolver/blob/master/rlsolver/methods/eco_s2v/config.py>`_.  
 
-.. code-block:: bash
+   Find the line:
 
-   python methods/eco_s2v/main.py   # inference S2V-DQN
-   python methods/L2A/main.py       # run dREINFORCE
+   .. code-block:: python
+
+      NEURAL_NETWORK_SUBFOLDER = "s2v_BA_20spin_s"
+
+   To select a different model folder, set the param ``NEURAL_NETWORK_SUBFOLDER`` using the name of the desired folder.  
+   For example:
+
+   .. code-block:: python
+
+      NEURAL_NETWORK_SUBFOLDER = "s2v_BA_20spin_b"
+
+   Then run:  
+   `rlsolver/methods/eco_s2v/train_and_inference/select_best_neural_network.py <https://github.com/Open-Finance-Lab/RLSolver/blob/master/rlsolver/methods/eco_s2v/select_best_neural_network.py>`_.
+
+   .. code-block:: bash
+
+      python rlsolver/methods/eco_s2v/train_and_inference/select_best_neural_network.py
+
+   It will generate a file like: s2v_BA_20spin_1033_best.pth
+
+   .. image:: /_static/best.png
+
+2.4. **Rename and move the best model**:
+
+      s2v_BA_20spin_best.pth  →  rlsolver/methods/eco_s2v/pretrained_agent/
+
+   .. image:: /_static/move.png
+
+3. **Testing**  
+
+Now that training is complete and the best model has been selected and moved, we proceed to the testing phase.  
+The following steps configure and run inference using the trained model on graphs of various sizes.
+
+3.1. **Switch to inference mode**:
+
+   Edit  `rlsolver/methods/eco_s2v/config.py <https://github.com/Open-Finance-Lab/RLSolver/blob/master/rlsolver/methods/eco_s2v/config.py>`_.  
+
+
+   .. code-block:: python
+
+      TRAIN_INFERENCE = 1                                              # 1 = inference mode
+      NUM_TRAINED_NODES_IN_INFERENCE = 20              # model was trained on 20-node graphs
+      NUM_INFERENCE_NODES = [20, 100, 200, 400, 800]   # test on graphs of various sizes
+
+   Although the model was trained only on 20-node graphs, it can be applied to larger graphs.
+   Ensure that all test graphs have node counts ≥ 20.
+
+3.2. **Run inference**:
+
+   Run `rlsolver/methods/eco_s2v/main.py <https://github.com/Open-Finance-Lab/RLSolver/blob/master/rlsolver/methods/eco_s2v/main.py>`_.
+
+   This step uses the selected best model to run inference over all test instances.
+
+   The result files will be saved in:  rlsolver/result/syn_BA/
+
+   Each result file includes:
+
+   - ``obj``: best objective value (maximum cut size)
+   - ``running_duration``: solving time in seconds
+   - ``num_nodes``: number of nodes in the graph
+   - ``alg_name``: algorithm used (e.g., ``s2v``)
+   - node assignments: each node's group (1 or 2)
+
+   Example output:
+
+   .. image:: /_static/result.png
+      :align: center
+      :width: 600px
+
+This completes the full pipeline: **Training → Model Selection → Inference** for the `s2v` method on synthetic BA graphs.
+
+
+
 
 Instance-wise
 ----------------------
