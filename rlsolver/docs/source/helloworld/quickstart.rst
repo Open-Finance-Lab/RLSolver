@@ -1,8 +1,7 @@
 Quickstart
 ==========
 
-The license is **MIT License**.  
-The following processes show how to run the algorithm in four parts.
+The following processes show how to run the algorithms.
 
 Read Data
 -----------------
