@@ -15,6 +15,15 @@ from rlsolver.methods.eco_s2v.config import *
 from rlsolver.methods.eco_s2v.src.agents.dqn.utils import ReplayBuffer, Logger, TestMetric, set_global_seed
 from rlsolver.methods.eco_s2v.src.envs.util import ExtraAction
 
+fix_seed = False # if test stepVsObj, set it as True; and False otherwise.
+if fix_seed:
+    seed = 74
+    random.seed(seed)
+    os.environ['PYTHONHASHSEED'] = str(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
 
 class DQN:
     """
