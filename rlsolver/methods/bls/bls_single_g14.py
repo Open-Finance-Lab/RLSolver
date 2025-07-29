@@ -7,7 +7,8 @@ from concurrent.futures import ProcessPoolExecutor
 
 import networkx as nx
 from rlsolver.methods.bls.bls import BLSMaxCut
-
+import csv
+from pathlib import Path
 
 data_dir  = "gset"
 file_name = "gset_14.txt"
@@ -58,7 +59,30 @@ if __name__ == "__main__":
         print(f"Run {run_id:2d}: best = {best_val}, time = {elapsed:.2f}s")
         bests.append(best_val)
 
+    best_overall = max(bests)
+    avg = statistics.mean(bests)
+    std = statistics.pstdev(bests)
     print("\n=== Summary ===")
-    print(" Best =", max(bests))
-    print(" Avg  =", f"{statistics.mean(bests):.2f}")
-    print(" Std  =", f"{statistics.pstdev(bests):.2f}")
+    print(" Best =", best_overall)
+    print(" Avg  =", f"{avg:.2f}")
+    print(" Std  =", f"{std:.2f}")
+
+
+    out_dir = Path(rlsolver_root) / "results"
+    out_dir.mkdir(exist_ok=True)
+    out_file = out_dir / f"bls_{file_name.replace('.txt', '')}.csv"
+
+    with open(out_file, "w", newline="") as f:
+        writer = csv.writer(f)
+
+        writer.writerow(["run_id", "best_val", "elapsed_s"])
+
+        for run_id, best_val, elapsed in results:
+            writer.writerow([run_id, best_val, f"{elapsed:.2f}"])
+
+        writer.writerow([])
+        writer.writerow(["Best", best_overall])
+        writer.writerow(["Avg", f"{avg:.2f}"])
+        writer.writerow(["Std", f"{std:.2f}"])
+
+    print(f"All results saved to {out_file}")
