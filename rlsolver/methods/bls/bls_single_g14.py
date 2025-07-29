@@ -13,6 +13,7 @@ from rlsolver.methods.util_result import write_graph_result
 def run_bls_trial(args):
     trial_id, filename = args
     filename = os.path.abspath(filename)
+
     graph = read_nxgraph(filename)
     num_nodes = graph.number_of_nodes()
     for u, v, d in graph.edges(data=True):
@@ -38,8 +39,8 @@ def run_bls_trial(args):
 
 if __name__ == "__main__":
     project_root = Path(__file__).resolve().parents[2]
-    filename = str(project_root / "data" / "syn_BA" / "BA_100_ID0.txt").replace('\\', '/')
 
+    filename = str(project_root / "data" / "syn_BA" / "BA_100_ID0.txt").replace('\\', '/')
 
     print("Experimental file path:", filename)
     if not os.path.exists(filename):
@@ -90,6 +91,7 @@ if __name__ == "__main__":
         num_nodes,
         alg_name,
         [bool(x) for x in best_solution],
+
         filename
     )
 
