@@ -68,7 +68,7 @@ if __name__ == "__main__":
     print(" Std  =", f"{std:.2f}")
 
 
-    out_dir = Path(rlsolver_root) / "results"
+    out_dir = Path(rlsolver_root) / "result"
     out_dir.mkdir(exist_ok=True)
     out_file = out_dir / f"bls_{file_name.replace('.txt', '')}.csv"
 
