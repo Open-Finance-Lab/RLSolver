@@ -3,9 +3,7 @@ import random
 from .utils import BucketSort, TabuList, compute_cut_value
 
 def compute_gain(G, cut, v):
-    """
-    计算将 v 从当前子集中移动到对立子集的增益
-    """
+
     delta = 0
     side = cut[v]
     for u in G[v]:
@@ -17,12 +15,8 @@ def compute_gain(G, cut, v):
     return delta
 
 def local_search_one_step(G, cut, bucket: BucketSort, tabu: TabuList, curr_val, best_val, iteration):
-    """
-    一次局部搜索移动：三个算子 M1/M2/M3 中选择增益最大的合法移动
-    这里示例只用 M1（steepest‐descent）
-    返回 (improved: bool, new_val)
-    """
-    # M1: 所有节点中选择增益 = maxgain 的一个
+
+
     max_nodes = bucket.get_max_nodes()
     best_v = None
     for v in max_nodes:
@@ -35,13 +29,13 @@ def local_search_one_step(G, cut, bucket: BucketSort, tabu: TabuList, curr_val, 
     if best_v is None:
         return False, curr_val
 
-    # 执行移动
+
     gain = bucket.node_gain[best_v]
     cut[best_v] = not cut[best_v]
     curr_val += gain
 
-    # 更新桶和禁忌
-    bucket.update(best_v, -gain)  # 方向相反的新增益将在后续统一更新
+
+    bucket.update(best_v, -gain)
     for u in G[best_v]:
         g_u = compute_gain(G, cut, u)
         bucket.update(u, g_u)
