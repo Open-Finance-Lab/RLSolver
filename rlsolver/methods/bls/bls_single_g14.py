@@ -7,8 +7,10 @@ from concurrent.futures import ProcessPoolExecutor
 
 import networkx as nx
 from rlsolver.methods.bls.bls import BLSMaxCut
+
 import csv
 from pathlib import Path
+
 
 data_dir  = "gset"
 file_name = "gset_14.txt"
@@ -59,6 +61,7 @@ if __name__ == "__main__":
         print(f"Run {run_id:2d}: best = {best_val}, time = {elapsed:.2f}s")
         bests.append(best_val)
 
+
     best_overall = max(bests)
     avg = statistics.mean(bests)
     std = statistics.pstdev(bests)
@@ -86,3 +89,4 @@ if __name__ == "__main__":
         writer.writerow(["Std", f"{std:.2f}"])
 
     print(f"All results saved to {out_file}")
+
