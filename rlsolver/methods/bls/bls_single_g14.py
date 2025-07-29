@@ -67,6 +67,7 @@ if __name__ == "__main__":
     std = (sum((x - avg) ** 2 for x in vals) / len(vals)) ** 0.5
     avg_time = sum(durations) / len(durations)
 
+
     print("\n=== Summary ===")
     print(" Best =", best_val)
     print(" Avg  =", f"{avg:.2f}")
@@ -89,9 +90,9 @@ if __name__ == "__main__":
         filename
     )
 
-
     init_solution = [0] * num_nodes
     init_score = obj_maxcut(init_solution, graph)
     print("init_score, final score of bls:", init_score, best_val)
     print("solution:", best_solution)
     print("average running_duration:", avg_time)
+
