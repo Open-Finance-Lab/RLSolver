@@ -95,7 +95,7 @@ def main():
     
     # 评估时可能需要调整的参数
     config.tabu_tenure = 10  # 确保与训练一致
-    config.episode_length_multiplier = 2  # 确保与训练一致
+    config.episode_length_multiplier = 3  # 确保与训练一致
     
     # 加载模型
     model_path = 'model.pth'

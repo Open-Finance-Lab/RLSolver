@@ -18,7 +18,7 @@ class Config:
     max_grad_norm = 0.5
     
     # 训练参数
-    epochs = 1000
+    epochs = 500
     batch_size = 8192
     minibatch_size = 256
     update_epochs = 4
