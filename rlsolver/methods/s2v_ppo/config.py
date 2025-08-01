@@ -27,7 +27,7 @@ class Config:
     force_reload = False
     
     # 环境参数
-    episode_length_multiplier = 3
+    episode_length_multiplier = 2
     tabu_tenure = 10
     no_improve_norm = 100.0
     stag_punishment = 0.01  # 滞留惩罚
@@ -36,4 +36,4 @@ class Config:
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     
     # 随机种子
-    seed = 42
+    seed = 39

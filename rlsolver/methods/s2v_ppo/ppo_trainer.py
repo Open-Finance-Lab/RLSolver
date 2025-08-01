@@ -43,7 +43,7 @@ class PPOTrainer:
         for t in reversed(range(len(rewards))):
             if t == len(rewards) - 1:
                 nextnonterminal = 1.0 - dones[t]
-                # 修复3：如果轨迹被截断，使用提供的最终价值
+
                 if final_value is not None and not dones[t]:
                     nextvalues = final_value
                 else:
@@ -60,12 +60,12 @@ class PPOTrainer:
         return advantages, returns
     
     def update(self, trajectories):
-        """优化的PPO更新：支持截断轨迹"""
+
         # 如果没有轨迹，返回0损失
         if not trajectories:
             return 0.0
             
-        # 预计算总步数（不包括final_value项）
+        # 预计算总步数
         total_steps = sum(len([s for s in traj['steps'] if 'action' in s]) for traj in trajectories)
         
         # 如果总步数为0，返回0损失
@@ -120,7 +120,7 @@ class PPOTrainer:
             traj_values = all_values[traj_start:traj_end]
             traj_dones = all_dones[traj_start:traj_end]
             
-            # 修复3：传递最终价值给GAE
+
             advantages, returns = self.compute_gae(
                 traj_rewards, traj_values, traj_dones, final_value
             )
@@ -132,7 +132,7 @@ class PPOTrainer:
         advantages = torch.cat(all_advantages)
         returns = torch.cat(all_returns)
         
-        # 输入验证：检查NaN/Inf - 添加DDP同步
+
         has_invalid = False
         if torch.isnan(all_rewards[:step_idx]).any() or torch.isinf(all_rewards[:step_idx]).any():
             has_invalid = True
@@ -141,7 +141,7 @@ class PPOTrainer:
         if torch.isnan(all_log_probs[:step_idx]).any() or torch.isinf(all_log_probs[:step_idx]).any():
             has_invalid = True
         
-        # DDP同步：确保所有进程一致决策
+
         if dist.is_initialized():
             invalid_tensor = torch.tensor([1.0 if has_invalid else 0.0], device=device)
             dist.all_reduce(invalid_tensor, op=dist.ReduceOp.MAX)
@@ -162,9 +162,9 @@ class PPOTrainer:
         all_actions = all_actions[:total_steps]
         all_log_probs = all_log_probs[:total_steps]
         
-        # 创建索引数组用于shuffle - 确保所有进程使用相同的shuffle
+
         if dist.is_initialized():
-            # 从rank 0广播indices确保一致性
+
             indices = torch.randperm(total_steps, device=device)
             dist.broadcast(indices, src=0)
         else:
@@ -205,7 +205,7 @@ class PPOTrainer:
                 mask_sums = scatter_add(batch_mask.float(), batch_data.batch, dim=0)
                 skip_batch = (mask_sums == 0).any().item()
                 
-                # 同步跳过决策（已有同步，保持不变）
+
                 if dist.is_initialized():
                     skip_tensor = torch.tensor([1.0 if skip_batch else 0.0], device=device)
                     dist.all_reduce(skip_tensor, op=dist.ReduceOp.MAX)
