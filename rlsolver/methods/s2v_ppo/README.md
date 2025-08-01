@@ -1,45 +1,45 @@
-# Max-Cut PPO 训练与评估
+# Max-Cut PPO Training and Evaluation
 
-## 训练
+## Training
 
-单GPU训练：
+Single GPU Training:
 ```bash
 python train_ddp.py
 ```
 
-多GPU训练：
+Multi-GPU Training:
 ```bash
 python launch.py
 ```
 
-训练完成后生成 `model.pth`
+After training, `model.pth` will be generated.
 
-## 参数配置
+## Parameter Configuration
 
-修改 `config.py` 中的参数：
+Modify parameters in `config.py`:
 
 ```python
-# 主要参数
-epochs = 1000          # 训练轮数
-batch_size = 8192      # 批次大小
-lr = 2e-4             # 学习率
-num_parallel_envs = 8  # 并行环境数
+# Main Parameters
+epochs = 1000          # Number of training epochs
+batch_size = 8192      # Batch size
+lr = 2e-4             # Learning rate
+num_parallel_envs = 8  # Number of parallel environments
 
-# 环境参数
-episode_length_multiplier = 2  # 最大步数倍数
-tabu_tenure = 10              # Tabu长度
+# Environment Parameters
+episode_length_multiplier = 2  # Multiplier for maximum steps
+tabu_tenure = 10              # Tabu tenure length
 ```
 
-## 评估
+## Evaluation
 
-将 `evaluate.py` 放置在 `rlsolver/methods/maxcut/` 目录下：
+Place `evaluate.py` in the `rlsolver/methods/maxcut/` directory:
 
 ```bash
 cd rlsolver/methods/maxcut/
 python evaluate.py
 ```
 
-评估脚本会：
-- 加载 `model.pth`
-- 读取 `../../data` 下的测试图
-- 保存结果到 `../../result`
+The evaluation script will:
+- Load `model.pth`
+- Read test graphs from `../../data`
+- Save results to `../../result`
