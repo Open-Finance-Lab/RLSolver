@@ -1,4 +1,4 @@
-# evaluate.py
+# inference.py
 # 此文件应放置在 rlsolver/methods/s2v_ppo/ 目录下
 import os
 import torch
