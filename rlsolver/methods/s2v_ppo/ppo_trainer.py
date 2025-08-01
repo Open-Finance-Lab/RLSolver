@@ -1,3 +1,4 @@
+# ppo_trainer.py
 import torch
 import torch.nn.functional as F
 import torch.distributed as dist
@@ -42,7 +43,7 @@ class PPOTrainer:
         for t in reversed(range(len(rewards))):
             if t == len(rewards) - 1:
                 nextnonterminal = 1.0 - dones[t]
-                # 修复3：如果轨迹被截断，使用提供的最终价值
+
                 if final_value is not None and not dones[t]:
                     nextvalues = final_value
                 else:
@@ -52,19 +53,19 @@ class PPOTrainer:
                 nextvalues = values[t + 1]
                 
             delta = rewards[t] + self.gamma * nextvalues * nextnonterminal - values[t]
-            delta = torch.clamp(delta, -1.0, 1.0)  # Clamp delta to avoid explosion
+            delta = torch.clamp(delta, -10.0, 10.0)  # Clamp delta to avoid explosion
             advantages[t] = lastgaelam = delta + self.gamma * self.lam * nextnonterminal * lastgaelam
             
         returns = advantages + values
         return advantages, returns
     
     def update(self, trajectories):
-        """优化的PPO更新：支持截断轨迹"""
+
         # 如果没有轨迹，返回0损失
         if not trajectories:
             return 0.0
             
-        # 预计算总步数（不包括final_value项）
+        # 预计算总步数
         total_steps = sum(len([s for s in traj['steps'] if 'action' in s]) for traj in trajectories)
         
         # 如果总步数为0，返回0损失
@@ -119,7 +120,7 @@ class PPOTrainer:
             traj_values = all_values[traj_start:traj_end]
             traj_dones = all_dones[traj_start:traj_end]
             
-            # 修复3：传递最终价值给GAE
+
             advantages, returns = self.compute_gae(
                 traj_rewards, traj_values, traj_dones, final_value
             )
@@ -131,12 +132,22 @@ class PPOTrainer:
         advantages = torch.cat(all_advantages)
         returns = torch.cat(all_returns)
         
-        # 输入验证：检查NaN/Inf
+
+        has_invalid = False
         if torch.isnan(all_rewards[:step_idx]).any() or torch.isinf(all_rewards[:step_idx]).any():
-            return 0.0
+            has_invalid = True
         if torch.isnan(all_values[:step_idx]).any() or torch.isinf(all_values[:step_idx]).any():
-            return 0.0
+            has_invalid = True
         if torch.isnan(all_log_probs[:step_idx]).any() or torch.isinf(all_log_probs[:step_idx]).any():
+            has_invalid = True
+        
+
+        if dist.is_initialized():
+            invalid_tensor = torch.tensor([1.0 if has_invalid else 0.0], device=device)
+            dist.all_reduce(invalid_tensor, op=dist.ReduceOp.MAX)
+            has_invalid = invalid_tensor.item() > 0
+        
+        if has_invalid:
             return 0.0
         
         # 标准化优势
@@ -151,15 +162,25 @@ class PPOTrainer:
         all_actions = all_actions[:total_steps]
         all_log_probs = all_log_probs[:total_steps]
         
-        # 创建索引数组用于shuffle
-        indices = torch.randperm(total_steps, device=device)
+
+        if dist.is_initialized():
+
+            indices = torch.randperm(total_steps, device=device)
+            dist.broadcast(indices, src=0)
+        else:
+            indices = torch.randperm(total_steps, device=device)
         
         total_loss = 0
         num_updates = 0
         
         for epoch in range(self.update_epochs):
-            # Shuffle indices
-            indices = indices[torch.randperm(len(indices))]
+            # Shuffle indices - 使用相同的方式确保一致性
+            if dist.is_initialized():
+                # 从rank 0广播新的shuffle顺序
+                indices = indices[torch.randperm(len(indices))]
+                dist.broadcast(indices, src=0)
+            else:
+                indices = indices[torch.randperm(len(indices))]
             
             # 按minibatch处理
             for start_idx in range(0, total_steps, self.config.minibatch_size):
@@ -184,7 +205,7 @@ class PPOTrainer:
                 mask_sums = scatter_add(batch_mask.float(), batch_data.batch, dim=0)
                 skip_batch = (mask_sums == 0).any().item()
                 
-                # 同步跳过决策（仅在分布式训练时）
+
                 if dist.is_initialized():
                     skip_tensor = torch.tensor([1.0 if skip_batch else 0.0], device=device)
                     dist.all_reduce(skip_tensor, op=dist.ReduceOp.MAX)
@@ -192,6 +213,9 @@ class PPOTrainer:
                 
                 if skip_batch:
                     continue
+                
+                # 初始化skip标志
+                should_skip = False
                 
                 with autocast(enabled=self.config.use_amp):
                     # 前向传播
@@ -207,42 +231,52 @@ class PPOTrainer:
                     
                     # Check logits NaN/Inf
                     if torch.isnan(logits).any() or torch.isinf(logits).any():
-                        continue
+                        should_skip = True
                     
-                    # scatter_log_softmax
-                    log_probs_all_nodes = scatter_log_softmax(logits, batch_data.batch, dim=0)
-                    
-                    # Global actions - 修复：确保ptr在正确的设备上
-                    ptr = batch_data.ptr[:-1].to(batch_actions.device)
-                    global_actions = ptr + batch_actions
-                    new_log_probs = log_probs_all_nodes[global_actions]
-                    
-                    # PPO loss
-                    log_ratio = new_log_probs - batch_old_log_probs
-                    log_ratio = torch.clamp(log_ratio, -20.0, 2.0)
-                    ratio = torch.exp(log_ratio)
-                    
-                    surr1 = ratio * batch_advantages
-                    surr2 = torch.clamp(ratio, 1 - self.clip_ratio, 1 + self.clip_ratio) * batch_advantages
-                    policy_loss = -torch.min(surr1, surr2).mean()
-                    
-                    # Value loss
-                    clipped_returns = torch.clamp(batch_returns, -100.0, 100.0)
-                    clipped_values = torch.clamp(values, -100.0, 100.0)
-                    value_loss = F.huber_loss(clipped_values, clipped_returns, delta=1.0)
-                    
-                    # Entropy
-                    probs = torch.clamp(torch.exp(log_probs_all_nodes), 1e-10, 1.0)
-                    stable_log_probs = torch.log(probs)
-                    entropy = -torch.sum(probs * stable_log_probs * batch_mask) / (batch_data.num_graphs + 1e-8)
-                    entropy_loss = -self.entropy_coef * entropy
-                    
-                    # Total loss
-                    loss = policy_loss + self.value_coef * value_loss + entropy_loss
-                    
-                    # NaN check on loss
-                    if torch.isnan(loss) or torch.isinf(loss):
-                        continue
+                    if not should_skip:
+                        # scatter_log_softmax
+                        log_probs_all_nodes = scatter_log_softmax(logits, batch_data.batch, dim=0)
+                        
+                        # Global actions - 修复：确保ptr在正确的设备上
+                        ptr = batch_data.ptr[:-1].to(batch_actions.device)
+                        global_actions = ptr + batch_actions
+                        new_log_probs = log_probs_all_nodes[global_actions]
+                        
+                        # PPO loss
+                        log_ratio = new_log_probs - batch_old_log_probs
+                        log_ratio = torch.clamp(log_ratio, -20.0, 2.0)
+                        ratio = torch.exp(log_ratio)
+                        
+                        surr1 = ratio * batch_advantages
+                        surr2 = torch.clamp(ratio, 1 - self.clip_ratio, 1 + self.clip_ratio) * batch_advantages
+                        policy_loss = -torch.min(surr1, surr2).mean()
+                        
+                        # Value loss
+                        clipped_returns = torch.clamp(batch_returns, -100.0, 100.0)
+                        clipped_values = torch.clamp(values, -100.0, 100.0)
+                        value_loss = F.huber_loss(clipped_values, clipped_returns, delta=1.0)
+                        
+                        # Entropy
+                        probs = torch.clamp(torch.exp(log_probs_all_nodes), 1e-10, 1.0)
+                        stable_log_probs = torch.log(probs)
+                        entropy = -torch.sum(probs * stable_log_probs * batch_mask) / (batch_data.num_graphs + 1e-8)
+                        entropy_loss = -self.entropy_coef * entropy
+                        
+                        # Total loss
+                        loss = policy_loss + self.value_coef * value_loss + entropy_loss
+                        
+                        # NaN check on loss
+                        if torch.isnan(loss) or torch.isinf(loss):
+                            should_skip = True
+                
+                # DDP同步：确保所有进程一致决定是否skip
+                if dist.is_initialized():
+                    skip_tensor = torch.tensor([1.0 if should_skip else 0.0], device=device)
+                    dist.all_reduce(skip_tensor, op=dist.ReduceOp.MAX)
+                    should_skip = skip_tensor.item() > 0
+                
+                if should_skip:
+                    continue
                 
                 # Optimization
                 self.optimizer.zero_grad(set_to_none=True)

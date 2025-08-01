@@ -1,5 +1,5 @@
 # evaluate.py
-# 此文件应放置在 rlsolver/methods/maxcut/ 目录下
+# 此文件应放置在 rlsolver/methods/s2v_ppo/ 目录下
 import os
 import torch
 import networkx as nx
@@ -23,7 +23,7 @@ def load_graph_from_file(filepath):
     graph = nx.Graph()
     graph.add_nodes_from(range(n))
     
-    # 添加边（注意：文件中节点编号可能从1开始）
+    # 添加边
     for i in range(1, m + 1):
         parts = lines[i].strip().split()
         u, v = int(parts[0]) - 1, int(parts[1]) - 1  # 转换为0索引
@@ -69,7 +69,7 @@ def evaluate_single_graph(model, graph_data, config):
             logits, _ = model(
                 batch.x, 
                 batch.edge_index, 
-                valid_mask,  # 不需要unsqueeze，因为是单个图
+                valid_mask, 
                 batch.batch
             )
             
@@ -81,7 +81,7 @@ def evaluate_single_graph(model, graph_data, config):
             # 执行动作
             state, _, done, info = env.step(action)
     
-    # 返回最佳分配（z=-1映射到1，z=1映射到2）
+
     best_z = env.best_z.cpu().numpy()
     assignment = (best_z == 1).astype(int) + 1
     
@@ -93,9 +93,9 @@ def main():
     config = Config()
     config.device = 'cuda' if torch.cuda.is_available() else 'cpu'
     
-    # 评估时可能需要调整的参数
-    config.tabu_tenure = 10  # 确保与训练一致
-    config.episode_length_multiplier = 2  # 确保与训练一致
+
+    config.tabu_tenure = 10  
+    config.episode_length_multiplier = 2  
     
     # 加载模型
     model_path = 'model.pth'
@@ -156,16 +156,10 @@ def main():
             print(f"\n{filename}: 最大割值 = {cut_value}")
             
         except Exception as e:
-            print(f"\n处理 {filename} 时出错: {e}")
-            # 如果是CUDA错误，可能需要重置
-            if "CUDA" in str(e) and config.device == 'cuda':
-                torch.cuda.synchronize()
-                torch.cuda.empty_cache()
             continue
     
     print("\n评估完成！")
 
 
 if __name__ == "__main__":
-
     main()

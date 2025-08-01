@@ -1,3 +1,4 @@
+# models.py
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -120,7 +121,7 @@ class Critic(nn.Module):
 
 
 class PPOLinearModel(nn.Module):
-
+    """使用S2V编码器的PPO模型"""
     def __init__(self, config):
         super().__init__()
         self.encoder = S2VEncoder(config)  
