@@ -38,16 +38,16 @@ python launch.py
 
 
 
-### 3. Evaluation
+### 3. Inference
 Evaluation loads the trained model (`model.pth`) and runs greedy inference on test graphs. Input graphs are from `../../data` (relative to script dir), outputs assignments to `../../result` (format: `node_id group` where group is 1 or 2).
 
 Run:
 ```
-python evaluate.py
+python inference.py
 ```
 - Processes all `.txt` files in `../../data` (skipping `dataset_info.txt`).
 - For each graph, outputs the best cut value and node assignments (z=-1 -> 1, z=1 -> 2).
-- Customize paths in `evaluate.py` if needed (e.g., `data_root` and `result_root`).
+- Customize paths in `inference.py` if needed (e.g., `data_root` and `result_root`).
 
 To evaluate on custom graphs, place them in `../../data` or adjust paths.
 
