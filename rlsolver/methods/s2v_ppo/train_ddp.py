@@ -13,7 +13,7 @@ from torch_geometric.data import Data, Batch
 
 from models import PPOLinearModel
 from ppo_trainer import PPOTrainer
-from data_utils import generate_batch_graphs, generate_graph
+from data_utils import load_graphs_from_directory, sample_batch_graphs
 from config import Config
 from env import MaxCutEnv
 
@@ -30,12 +30,12 @@ def main_worker(rank, world_size):
     torch.backends.cudnn.benchmark = True
     torch.set_float32_matmul_precision('high')
     
-    # 设置随机种子 - 修复：所有进程使用相同的种子初始化模型
+    # 设置随机种子
     if config.seed is not None:
-        torch.manual_seed(config.seed)  # 移除 + rank
-        np.random.seed(config.seed + rank)  # 数据生成仍可以不同
-        random.seed(config.seed + rank)     # 数据生成仍可以不同
-        torch.cuda.manual_seed(config.seed)  # 移除 + rank
+        torch.manual_seed(config.seed)
+        np.random.seed(config.seed + rank)
+        random.seed(config.seed + rank)
+        torch.cuda.manual_seed(config.seed)
     
     # 确保能整除
     assert config.num_parallel_envs % world_size == 0, f"num_parallel_envs must be divisible by world_size"
@@ -44,6 +44,16 @@ def main_worker(rank, world_size):
     # 每个进程的本地批次大小和环境数
     local_batch_size = config.batch_size // world_size
     local_num_envs = config.num_parallel_envs // world_size
+    
+    # 加载本地图数据
+    graph_data_dir = "./maxcut_data"  # 可以添加到Config中
+    if rank == 0:
+        print(f"从 {graph_data_dir} 加载图数据...")
+    
+    all_graphs = load_graphs_from_directory(graph_data_dir)
+    
+    if not all_graphs:
+        raise RuntimeError(f"未能从 {graph_data_dir} 加载任何图数据")
     
     # 创建模型并移动到对应GPU
     model = PPOLinearModel(config).to(config.device)
@@ -60,6 +70,7 @@ def main_worker(rank, world_size):
         print(f"模型参数: {sum(p.numel() for p in model.parameters())/1e6:.2f}M")
         print(f"每个进程处理环境数: {local_num_envs}")
         print(f"每个进程批次大小: {local_batch_size}")
+        print(f"可用图数据: {len(all_graphs)} 个")
     
     trainer = PPOTrainer(model, config)
     
@@ -75,10 +86,11 @@ def main_worker(rank, world_size):
     for epoch in progress_bar:
         model.train()
         
+        # 从预加载的图中采样
+        graph_datas = sample_batch_graphs(all_graphs, local_num_envs)
+        
         # 初始化环境
         envs = []
-        graph_datas = generate_batch_graphs(local_num_envs)
-        
         for i in range(local_num_envs):
             env = MaxCutEnv(graph_datas[i], config)
             envs.append(env)
@@ -129,14 +141,14 @@ def main_worker(rank, world_size):
                 for i in range(local_num_envs):
                     next_state, reward, done, info = envs[i].step(actions[i])
                     
-                    # 添加到轨迹 - 修复：正确提取value
+                    # 添加到轨迹
                     trajectories[i].append({
                         'x': states[i]['x'].clone(),
                         'edge_index': states[i]['edge_index'],
                         'valid_actions_mask': states[i]['valid_actions_mask'].clone(),
                         'action': actions[i],
                         'log_prob': log_probs[i],
-                        'value': values[i].item(),  # 修复：直接使用第i个图的价值
+                        'value': values[i].item(),
                         'reward': reward,
                         'done': done
                     })
@@ -146,8 +158,8 @@ def main_worker(rank, world_size):
                     
                     if done:
                         best_cuts.append(info['best_cut'])
-                        # 生成新图并重置
-                        new_graph_data = generate_graph(np.random.choice(['BA', 'ER', 'PL']))
+                        # 从预加载的图中随机选择新图
+                        new_graph_data = sample_batch_graphs(all_graphs, 1)[0]
                         envs[i] = MaxCutEnv(new_graph_data, config)
                         states[i] = envs[i].reset()
                         data_list[i] = Data(x=states[i]['x'], edge_index=states[i]['edge_index'])
@@ -170,12 +182,11 @@ def main_worker(rank, world_size):
                         final_batch.batch
                     )
                     
-                    # 修复：正确提取final_value
                     trajectories[i].append({
-                        'final_value': final_value[0].item()  # 修复：final_value形状为(1,)
+                        'final_value': final_value[0].item()
                     })
         
-        # 格式化轨迹 - 现在每个轨迹都是时序连续的
+        # 格式化轨迹
         formatted_trajectories = [
             {'steps': traj, 'final_cut': 0} 
             for traj in trajectories 
@@ -195,13 +206,13 @@ def main_worker(rank, world_size):
             device=config.device
         )
         
-        # 计算本地统计
-        avg_cut = np.mean(best_cuts) if best_cuts else 0.0
+        # 计算本地统计 - 修正：使用总和而非平均值
+        local_sum_cut = np.sum(best_cuts) if best_cuts else 0.0
         local_episodes = len(best_cuts)
         
-        # 创建包含平均切割值和回合数的张量
+        # 创建包含切割值总和和回合数的张量
         local_metrics = torch.tensor(
-            [avg_cut, local_episodes], 
+            [local_sum_cut, local_episodes], 
             dtype=torch.float64, 
             device=config.device
         )
@@ -218,8 +229,13 @@ def main_worker(rank, world_size):
         # 正确计算全局平均值
         avg_reward_global = global_total_reward / max(global_total_steps, 1)
         avg_loss_global = global_total_loss / world_size
-        avg_cut_global = local_metrics[0].item() / world_size
-        num_episodes = int(local_metrics[1].item())
+        
+        # 修正：使用全局总和除以全局回合数
+        global_sum_cut = local_metrics[0].item()
+        global_episodes = local_metrics[1].item()
+        avg_cut_global = global_sum_cut / max(global_episodes, 1)
+        
+        num_episodes = int(global_episodes)
         
         if rank == 0:
             progress_bar.set_postfix({

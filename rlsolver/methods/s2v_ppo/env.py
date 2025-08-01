@@ -27,17 +27,17 @@ class MaxCutEnv:
             dim_size=self.num_nodes
         )
         
-        # 预分配可重用的张量 - 调整特征维度为5
+
         self.z = torch.zeros(self.num_nodes, dtype=torch.long, device=self.device)
         self.delta_cache = torch.zeros(self.num_nodes, device=self.device)
         self.features_tensor = torch.zeros((self.num_nodes, self.config.node_feature_dim), device=self.device)
         self.valid_mask = torch.ones(self.num_nodes, dtype=torch.bool, device=self.device)
         
         # 状态历史追踪（用于检测重复状态）
-        self.state_history = deque(maxlen=50)  # 保留最近50个状态的哈希值
-        self.visited_basins = set()  # 记录访问过的盆地状态
+        self.state_history = deque(maxlen=50)  
+        self.visited_basins = set()  
         
-        # 新增：节点翻转时间追踪
+        节点翻转时间追踪
         self.time_since_flip = torch.zeros(self.num_nodes, device=self.device)
         
         self.current_cut = 0
@@ -100,12 +100,12 @@ class MaxCutEnv:
         return self.z.float() * neighbor_contrib 
     
     def _compute_all_deltas_gpu_inplace(self):
-        """In-place版本，直接更新delta_cache"""
+
         neighbor_contrib = self._compute_neighbor_contrib()
         self.delta_cache.copy_(self.z.float() * neighbor_contrib)
     
     def get_valid_actions_mask(self):
-        # 重用valid_mask张量
+
         self.valid_mask.fill_(True)
         if self.tabu_tenure > 0 and self.tabu_list:
             tabu_indices = torch.tensor(list(self.tabu_list), device=self.device, dtype=torch.long)
@@ -114,7 +114,7 @@ class MaxCutEnv:
         return self.valid_mask
     
     def _get_node_features(self):
-        # 5维特征
+
         self.features_tensor[:, 0] = self.z.float()  # 节点分配
         self.features_tensor[:, 1] = self.delta_cache / (self.max_possible_cut + 1e-8)  # delta增益归一化
         
@@ -124,7 +124,7 @@ class MaxCutEnv:
                 tabu_indices = torch.tensor(list(self.tabu_list), device=self.device, dtype=torch.long)
                 self.features_tensor[tabu_indices, 2] = 1.0
         
-        # 新增特征
+
         self.features_tensor[:, 3] = self.time_since_flip / self.max_steps  # 自上次翻转的时间
         self.features_tensor[:, 4] = (self.delta_cache > 0).sum() / self.num_nodes  # 正delta比例
         
