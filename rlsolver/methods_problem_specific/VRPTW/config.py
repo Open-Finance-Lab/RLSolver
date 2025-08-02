@@ -1,7 +1,7 @@
 import sys
 import os
 cur_path = os.path.dirname(os.path.abspath(__file__))
-rlsolver_path = os.path.join(cur_path, '../../../rlsolver')
+rlsolver_path = os.path.join(cur_path, '../..')
 sys.path.append(os.path.dirname(rlsolver_path))
 
 import os

@@ -1,7 +1,7 @@
 import sys
 import os
 cur_path = os.path.dirname(os.path.abspath(__file__))
-rlsolver_path = os.path.join(cur_path, '../../../rlsolver')
+rlsolver_path = os.path.join(cur_path, '../..')
 sys.path.append(os.path.dirname(rlsolver_path))
 
 from typing import Dict, List
@@ -9,8 +9,8 @@ import copy
 
 import networkx as nx
 
-from rlsolver.methods.VRPTW_algs.Customer import Customer
-from rlsolver.methods.VRPTW_algs.config import Config
+from rlsolver.methods_problem_specific.VRPTW.Customer import Customer
+from rlsolver.methods_problem_specific.VRPTW.config import Config
 
 
 class Vehicle:

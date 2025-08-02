@@ -2,36 +2,32 @@ import sys
 import os
 
 cur_path = os.path.dirname(os.path.abspath(__file__))
-rlsolver_path = os.path.join(cur_path, '../../../rlsolver')
+rlsolver_path = os.path.join(cur_path, '../..')
 sys.path.append(os.path.dirname(rlsolver_path))
 
-import gurobipy as gp
 from gurobipy import *
 import copy
 import time
 import networkx as nx
 
 from Vehicle import Vehicle
-from rlsolver.methods.VRPTW_algs.impact_heuristic import impact_heuristic, run_impact_heuristic
+from rlsolver.methods_problem_specific.VRPTW.impact_heuristic import impact_heuristic
 from typing import Dict, List
-from rlsolver.methods.VRPTW_algs.Customer import (Customer,
-                                                  )
+from rlsolver.methods_problem_specific.VRPTW.Customer import (Customer,
+                                                                   )
 
-from rlsolver.methods.VRPTW_algs.util import (read_data,
-                                              write_result,
-                                              generate_vehicles,
-                                              generate_customers_including_orig_dest,
-                                              read_data_as_nxdigraph,
-                                              calc_dist_of_path,
-                                              calc_dists_of_paths,
-                                              filter_vehicles_based_on_paths,
-                                              calc_demands_of_paths,
-                                              calc_durations_of_paths,
-                                              obtain_paths_based_on_vehicles,
-                                              obtain_var_vals,
-                                              )
-from rlsolver.methods.VRPTW_algs.ESPPRC1 import ESPPRC1_unidirectional
-from rlsolver.methods.VRPTW_algs.config import Config
+from rlsolver.methods_problem_specific.VRPTW.util import (write_result,
+                                                               generate_vehicles,
+                                                               read_data_as_nxdigraph,
+                                                               calc_dists_of_paths,
+                                                               filter_vehicles_based_on_paths,
+                                                               calc_demands_of_paths,
+                                                               calc_durations_of_paths,
+                                                               obtain_paths_based_on_vehicles,
+                                                               obtain_var_vals,
+                                                               )
+from rlsolver.methods_problem_specific.VRPTW.ESPPRC1 import ESPPRC1_unidirectional
+from rlsolver.methods_problem_specific.VRPTW.config import Config
 
 
 # each vehicle only serves one customer, and then return to the depot

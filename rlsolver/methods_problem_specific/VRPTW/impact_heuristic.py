@@ -2,31 +2,28 @@
 import sys
 import os
 cur_path = os.path.dirname(os.path.abspath(__file__))
-rlsolver_path = os.path.join(cur_path, '../../../rlsolver')
+rlsolver_path = os.path.join(cur_path, '../..')
 sys.path.append(os.path.dirname(rlsolver_path))
 
 import copy
 import time
-from typing import Dict, List
+from typing import List
 import numpy as np
 import networkx as nx
 
-from rlsolver.methods.VRPTW_algs.Customer import (Customer,
-                      )
-from rlsolver.methods.VRPTW_algs.Vehicle import Vehicle
-from rlsolver.methods.VRPTW_algs.util import (read_data,
-                  read_data_as_nxdigraph,
-                  generate_vehicles,
-                  generate_vehicles_and_assign_paths,
-                  obtain_paths_based_on_vehicles,
-                  calc_demands_of_paths,
-                  calc_durations_of_paths,
-                  calc_dists_of_paths,
-                  write_result,
-                  write_result_based_on_vehicles,
-                  )
+from rlsolver.methods_problem_specific.VRPTW.Customer import (Customer,
+                                                                   )
+from rlsolver.methods_problem_specific.VRPTW.Vehicle import Vehicle
+from rlsolver.methods_problem_specific.VRPTW.util import (read_data_as_nxdigraph,
+                                                               generate_vehicles,
+                                                               obtain_paths_based_on_vehicles,
+                                                               calc_demands_of_paths,
+                                                               calc_durations_of_paths,
+                                                               calc_dists_of_paths,
+                                                               write_result,
+                                                               )
 
-from rlsolver.methods.VRPTW_algs.config import Config
+from rlsolver.methods_problem_specific.VRPTW.config import Config
 
 
 # from my_config import Config

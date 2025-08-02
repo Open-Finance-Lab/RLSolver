@@ -5,7 +5,7 @@ from pathlib import Path
 from concurrent.futures import ProcessPoolExecutor
 
 import networkx as nx
-from rlsolver.methods.bls.bls import BLSMaxCut
+from rlsolver.methods_problem_specific.maxcut_BLS.BLS import BLSMaxCut
 from rlsolver.methods.util_read_data import read_nxgraph
 from rlsolver.methods.util_obj import obj_maxcut
 from rlsolver.methods.util_result import write_graph_result

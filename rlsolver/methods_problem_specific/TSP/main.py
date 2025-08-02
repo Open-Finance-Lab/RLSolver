@@ -1,13 +1,12 @@
 import sys
 import os
 cur_path = os.path.dirname(os.path.abspath(__file__))
-rlsolver_path = os.path.join(cur_path, '../../../rlsolver')
+rlsolver_path = os.path.join(cur_path, '../..')
 sys.path.append(os.path.dirname(rlsolver_path))
 
 
 import time
-from typing import Union, Tuple, List
-import pandas as pd
+from typing import List
 import util
 from config import *
 from util import plot_tour
@@ -27,7 +26,6 @@ from rlsolver.methods.util import (calc_txt_files_with_prefixes,
                                     transfer_nxgraph_to_adjacencymatrix
                                    )
 
-from rlsolver.methods.tsp_algs.util import build_distance_matrix
 
 def run_multi_instances(dir: str, prefixes: List[str]):
     files = calc_txt_files_with_prefixes(dir, prefixes)
