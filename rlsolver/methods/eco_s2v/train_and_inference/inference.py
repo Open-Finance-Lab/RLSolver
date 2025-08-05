@@ -5,10 +5,10 @@ import torch
 from rlsolver.methods.eco_s2v.config import *
 from rlsolver.methods.eco_s2v.config import INFERENCE_DEVICE
 from rlsolver.methods.eco_s2v.src.envs.spinsystem import SpinSystemFactory
-from rlsolver.methods.eco_s2v.src.envs.util import (SingleGraphGenerator,
-                                                    RewardSignal, ExtraAction,
-                                                    OptimisationTarget, SpinBasis,
-                                                    DEFAULT_OBSERVABLES, Observable)
+from rlsolver.methods.eco_s2v.src.envs.util_envs import (SingleGraphGenerator,
+                                                         RewardSignal, ExtraAction,
+                                                         OptimisationTarget, SpinBasis,
+                                                         DEFAULT_OBSERVABLES, Observable)
 from rlsolver.methods.eco_s2v.src.networks.mpnn import MPNN
 from rlsolver.methods.eco_s2v.util import test_network, load_graph_set_from_txt
 from rlsolver.methods.util import calc_txt_files_with_prefixes

@@ -14,7 +14,7 @@ import tqdm
 import rlsolver.methods.eco_s2v.src.envs.core as ising_env
 from rlsolver.methods.eco_s2v.config import *
 from rlsolver.methods.eco_s2v.src.agents.solver import Network, Greedy
-from rlsolver.methods.eco_s2v.src.envs.util import (SingleGraphGenerator, SpinBasis)
+from rlsolver.methods.eco_s2v.src.envs.util_envs import (SingleGraphGenerator, SpinBasis)
 
 
 ####################################################

@@ -1,12 +1,12 @@
 import rlsolver.methods.eco_s2v.src.envs.core as ising_env
 from rlsolver.methods.eco_s2v.config import *
-from rlsolver.methods.eco_s2v.src.agents.dqn.eeco_dqn import DQN
-from rlsolver.methods.eco_s2v.src.agents.dqn.utils import TestMetric
-from rlsolver.methods.eco_s2v.src.envs.eeco_util import (RandomBarabasiAlbertGraphGenerator,
-                                                         RandomErdosRenyiGraphGenerator, ValidationGraphGenerator,
-                                                         )
-from rlsolver.methods.eco_s2v.src.envs.util import (EdgeType, RewardSignal, ExtraAction,
-                                                    OptimisationTarget, SpinBasis, DEFAULT_OBSERVABLES)
+from rlsolver.methods.eco_s2v.src.agents.dqn_eeco import DQN
+from rlsolver.methods.eco_s2v.src.agents.utils import TestMetric
+from rlsolver.methods.eco_s2v.src.envs.util_envs_eeco import (RandomBarabasiAlbertGraphGenerator,
+                                                              RandomErdosRenyiGraphGenerator, ValidationGraphGenerator,
+                                                              )
+from rlsolver.methods.eco_s2v.src.envs.util_envs import (EdgeType, RewardSignal, ExtraAction,
+                                                         OptimisationTarget, SpinBasis, DEFAULT_OBSERVABLES)
 from rlsolver.methods.eco_s2v.src.networks.mpnn import MPNN
 from rlsolver.methods.eco_s2v.util import (cal_txt_name)
 

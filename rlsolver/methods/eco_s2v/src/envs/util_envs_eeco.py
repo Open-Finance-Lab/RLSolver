@@ -6,7 +6,7 @@ import numpy as np
 import torch
 
 from rlsolver.methods.config import GraphType
-from rlsolver.methods.eco_s2v.src.envs.util import (EdgeType)
+from rlsolver.methods.eco_s2v.src.envs.util_envs import (EdgeType)
 
 
 class GraphGenerator(ABC):

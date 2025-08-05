@@ -5,13 +5,13 @@ import torch
 import rlsolver.methods.eco_s2v.src.envs.core as ising_env
 from rlsolver.methods.eco_s2v.config import *
 from rlsolver.methods.eco_s2v.plot import plot_scatter
-from rlsolver.methods.eco_s2v.src.agents.dqn.torch_dqn import DQN
-from rlsolver.methods.eco_s2v.src.agents.dqn.utils import TestMetric
-from rlsolver.methods.eco_s2v.src.envs.torch_util import (SetGraphGenerator,
-                                                          RandomBarabasiAlbertGraphGenerator, RandomErdosRenyiGraphGenerator,
-                                                          EdgeType, RewardSignal, ExtraAction,
-                                                          OptimisationTarget, SpinBasis,
-                                                          DEFAULT_OBSERVABLES)
+from rlsolver.methods.eco_s2v.src.agents.dqn_torch import DQN
+from rlsolver.methods.eco_s2v.src.agents.utils import TestMetric
+from rlsolver.methods.eco_s2v.src.envs.util_envs_torch import (SetGraphGenerator,
+                                                               RandomBarabasiAlbertGraphGenerator, RandomErdosRenyiGraphGenerator,
+                                                               EdgeType, RewardSignal, ExtraAction,
+                                                               OptimisationTarget, SpinBasis,
+                                                               DEFAULT_OBSERVABLES)
 from rlsolver.methods.eco_s2v.src.networks.mpnn import MPNN
 from rlsolver.methods.eco_s2v.util import write_sampling_speed, load_graph_set_from_folder
 

@@ -5,15 +5,15 @@ from rlsolver.methods.eco_s2v.util import (cal_txt_name)
 from rlsolver.methods.eco_s2v.config import *
 
 if USE_TWO_DEVICES_IN_ECO_S2V:
-    from rlsolver.methods.eco_s2v.src.agents.dqn.dqn_two_devices import DQN
+    from rlsolver.methods.eco_s2v.src.agents.dqn_two_devices import DQN
 else:
-    from rlsolver.methods.eco_s2v.src.agents.dqn.dqn import DQN
-from rlsolver.methods.eco_s2v.src.agents.dqn.utils import TestMetric
-from rlsolver.methods.eco_s2v.src.envs.util import (SetGraphGenerator,
-                                                    RandomBarabasiAlbertGraphGenerator, RandomErdosRenyiGraphGenerator,
-                                                    EdgeType, RewardSignal, ExtraAction,
-                                                    OptimisationTarget, SpinBasis, ValidationGraphGenerator,
-                                                    DEFAULT_OBSERVABLES)
+    from rlsolver.methods.eco_s2v.src.agents.dqn import DQN
+from rlsolver.methods.eco_s2v.src.agents.utils import TestMetric
+from rlsolver.methods.eco_s2v.src.envs.util_envs import (SetGraphGenerator,
+                                                         RandomBarabasiAlbertGraphGenerator, RandomErdosRenyiGraphGenerator,
+                                                         EdgeType, RewardSignal, ExtraAction,
+                                                         OptimisationTarget, SpinBasis, ValidationGraphGenerator,
+                                                         DEFAULT_OBSERVABLES)
 from rlsolver.methods.eco_s2v.src.networks.mpnn import MPNN
 from rlsolver.methods.eco_s2v.config import *
 

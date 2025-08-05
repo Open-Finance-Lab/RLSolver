@@ -5,12 +5,12 @@ from operator import matmul
 import numpy as np
 import torch
 
-from rlsolver.methods.eco_s2v.src.envs.util import (RewardSignal,
-                                                    ExtraAction,
-                                                    OptimisationTarget,
-                                                    Observable,
-                                                    SpinBasis,
-                                                    DEFAULT_OBSERVABLES)
+from rlsolver.methods.eco_s2v.src.envs.util_envs import (RewardSignal,
+                                                         ExtraAction,
+                                                         OptimisationTarget,
+                                                         Observable,
+                                                         SpinBasis,
+                                                         DEFAULT_OBSERVABLES)
 
 # A container for get_result function below. Works just like tuple, but prettier.
 ActionResult = namedtuple("action_result", ("snapshot", "observation", "reward", "is_done", "info"))
