@@ -5,16 +5,16 @@ from operator import matmul
 import numpy as np
 import torch.multiprocessing as mp
 
-from rlsolver.methods.eco_s2v.src.envs.util import (EdgeType,
-                                                    RewardSignal,
-                                                    ExtraAction,
-                                                    OptimisationTarget,
-                                                    Observable,
-                                                    SpinBasis,
-                                                    DEFAULT_OBSERVABLES,
-                                                    GraphGenerator,
-                                                    RandomGraphGenerator,
-                                                    HistoryBuffer)
+from rlsolver.methods.eco_s2v.src.envs.util_envs import (EdgeType,
+                                                         RewardSignal,
+                                                         ExtraAction,
+                                                         OptimisationTarget,
+                                                         Observable,
+                                                         SpinBasis,
+                                                         DEFAULT_OBSERVABLES,
+                                                         GraphGenerator,
+                                                         RandomGraphGenerator,
+                                                         HistoryBuffer)
 
 # from numba import jit, float64, int64
 

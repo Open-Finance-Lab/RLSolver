@@ -11,11 +11,11 @@ import numpy as np
 
 from rlsolver.methods.eco_s2v.src.envs.inference_network_env import SpinSystemFactory
 from rlsolver.methods.eco_s2v.util import eeco_test_network
-from rlsolver.methods.eco_s2v.src.envs.eeco_util import (SetGraphGenerator)
-from rlsolver.methods.eco_s2v.src.envs.util import (EdgeType, Observable,
-                                                    RewardSignal, ExtraAction,
-                                                    OptimisationTarget, SpinBasis,
-                                                    DEFAULT_OBSERVABLES)
+from rlsolver.methods.eco_s2v.src.envs.util_envs_eeco import (SetGraphGenerator)
+from rlsolver.methods.eco_s2v.src.envs.util_envs import (EdgeType, Observable,
+                                                         RewardSignal, ExtraAction,
+                                                         OptimisationTarget, SpinBasis,
+                                                         DEFAULT_OBSERVABLES)
 from rlsolver.methods.eco_s2v.src.networks.mpnn import MPNN
 from rlsolver.methods.eco_s2v.util import test_network
 
@@ -65,12 +65,12 @@ def run(neural_network_folder, n_sims, mini_sims, num_generated_instances, alg, 
                     'reversible_spins': False,
                     'if_greedy': False}
     if alg == Alg.eeco:
-        from rlsolver.methods.eco_s2v.src.envs.eeco_util import ValidationGraphGenerator
+        from rlsolver.methods.eco_s2v.src.envs.util_envs_eeco import ValidationGraphGenerator
         validation_graph_generator = ValidationGraphGenerator(n_spins=num_nodes, graph_type=graph_type,
                                                               edge_type=EdgeType.DISCRETE, device=INFERENCE_DEVICE,
                                                               n_sims=num_generated_instances, seed=VALIDATION_SEED)
     elif alg == Alg.s2v or alg == Alg.eco:
-        from rlsolver.methods.eco_s2v.src.envs.util import ValidationGraphGenerator
+        from rlsolver.methods.eco_s2v.src.envs.util_envs import ValidationGraphGenerator
         validation_graph_generator = ValidationGraphGenerator(n_spins=num_nodes, graph_type=graph_type,
                                                               edge_type=EdgeType.DISCRETE, seed=VALIDATION_SEED,
                                                               n_sims=num_generated_instances)

@@ -10,10 +10,10 @@ import torch
 import networkx as nx
 
 from rlsolver.methods.eco_s2v.src.envs.inference_network_env import SpinSystemFactory
-from rlsolver.methods.eco_s2v.src.envs.eeco_util import (SetGraphGenerator,
-                                                         RewardSignal, ExtraAction,
-                                                         OptimisationTarget, SpinBasis,
-                                                         DEFAULT_OBSERVABLES)
+from rlsolver.methods.eco_s2v.src.envs.util_envs_eeco import (SetGraphGenerator,
+                                                              RewardSignal, ExtraAction,
+                                                              OptimisationTarget, SpinBasis,
+                                                              DEFAULT_OBSERVABLES)
 from rlsolver.methods.eco_s2v.util import load_graph_from_txt
 
 from rlsolver.methods.eco_s2v.jumanji.agents.AgentPPO import AgentA2C

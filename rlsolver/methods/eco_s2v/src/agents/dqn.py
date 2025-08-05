@@ -12,8 +12,8 @@ import torch.nn.functional as F
 import torch.optim as optim
 
 from rlsolver.methods.eco_s2v.config import *
-from rlsolver.methods.eco_s2v.src.agents.dqn.utils import ReplayBuffer, Logger, TestMetric, set_global_seed
-from rlsolver.methods.eco_s2v.src.envs.util import ExtraAction
+from rlsolver.methods.eco_s2v.src.agents.utils import ReplayBuffer, Logger, TestMetric, set_global_seed
+from rlsolver.methods.eco_s2v.src.envs.util_envs import ExtraAction
 
 fix_seed = False # if test stepVsObj, set it as True; and False otherwise.
 if fix_seed:
@@ -150,12 +150,10 @@ class DQN:
             args=None,
     ):
 
-        self.train_device = TRAIN_DEVICE
-        self.sample_device = SAMPLE_DEVICE_IN_ECO_S2V
+        self.device = TRAIN_DEVICE
 
         self.double_dqn = double_dqn
 
-        self.sampling_duration = 0
         self.replay_start_size = replay_start_size
         self.replay_buffer_size = replay_buffer_size
         self.gamma = gamma
@@ -208,7 +206,7 @@ class DQN:
         for env in self.envs:
             set_global_seed(self.seed, env)
 
-        self.network = network().to(self.train_device)
+        self.network = network().to(self.device)
         self.init_network_params = init_network_params
         self.init_weight_std = init_weight_std
         if self.init_network_params != None:
@@ -224,7 +222,7 @@ class DQN:
                 with torch.no_grad():
                     self.network.apply(init_weights)
 
-        self.target_network = network().to(self.train_device)
+        self.target_network = network().to(self.device)
         self.target_network.load_state_dict(self.network.state_dict())
         for param in self.target_network.parameters():
             param.requires_grad = False
@@ -245,8 +243,7 @@ class DQN:
         self.test_save_path = test_save_path
         self.test_metric = test_metric
 
-        self.losses_save_path = NEURAL_NETWORK_DIR + "/" + ALG.value + "_" + GRAPH_TYPE.value + "_" + str(
-            NUM_TRAIN_NODES) + "_" + "losses.pkl"
+        self.losses_save_path = NEURAL_NETWORK_DIR + "/" + ALG.value + "_" + GRAPH_TYPE.value + "_" + str(NUM_TRAIN_NODES) + "_" + "losses.pkl"
 
         if not self.acting_in_reversible_spin_env:
             for env in self.envs:
@@ -301,8 +298,8 @@ class DQN:
         is_training_ready = False
 
         for timestep in range(timesteps):
+            print("step: ", timestep)
             start_time_this_step = time.time()
-            start_sampling_time = time.time()
             if not is_training_ready:
                 if all([len(rb) >= self.replay_start_size for rb in self.replay_buffers.values()]):
                     print('\nAll buffers have {} transitions stored - training is starting!\n'.format(
@@ -311,7 +308,7 @@ class DQN:
                     training_ready_step = timestep
 
             # Choose action
-            action = self.act(state.to(self.sample_device).float(), is_training_ready=is_training_ready)
+            action = self.act(state.to(self.device).float(), is_training_ready=is_training_ready)
 
             # Update epsilon
             if self.update_exploration:
@@ -343,7 +340,8 @@ class DQN:
                 # Reinitialise the state
                 if verbose:
                     loss_str = "{:.2e}".format(np.mean(losses_eps)) if is_training_ready else "N/A"
-                    print("timestep : {}, episode time: {}, score : {}, mean loss: {}, time : {} s".format(
+                    print("timestep : {}, episode time: {}, score : {}, mean loss: {}, time : {} s" \
+                        .format(
                         timestep,
                         self.env.current_step,
                         np.round(score, 3),
@@ -360,18 +358,21 @@ class DQN:
             else:
                 state = state_next
 
-            sampling_duration_of_this = time.time() - start_sampling_time
-            self.sampling_duration += sampling_duration_of_this
             if is_training_ready:
+
                 # Update the main network
                 if timestep % self.update_frequency == 0:
+
                     # Sample a batch of transitions
-                    transitions = self.get_random_replay_buffer().sample(self.minibatch_size, self.sample_device)
+                    transitions = self.get_random_replay_buffer().sample(self.minibatch_size, self.device)
 
                     # Train on selected batch
                     loss = self.train_step(transitions)
                     losses.append([timestep, loss])
                     losses_eps.append(loss)
+
+                    if self.logging:
+                        logger.add_scalar('step_vs_loss', timestep - training_ready_step, loss)
 
                 # Periodically update target network
                 if timestep % self.update_target_frequency == 0:
@@ -391,7 +392,6 @@ class DQN:
                 if self.logging:
                     logger.add_scalar('time_vs_episodeScore', total_time, test_score)
                     logger.add_scalar('step_vs_episodeScore', timestep - training_ready_step, test_score)
-                    # logger.add_scalar('Episode_score', test_score, (total_time, timestep - training_ready_step))
                 # if best_network:
                 #     path = self.network_save_path
                 #     path_main, path_ext = os.path.splitext(path)
@@ -402,25 +402,25 @@ class DQN:
 
                 test_scores.append([timestep, test_score])
 
-            if time.time() - last_record_obj_time >= self.save_network_frequency and is_training_ready:
+            if time.time() - last_record_obj_time >= self.save_network_frequency \
+                    and is_training_ready:
                 total_time += time.time() - start_time
 
                 path_main_ = path_main + '_' + str(int(total_time))
-
+                if is_training_ready and timestep % self.update_frequency == 0 and self.logging:
+                    logger.add_scalar('time_vs_loss', total_time, loss)
+                    logger.add_scalar('step_vs_loss', timestep - training_ready_step, loss)
 
                 self.save(path_main_ + path_ext)
                 start_time = time.time()
                 last_record_obj_time = time.time()
-            if timestep % self.update_frequency == 0 and is_training_ready and self.logging:
-                logger.add_scalar('step_vs_loss', timestep - training_ready_step, loss)
-                logger.add_scalar('time_vs_loss', total_time, loss)
         if self.logging:
             logger.save()
 
     @torch.no_grad()
     def __only_bad_actions_allowed(self, state, network):
         x = (state[0, :] == self.allowed_action_state).nonzero()
-        q_next = network(state.to(self.train_device).float())[x].max()
+        q_next = network(state.to(self.device).float())[x].max()
         return True if q_next < 0 else False
 
     def train_step(self, transitions):
@@ -444,8 +444,6 @@ class DQN:
                 if self.double_dqn:
                     network_preds = self.network(states_next.float())
                     # Set the Q-value of disallowed actions to a large negative number (-10000) so they are not selected.
-                    if disallowed_actions_mask.device != network_preds.device:
-                        disallowed_actions_mask = disallowed_actions_mask.to(network_preds.device)
                     network_preds_allowed = network_preds.masked_fill(disallowed_actions_mask, -10000)
                     greedy_actions = network_preds_allowed.argmax(1, True)
                     q_value_target = target_preds.gather(1, greedy_actions)
@@ -456,10 +454,6 @@ class DQN:
             q_value_target[q_value_target < 0] = 0
 
         # Calculate TD target
-        rewards = rewards.to(TRAIN_DEVICE)
-        dones = dones.to(TRAIN_DEVICE)
-        states = states.to(TRAIN_DEVICE)
-        actions = actions.to(TRAIN_DEVICE)
         td_target = rewards + (1 - dones) * self.gamma * q_value_target
 
         # Calculate Q value
@@ -505,10 +499,9 @@ class DQN:
                     timestep / self.peak_learning_rate_step
             )
         elif timestep <= self.final_learning_rate_step:
-            lr = self.peak_learning_rate - (self.peak_learning_rate - self.final_learning_rate) * (
-                    (timestep - self.peak_learning_rate_step) / (
-                    self.final_learning_rate_step - self.peak_learning_rate_step)
-            )
+            lr = (self.peak_learning_rate - (self.peak_learning_rate - self.final_learning_rate)
+                  * ((timestep - self.peak_learning_rate_step) / (self.final_learning_rate_step - self.peak_learning_rate_step))
+                  )
         else:
             lr = None
 
@@ -537,8 +530,6 @@ class DQN:
             else:
                 # disallowed_actions_mask = (states[:, :, 0] != self.allowed_action_state)
                 disallowed_actions_mask = (states[:, 0, :] != self.allowed_action_state)
-                if qs.device != disallowed_actions_mask.device:
-                    disallowed_actions_mask =disallowed_actions_mask.to(qs.device)
                 qs_allowed = qs.masked_fill(disallowed_actions_mask, -10000)
                 actions = qs_allowed.argmax(1, True).squeeze(1).cpu().numpy()
             return actions
@@ -573,7 +564,7 @@ class DQN:
 
                     i_test += 1
 
-            actions = self.predict(torch.FloatTensor(np.array(obs_batch)).to(self.sample_device),
+            actions = self.predict(torch.FloatTensor(np.array(obs_batch)).to(self.device),
                                    testing_in_reversible_spin_env)
 
             actions = np.array(actions)
@@ -625,4 +616,4 @@ class DQN:
         torch.save(self.network.state_dict(), path)
 
     def load(self, path):
-        self.network.load_state_dict(torch.load(path, map_location=self.train_device))
+        self.network.load_state_dict(torch.load(path, map_location=self.device))

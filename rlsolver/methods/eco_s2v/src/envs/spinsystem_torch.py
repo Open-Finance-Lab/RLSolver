@@ -8,16 +8,16 @@ import torch.multiprocessing as mp
 from numba import jit
 
 from rlsolver.methods.eco_s2v.config import *
-from rlsolver.methods.eco_s2v.src.envs.torch_util import (EdgeType,
-                                                          RewardSignal,
-                                                          ExtraAction,
-                                                          OptimisationTarget,
-                                                          Observable,
-                                                          SpinBasis,
-                                                          DEFAULT_OBSERVABLES,
-                                                          GraphGenerator,
-                                                          RandomGraphGenerator,
-                                                          HistoryBuffer)
+from rlsolver.methods.eco_s2v.src.envs.util_envs_torch import (EdgeType,
+                                                               RewardSignal,
+                                                               ExtraAction,
+                                                               OptimisationTarget,
+                                                               Observable,
+                                                               SpinBasis,
+                                                               DEFAULT_OBSERVABLES,
+                                                               GraphGenerator,
+                                                               RandomGraphGenerator,
+                                                               HistoryBuffer)
 
 # A container for get_result function below. Works just like tuple, but prettier.
 ActionResult = namedtuple("action_result", ("snapshot", "observation", "reward", "is_done", "info"))
