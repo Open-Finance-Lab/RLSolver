@@ -8,9 +8,6 @@ Björnson, Emil, Mats Bengtsson, and Björn Ottersten. "Optimal multiuser transm
 
 # Welcome to discuss
 
-At the BBS forum page: http://bbs.finrl.org/viewtopic.php?t=7
-
-
 For the case of N=4, K=4, and Power = 10,
 
 Over 100 random samples,MMSE's sum rate is about 8.3.
