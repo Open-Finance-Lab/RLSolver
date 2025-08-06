@@ -1,4 +1,4 @@
-# PortfolioAllocation
+# Portfolio Allocation
 
 ## Subset Sum Problem (SSB)
 
