@@ -164,7 +164,7 @@ rlsolver
     └──Env_L2A.py
     └──Env_MCPG.py
     └──Env_S2V.py
-└──methods
+└──methods # generic methods, i.e., one method can solver multiple problems
     └──L2A (ours)
     └──PI-GNN
     └──RUN-CSP
@@ -187,7 +187,7 @@ rlsolver
     └──util_obj.py
     └──util_read_data.py
     └──util_result.py
-└──methods_problem_specific
+└──methods_problem_specific # may also contain generic methods
     └──TSP
     └──VRPTW
     └──compressive_sensing
