@@ -1,13 +1,5 @@
 # Classical simulation of quantum circuits using tensor networks
 
-Roadmap
-- [x] Tensor network representations
-- [ ] Gym-environments
-- [ ] Massively parallel simulation of environment
-- [ ] Baseline methods: OE_greedy, CTG_Greedy, CTG_Kahypar
-- [ ] Dataset
-- [ ] RL achieves optimality (or near-optimality) and outperforms other methods
-
 
 ## Experimental Results
 
