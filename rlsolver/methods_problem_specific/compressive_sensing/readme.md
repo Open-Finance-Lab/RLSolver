@@ -1,12 +1,12 @@
-# Compressive Sensing using Generative Models
+# Compressive sensing using generative models
  
  [1] Wu, Yan, Mihaela Rosca, and Timothy Lillicrap. "Deep compressed sensing." International Conference on Machine Learning, 2019.
  
  First case, linear measurment process: $\boldsymbol{y} = \boldsymbol{F} \boldsymbol{x}$, where the true signal $\boldsymbol{x} \in \mathbb{R}^n$, $\boldsymbol{F} \in \mathbb{R}^{m \times n}$, and $\boldsymbol{y} \in \mathbb{R}^m $, $m \ll n$.
 
-## Recovery Error $\lVert x-\hat{x}\rVert_2$ for MNIST
+## Recovery error $\lVert x-\hat{x}\rVert_2$ for MNIST
 
-A pretrained model $G_\theta$: $G$ is a neural network with parameter $\theta$.
+A pretrained model $G_\theta$: $G$ is a neural network with parameters $\theta$.
 
 - Ours: 4.78
 - DCS: 3.4
