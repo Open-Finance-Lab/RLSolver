@@ -103,7 +103,7 @@ from torch import vmap
 batched_obj = vmap(objective)
 objs = batched_obj(states)
 ```
-where "objective" is the calculation of the objective value for one state.  
+where the "objective" function is denotes the calculation of the objective value for one state.  
 
 __Dimension of states and objective values:__ The states over all parallel environments are stored as PyTorch tensors with the environments as the first dimension and the graph nodes as the second dimension. For example, for the graph with 100 nodes, and we use 1000 environments, and the dimension of states is 1000 * 100. Correspondingly, the dimension of the objective values over all parallel environments is 1000 * 1. 
 
