@@ -196,11 +196,11 @@ The term :math:`1 - (2x_i - 1)(2x_j - 1)` equals 1 if nodes :math:`i` and :math:
 
    **Figure 2: Two patterns for graph maxcut.**
 
-**Pattern I**  
+**Sparse-rewards Pattern (I)**  
 Initial state is empty. RL agent selects node 1 with the highest Q-value.  
 Reward is 2. New state becomes :math:[1].
 
-**Pattern II**  
+**Dense-rewards Pattern (II)**  
 Current state is :math:[2, 3], objective = 2.  
 Agent adds node 1. New state is :math:[1, 3, 4].  
 Objective improves to 4.
