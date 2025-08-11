@@ -66,12 +66,12 @@ GPU-based parallel environments can significantly improve the quality of solutio
 	</div>
 </a>  
 
-__Pattern I__: RL-based heuristic formulates the CO problem as Markov decision process (MDP), and then use RL algorithms to select the node and add it into a node set. There are three important functions for a gym-style environment:  
+__Sparse-rewards Pattern (I)__: The rewards are given when the goal is finished, and therefore are sparse. RL-based heuristic formulates the CO problem as Markov decision process (MDP), and then use RL algorithms to select the node and add it into a node set. There are three important functions for a gym-style environment:  
 - reset(): Set the selected nodes as an empty set. 
 - step(): Select the node with the maximum Q-value and then add it to the set.  
 - reward(): Calculate the objective values over all parallel environments.
 
-__Pattern II__: policy-based methods first formulate the CO problem as a QUBO problem, and then learn a policy using say REINFORCE algorithm to minimize the Hamiltonian objective function. Here, the __policy is a vector of probabilities__ of the nodes belong to the set. For example, the policy for a graph with 3 nodes is [0, 0, 0.9] means that the probabilities of the first two nodes belong to the set are 0, and the probability of the third node belong to the set is 0.9. We introduce four important functions for all parallel environments:  
+__Dense-rewards Pattern (II)__: The reward is immediately obtained, and therefore are dense. Policy-based methods first formulate the CO problem as a QUBO problem, and then learn a policy using say REINFORCE algorithm to minimize the Hamiltonian objective function. Here, the __policy is a vector of probabilities__ of the nodes belong to the set. For example, the policy for a graph with 3 nodes is [0, 0, 0.9] means that the probabilities of the first two nodes belong to the set are 0, and the probability of the third node belong to the set is 0.9. We introduce four important functions for all parallel environments:  
 - reset(): Generate random initial solutions for all parallel environments. 
 - step(): Search for better solutions based on the current solutions. It has two sub-functions. 
   - sampling() is the sampling method.
@@ -87,9 +87,9 @@ __Pattern II__: policy-based methods first formulate the CO problem as a QUBO pr
 	</div>
 </a> 
 
-Pattern I: In left part of of the above figure, the initial state is empty, i.e., no node is selected. Then we select node 1 with the maximum Q-value and add it to the state, thus the new state is [1], and the reward is 2.
+Sparse-rewards Pattern (I): In left part of of the above figure, the initial state is empty, i.e., no node is selected. Then we select node 1 with the maximum Q-value and add it to the state, thus the new state is [1], and the reward is 2.
 
-Pattern II: In right part of the above figure, the current state is [2, 3], i.e., node 2 and 3 are selected, and the objective value is 2. The new state is [1, 3, 4], i.e., node 1, 3, and 4 are selected, and the objective value is 4. 
+Dense-rewards Pattern (II): In right part of the above figure, the current state is [2, 3], i.e., node 2 and 3 are selected, and the objective value is 2. The new state is [1, 3, 4], i.e., node 1, 3, and 4 are selected, and the objective value is 4. 
 
 # Implementation for GPU-based Parallelism
 
