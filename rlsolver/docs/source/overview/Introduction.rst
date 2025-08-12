@@ -117,19 +117,19 @@ Comparison of libraries
 
 The differences bewteen Jumanji, RL4CO, and RLSolver are as follows. 
 
-1) RLSolver supports more methods than Jumanji and RL4CO, including S2V-DQN, ECO-DQN, S2V-PPO, MCPG, dREINFORCE, iSCO, PI-GNN, RUN-CSP, etc. Jumanji only supports A2C methods. RL4CO only supports three emthods: A2C, PPO, and reinforce. 
+1) RLSolver supports more methods than Jumanji and RL4CO, including S2V-DQN, ECO-DQN, S2V-PPO, MCPG, dREINFORCE, iSCO, PI-GNN, RUN-CSP, etc. Jumanji only supports A2C methods. RL4CO only supports three methods: A2C, PPO, and reinforce. 
 
 2) RLSolver supports two patterns. Jumanji also supports two patterns. But RL4CO only supports one pattern.
 
 3) RLSolver supports both actor-critic (AC) and non-AC algorithms. 
 
-4) RLSolver can learn the graph topoliges with arbitriry complex distributions, including Euclidean and Non-Euclidean topology. For example, 30% of weights of edges in the graphs are negative-infinity (i.e., the associated nodes do not connect with each other) and some weights of edges do not follow the euclidean distance topology. The methods of Jumanji and RL4CO can only learn the Euclidean topology. 
+4) RLSolver can learn the graph topologies with arbitrary complex distributions, including Euclidean and Non-Euclidean topology. For example, 30% of weights of edges in the graphs are negative-infinity (i.e., the associated nodes do not connect with each other) and some weights of edges do not follow the euclidean distance topology. The methods of Jumanji and RL4CO can only learn the Euclidean topology. 
 
 5) RLSolver supports both distribution-wise and instance-wise scenarios. But Jumanji and RL4CO only support the distribution-wise scenario.
 
-6) RLSolver supports problem-specific methods. For example, the BLS method for maxcut, the MMSE for MIMO, and the Chrisofides algorithm for TSP. Jumanji and RL4CO do not spoort problem-specific methods.
+6) RLSolver supports problem-specific methods. For example, the BLS method for maxcut, the MMSE for MIMO, and the Chrisofides algorithm for TSP. Jumanji and RL4CO do not support problem-specific methods.
 
-7) RLSolver supports methods using commercial solvers such as the state-of-the-art (SOTA) solver Gurobi, and we implemented the ILP and QUBO/Ising using Gurobi for CO problems. Users can develop their branch or cutting plane algorithms based on our methods.  Therefore, users can compare their or our methods with the SOTA solver Gurobi. However, Jumanji and RL4CO do not spoort methods using commercial solvers.
+7) RLSolver supports methods using commercial solvers such as the state-of-the-art (SOTA) solver Gurobi, and we implemented the ILP and QUBO/Ising using Gurobi for CO problems. Users can develop their branch or cutting plane algorithms based on our methods.  Therefore, users can compare their or our methods with the SOTA solver Gurobi. However, Jumanji and RL4CO do not spport methods using commercial solvers.
 
 
 
