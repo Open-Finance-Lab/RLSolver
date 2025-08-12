@@ -27,18 +27,14 @@ This section presents the evaluation results of graph MaxCut algorithms under tw
    900, 2655.9, 2425.5, -8.7%, 2616.9, -1.5%, 2647.0, -0.3%
    1000, 2952.2, 2706.1, -8.3%, 2911.9, -1.3%, 2940.3, -0.4%
 
-.. raw:: html
 
-    </div>
 
 .. note::
 
    The relative difference (columns with "#Gurobi") represents the performance gap with Gurobi's result. Higher values are better.
 
 
-.. raw:: html
 
-    <div style="overflow-x: auto;">
 
 .. csv-table:: Table 1-2: Results for graph maxcut on ER distribution in distribution-wise scenario
    :header: "#Nodes", "dREINFORCE", "Gurobi", "dREINFORCE#Gurobi", "S2V-DQN#Gurobi", "dREINFORCE#S2V-DQN"
@@ -55,15 +51,11 @@ This section presents the evaluation results of graph MaxCut algorithms under tw
    2000, 163637.97, 162162.30, 0.91%, --, --
    3000, 363228.49, 359632.17, 1.00%, --, --
 
-.. raw:: html
-
-    </div>
 
 
 
-.. raw:: html
 
-    <div style="overflow-x: auto;">
+
 
 .. csv-table:: Table 1-3: Results for graph maxcut on powerlaw (PL) distribution
    :header: "Nodes", "Greedy", "SDP", "SA", "GA", "Gurobi", "S2V-DQN (Pattern I)", "PI-GNN (Pattern I)", "ISCO (Pattern I)", "dREINFORCE (Pattern II)", "MCPG (Pattern II)", "Jumanji (Pattern I)"
@@ -80,16 +72,11 @@ This section presents the evaluation results of graph MaxCut algorithms under tw
    900, 2507.0, 2540.0, 2514.1, 2658.1, 2643.9, 2526.4, 2594.3, 2645.0, **2676.1**, 2671.9, 2667.4
    1000, 2784.3, 2817.4, 2792.7, 2955.5, 2942.1, 2723.3, 2903.4, 2949.1, 2980.2, **2984.7**, 2963.9
 
-.. raw:: html
 
-    </div>
 
 2. Instance-wise Benchmark
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. raw:: html
-
-    <div style="overflow-x: auto;">
 
 .. csv-table:: Table 2-1: Results for graph MaxCut on the Gset dataset in instance-wise scenario
    :header: Graph, Nodes, Edges, BLS, DSDP, KHLWG, RUN-CSP, PI-GNN, iSCO, dREINFORCE, MCPG, Jumanji
@@ -104,18 +91,14 @@ This section presents the evaluation results of graph MaxCut algorithms under tw
    G55, 5000, 12468, 10294, 9960, 10236, 10116, 10138, 10218, 10298, 10296, 10283
    G70, 10000, 9999, 9541, 9456, 9458, --, 9421, 9442, 9586, 9578, 9554
 
-.. raw:: html
-
-    </div>
 
 
 
 
 
 
-.. raw:: html
 
-    <div style="overflow-x: auto;">
+
 
 
    .. csv-table:: Table 2-2: Results for TSP on the TSPLIB dataset in instance-wise scenario
@@ -160,9 +143,7 @@ This section presents the evaluation results of graph MaxCut algorithms under tw
    lin318, 42029, 45375, 45057, 45653, 44069, **44068**, 45231, 45263, 49440, 51484
    linhp318, 41345, 45444, 45647, 44362, **43246**, 43627, 44367, 45263, 49440, 51484
 
-.. raw:: html
 
-    </div>
 
 
 
@@ -185,14 +166,9 @@ This section presents the evaluation results of graph MaxCut algorithms under tw
    N=1500, --, --, 452.150, **451.846**, 451.925
    N=2000, --, --, 602.660, **602.361**, 602.571
 
-.. raw:: html
-
-    </div>
 
 
-.. raw:: html
 
-    <div style="overflow-x: auto;">
 
 .. csv-table:: Table 2-4 Total flop count in Sycamore circuit of various cycles. The compared methods are OE Greedy, CTG Greedy, CTG Kahypar, AC-QDP, and RL-TNCO.
    :header: "Cycles", "OE Greedy", "CTG Greedy", "CTG Kahypar", "AC-QDP", "RL-TNCO", "dREINFORCE (Pattern II)", "MCPG (Pattern II)"
