@@ -101,7 +101,7 @@ This section presents the evaluation results of graph MaxCut algorithms under tw
 
 
 
-   .. csv-table:: Table 2-2: Results for TSP on the TSPLIB dataset in instance-wise scenario
+.. csv-table:: Table 2-2: Results for TSP on the TSPLIB dataset in instance-wise scenario
    :header: Instance, LKH, S2V-DQN (Pattern I), PI-GNN (Pattern I), ISCO (Pattern I), dREINFORCE (Pattern II), MCPG (Pattern I), Jumanji (Pattern II), 2-opt, Cheapest, Christofides
    :widths: auto
 
