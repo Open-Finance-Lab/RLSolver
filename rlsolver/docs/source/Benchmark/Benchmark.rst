@@ -12,7 +12,7 @@ This section presents the evaluation results of graph MaxCut algorithms under tw
 
     <div style="overflow-x: auto;">
 
-.. csv-table:: Table 1: Results for graph MaxCut on BA distribution
+.. csv-table:: Table 1-1: Results for graph MaxCut on BA distribution
    :header: Nodes, Gurobi, S2V-DQN, S2V-DQN#Gurobi, ECO-DQN, ECO-DQN#Gurobi, Ours, Ours#Gurobi
    :widths: 6, 8, 8, 10, 8, 10, 8, 10
 
@@ -42,7 +42,7 @@ This section presents the evaluation results of graph MaxCut algorithms under tw
 
     <div style="overflow-x: auto;">
 
-.. csv-table:: Table 5: Results for graph MaxCut on the Gset dataset in instance-wise scenario
+.. csv-table:: Table 2-1: Results for graph MaxCut on the Gset dataset in instance-wise scenario
    :header: Graph, Nodes, Edges, BLS, DSDP, KHLWG, RUN-CSP, PI-GNN, iSCO, dREINFORCE, MCPG, Jumanji
    :widths: 6, 6, 8, 8, 8, 8, 8, 8, 8, 10, 8, 8
    :stub-columns: 1
@@ -65,7 +65,7 @@ This section presents the evaluation results of graph MaxCut algorithms under tw
 
 
 
-.. csv-table:: Results for TSP on the TSPLIB dataset in instance-wise scenario.
+.. csv-table:: Table 2-2 Results for TSP on the TSPLIB dataset in instance-wise scenario.
    :header: "Instance", "LKH", "S2V-DQN", "PI-GNN (Pattern I)", "dREINFORCE (Pattern II)", "MCPG (Pattern I)", "Jumanji (Pattern II)", "Cheap", "Christofides"
    :widths: auto
 
@@ -109,7 +109,7 @@ This section presents the evaluation results of graph MaxCut algorithms under tw
 
 
 
-.. csv-table:: Total flop count in tensor-train network of various sizes. The compared methods are OE Greedy, CTG Greedy, and CTG Kahypar.
+.. csv-table:: Table 2-3 Total flop count in tensor-train network of various sizes. The compared methods are OE Greedy, CTG Greedy, and CTG Kahypar.
    :header: "Size", "OE Greedy", "CTG Greedy", "CTG Kahypar", "dREINFORCE (Pattern II)", "MCPG (Pattern II)"
    :widths: auto
 
@@ -122,7 +122,7 @@ This section presents the evaluation results of graph MaxCut algorithms under tw
    N=1500, -, -, 452.150, **451.846**, 451.925
    N=2000, -, -, 602.660, **602.361**, 602.571
 
-.. csv-table:: Total flop count in Sycamore circuit of various cycles. The compared methods are OE Greedy, CTG Greedy, CTG Kahypar, AC-QDP, and RL-TNCO.
+.. csv-table:: Table 2-4 Total flop count in Sycamore circuit of various cycles. The compared methods are OE Greedy, CTG Greedy, CTG Kahypar, AC-QDP, and RL-TNCO.
    :header: "Cycles", "OE Greedy", "CTG Greedy", "CTG Kahypar", "AC-QDP", "RL-TNCO", "dREINFORCE (Pattern II)", "MCPG (Pattern II)"
    :widths: auto
 
