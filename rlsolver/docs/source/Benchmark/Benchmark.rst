@@ -78,7 +78,7 @@ This section presents the evaluation results of graph MaxCut algorithms under tw
 2. Instance-wise Benchmark
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. raw:: htmlf
+.. raw:: html
 
     <div style="overflow-x: auto;">
 
@@ -107,6 +107,9 @@ This section presents the evaluation results of graph MaxCut algorithms under tw
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+.. raw:: html
+
+    <div style="overflow-x: auto;">
    .. container:: scrollable-table
 
    .. csv-table:: Table 2-2 Results for TSP on the TSPLIB dataset in instance-wise scenario.
@@ -136,7 +139,14 @@ This section presents the evaluation results of graph MaxCut algorithms under tw
       pr150, 6528, 6985, 6992, 6834, 6746, 678
 
 
+.. raw:: html
 
+    </div>
+
+
+.. raw:: html
+
+    <div style="overflow-x: auto;">
 .. csv-table:: Table 2-3 Total flop count in tensor-train network of various sizes. The compared methods are OE Greedy, CTG Greedy, and CTG Kahypar.
    :header: "Size", "OE Greedy", "CTG Greedy", "CTG Kahypar", "dREINFORCE (Pattern II)", "MCPG (Pattern II)"
    :widths: auto
@@ -150,6 +160,15 @@ This section presents the evaluation results of graph MaxCut algorithms under tw
    N=1500, --, --, 452.150, **451.846**, 451.925
    N=2000, --, --, 602.660, **602.361**, 602.571
 
+.. raw:: html
+
+    </div>
+
+
+.. raw:: html
+
+    <div style="overflow-x: auto;">
+
 .. csv-table:: Table 2-4 Total flop count in Sycamore circuit of various cycles. The compared methods are OE Greedy, CTG Greedy, CTG Kahypar, AC-QDP, and RL-TNCO.
    :header: "Cycles", "OE Greedy", "CTG Greedy", "CTG Kahypar", "AC-QDP", "RL-TNCO", "dREINFORCE (Pattern II)", "MCPG (Pattern II)"
    :widths: auto
@@ -161,3 +180,6 @@ This section presents the evaluation results of graph MaxCut algorithms under tw
    m=20, 26.981, 25.622, 18.825, 18.823, 18.543, **18.158**, 18.17
 
 
+.. raw:: html
+
+    </div>
