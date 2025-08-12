@@ -94,9 +94,9 @@ GPU-based parallel environments can significantly improve the quality of solutio
    :align: center
    
    +-------------+------------------------------------+-----------------+---------------+----------------------+------------------+---------------------+-------------------+------------------+--------------------------+---------------------+
-   | Library     | RL methods                         | Supported       | Actor-critic  | Non-actor-critic     | Euclidean        | Non-Euclidean       | Distribution-wise | Instance-wise    | Problem-specific         | Commercial solvers  |
-   |             |                                    | pattern         | algs          | algs                 | topology         | topology            |                   |                  | methods                  |                     |
-   +=============+====================================+=================+===============+======================+==================+=====================+===================+==================+==========================+=====================+
+   | Library     | RL methods                         | Supported       | Actor-critic  | Non-actor-critic     | Euclidean        | Non-Euclidean       | Distribution-wise | Instance-wise    | Problem-specific         | Commercial   |
+   |             |                                    | pattern         | algs          | algs                 | topology         | topology            |                   |                  | methods                  |        solvers             |
++=============+====================================+=================+===============+======================+==================+=====================+===================+==================+==========================+=====================+
    | Jumanji     | A2C                                | I, II           | Y             | N                    | Y                | N                   | Y                 | N                | N                        | N                   |
    +-------------+------------------------------------+-----------------+---------------+----------------------+------------------+---------------------+-------------------+------------------+--------------------------+---------------------+
    | RL4CO       | A2C, PPO, reinforce                | I               | Y             | Only reinforce       | Y                | N                   | Y                 | N                | N                        | N                   |
