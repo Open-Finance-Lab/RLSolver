@@ -36,6 +36,10 @@ This section presents the evaluation results of graph MaxCut algorithms under tw
    The relative difference (columns with "#Gurobi") represents the performance gap with Gurobi's result. Higher values are better.
 
 
+.. raw:: html
+
+    <div style="overflow-x: auto;">
+
 .. csv-table:: Table 1-2: Results for graph maxcut on ER distribution in distribution-wise scenario
    :header: "#Nodes", "dREINFORCE", "Gurobi", "dREINFORCE#Gurobi", "S2V-DQN#Gurobi", "dREINFORCE#S2V-DQN"
    :widths: auto
