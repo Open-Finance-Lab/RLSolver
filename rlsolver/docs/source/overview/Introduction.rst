@@ -102,3 +102,10 @@ GPU-based parallel environments can significantly improve the quality of solutio
 |                 | MCPG, dREINFORCE, iSCO,   | (Pattern II)                                  |                   |                                   |                    |                        |                   |                   |                              |                    |
 |                 | PI-GNN, RUN-CSP, etc      |                                               |                   |                                   |                    |                        |                   |                   |                              |                    |
 +-----------------+---------------------------+-----------------------------------------------+-------------------+-----------------------------------+--------------------+------------------------+-------------------+-------------------+------------------------------+--------------------+
+
+RLSolver supports both actor-critic (AC) and non-AC algorithms. 
+
+Our methods can learn the graph topoliges with arbitriry complex distributions. For example, 30% of weights of edges in the graphs are negative-infinity (i.e., the associated nodes do not connect with each other) and some weights of edges do not follow the euclidean distance topology. The current methods such as Jumanji and rl4co can not learn the complex graph topology. 
+
+
+
