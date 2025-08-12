@@ -110,6 +110,7 @@ This section presents the evaluation results of graph MaxCut algorithms under tw
 .. raw:: html
 
     <div style="overflow-x: auto;">
+
    .. container:: scrollable-table
 
    .. csv-table:: Table 2-2 Results for TSP on the TSPLIB dataset in instance-wise scenario.
