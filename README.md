@@ -39,7 +39,14 @@ Existing CPU-based environments have two significant disadvantages: 1) The numbe
 	</div>
 </a> 
 
-From the above figures, we used CPU and GPU based environments. We see that the sampling speed is improved by at least 2 orders by using GPU-based massively parallel environments compared with conventional CPUs.
+The sampling speed denotes the number of collect samples per second. From the above figures, we used CPU and GPU based environments. We see that the sampling speed is improved by at least 2 orders by using GPU-based massively parallel environments compared with conventional CPUs.
+
+<a target="\_blank">
+	<div align="center">
+		<img src=rlsolver/fig/maxcutStepVsSamplingSpeed.png width="80%"/>
+	</div>
+</a> 
+We see that, if the number of CPU-based environments increases, the sampling speed does not improve clearly. However, the sampling speed improves greatly if using GPUs. 
 
 # Improving the Convergence Speed
 <p align="center">
