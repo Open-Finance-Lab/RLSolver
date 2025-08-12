@@ -94,8 +94,8 @@ GPU-based parallel environments can significantly improve the quality of solutio
    :align: center
    
    +-------------+------------------------------------+-----------------+---------------+----------------------+------------------+---------------------+-------------------+------------------+--------------------------+---------------------+
-   | Library     | RL methods                         | Supported       | Actor-critic  | Non-actor-critic     | Euclidean        | Non-Euclidean       | Distribution-wise | Instance-wise    | Problem-specific methods | Commercial solvers  |
-   |             |                                    | pattern         | algs          | algs                 | topology         | topology            |                   |                  |                          |                     |
+   | Library     | RL methods                         | Supported       | Actor-critic  | Non-actor-critic     | Euclidean        | Non-Euclidean       | Distribution | Instance    | Problem-specific         | Commercial   |
+   |             |                                    | pattern         | algs          | algs                 | topology         | topology            |         -wise          |       -wise           | methods                  |         solvers            |
    +=============+====================================+=================+===============+======================+==================+=====================+===================+==================+==========================+=====================+
    | Jumanji     | A2C                                | I, II           | Y             | N                    | Y                | N                   | Y                 | N                | N                        | N                   |
    +-------------+------------------------------------+-----------------+---------------+----------------------+------------------+---------------------+-------------------+------------------+--------------------------+---------------------+
