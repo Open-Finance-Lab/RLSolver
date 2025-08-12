@@ -62,9 +62,9 @@ GPU-based parallel environments can significantly improve the quality of solutio
 
 | Library | RL methods | Supported pattern | Actor-critic algs | Non-actor-critic algs |  Euclidean topology |Non-Euclidean topology | Distribution-wise | Instance-wise | Problem-specific methods| Methods using commercial solvers |
 |--------|-----------|------------|-------------|--------|---------|-------------------------|---------|------------|---------|------------|
-| Jumanji   | A2C    | spare rewards (Pattern I), dense rewards (Pattern II)      | Y     | N| Y |N |Y |N |N |N |
-| RL4CO    | A2C, PPO, reinforce    | spare rewards (Pattern I)     | Y      | Only reinforce |   Y |N |Y |N |N |N |
-| RLSolver (Ours)| S2V-DQN, ECO-DQN, S2V-PPO, MCPG, dREINFORCE, iSCO, PI-GNN, RUN-CSP, etc    | spare rewards (Pattern I), dense rewards (Pattern II)     | Y      | Y | Y |Y |Y |Y |Y |Y |
+| Jumanji   | A2C    | I, II      | Y     | N| Y |N |Y |N |N |N |
+| RL4CO    | A2C, PPO, reinforce    | I    | Y      | Only reinforce |   Y |N |Y |N |N |N |
+| RLSolver (Ours)| PPO, S2V-DQN, ECO-DQN, MCPG, dREINFORCE, iSCO, PI-GNN,  etc    | I, II     | Y      | Y | Y |Y |Y |Y |Y |Y |
 
 
 # Two Patterns in RL-based methods
