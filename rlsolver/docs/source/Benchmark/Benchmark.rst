@@ -171,6 +171,7 @@ This section presents the evaluation results of graph MaxCut algorithms under tw
 .. raw:: html
 
     <div style="overflow-x: auto;">
+
 .. csv-table:: Table 2-3 Total flop count in tensor-train network of various sizes. The compared methods are OE Greedy, CTG Greedy, and CTG Kahypar.
    :header: "Size", "OE Greedy", "CTG Greedy", "CTG Kahypar", "dREINFORCE (Pattern II)", "MCPG (Pattern II)"
    :widths: auto
