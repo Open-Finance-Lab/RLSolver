@@ -60,7 +60,7 @@ GPU-based parallel environments can significantly improve the quality of solutio
 
 # Comparison of libraries in RL for combinatorial optimization.
 
-| Library | RL methods | Supported pattern | Actor-critic algs | Non-actor-critic algs |  Euclidean topology |Non-Euclidean topology | Distribution-wise | Instance-wise | Problem-specific methods| Methods using commercial solvers |
+| Library | RL methods | Supported pattern | Actor-critic algs | Non-actor-critic algs |  Euclidean topology |Non-Euclidean topology | Distribution-wise | Instance-wise | Problem-specific methods| Commercial solvers |
 |--------|-----------|------------|-------------|--------|---------|-------------------------|---------|------------|---------|------------|
 | Jumanji   | A2C    | I, II      | Y     | N| Y |N |Y |N |N |N |
 | RL4CO    | A2C, PPO, reinforce    | I    | Y      | Only reinforce |   Y |N |Y |N |N |N |
