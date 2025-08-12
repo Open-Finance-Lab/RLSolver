@@ -58,6 +58,15 @@ To achieve the same objective value, if we use more parallel environments, the l
 
 GPU-based parallel environments can significantly improve the quality of solutions during training, since RL methods require many high-quality samples from the environments for training. Take graph maxcut as an example. We select G22 in the Gset dataset. The above figure shows the objective values vs. number of epochs with different number of GPU-based parallel environments. We see that, generally, the more parallel environments, the higher objective values, and the faster convergence.
 
+# Comparison of libraries in RL for combinatorial optimization.
+
+| Library | RL methods | Supported pattern | Actor-critic algs | Non-actor-critic algs |  Euclidean topology |Non-Euclidean topology | Distribution-wise | Instance-wise | Problem-specific methods| Methods using commercial solvers |
+|--------|-----------|------------|-------------|--------|---------|-------------------------|---------|------------|---------|------------|
+| Jumanji   | A2C    | spare rewards (Pattern I), dense rewards (Pattern II)      | Y     | N| Y |N |Y |N |N |N |
+| RL4CO    | A2C, PPO, reinforce    | spare rewards (Pattern I)     | Y      | Only reinforce |   Y |N |Y |N |N |N |
+| RLSolver (Ours)| S2V-DQN, ECO-DQN, S2V-PPO, MCPG, dREINFORCE, iSCO, PI-GNN, RUN-CSP, etc    | spare rewards (Pattern I), dense rewards (Pattern II)     | Y      | Y | Y |Y |Y |Y |Y |Y |
+
+
 # Two Patterns in RL-based methods
 
 <a target="\_blank">
