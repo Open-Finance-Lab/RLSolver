@@ -70,7 +70,6 @@ This section presents the evaluation results of graph MaxCut algorithms under tw
 
 
 2. Instance-wise Benchmark
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 .. csv-table:: Table 2-1: Results for graph MaxCut on the Gset dataset in instance-wise scenario
