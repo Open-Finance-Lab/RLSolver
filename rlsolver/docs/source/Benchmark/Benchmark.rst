@@ -103,9 +103,7 @@ This section presents the evaluation results of graph MaxCut algorithms under tw
 
     </div>
 
-.. note::
 
-   PI-GNN and Jumanji follow Pattern I; iSCO, dREINFORCE, and MCPG follow Pattern II.
 
 
 
