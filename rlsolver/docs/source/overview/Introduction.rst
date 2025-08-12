@@ -87,3 +87,18 @@ To achieve the same objective value, if we use more parallel environments, the l
    :align: center
 
 GPU-based parallel environments can significantly improve the quality of solutions during training, since RL methods require many high-quality samples from the environments for training. Take graph maxcut as an example. We select G22 in the Gset dataset. The above figure shows the objective values vs. number of epochs with different number of GPU-based parallel environments. We see that, generally, the more parallel environments, the higher objective values, and the faster convergence.
+
+.. table::
+   :align: center
+   
+   +-------------+------------------------------------+-----------------+---------------+----------------------+------------------+---------------------+-------------------+------------------+--------------------------+
+   | Library     | RL methods                         | Supported       | Actor-critic  | Non-actor-critic     | Euclidean        | Non-Euclidean       | Distribution-wise | Instance-wise    | Problem-specific methods |
+   |             |                                    | pattern         | algs          | algs                 | topology         | topology            |                   |                  |                          |
+   +=============+====================================+=================+===============+======================+==================+=====================+===================+==================+==========================+
+   | Jumanji     | A2C                                | I, II           | Y             | N                    | Y                | N                   | Y                 | N                | N                        |
+   +-------------+------------------------------------+-----------------+---------------+----------------------+------------------+---------------------+-------------------+------------------+--------------------------+
+   | RL4CO       | A2C, PPO, reinforce                | I               | Y             | Only reinforce       | Y                | N                   | Y                 | N                | N                        |
+   +-------------+------------------------------------+-----------------+---------------+----------------------+------------------+---------------------+-------------------+------------------+--------------------------+
+   | RLSolver    | PPO, S2V-DQN, ECO-DQN, MCPG,       | I, II           | Y             | Y                    | Y                | Y                   | Y                 | Y                | Y                        |
+   | (Ours)      | dREINFORCE, iSCO, PI-GNN, etc      |                 |               |                      |                  |                     |                   |                  |                          |
+   +-------------+------------------------------------+-----------------+---------------+----------------------+------------------+---------------------+-------------------+------------------+--------------------------+
