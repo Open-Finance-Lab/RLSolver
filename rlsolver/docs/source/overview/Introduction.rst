@@ -101,9 +101,8 @@ Comparison of libraries
    :widths: 6, 8, 10, 6, 8, 10, 8, 10, 10, 10, 11, 10
 
   Jumanji, A2C,I II , Y, N, Y ,N ,Y ,N ,N ,N
-RL4CO , A2C  PPO  reinforce , I   , Y  , Only reinforce ,   Y,N ,Y,N,N,N
-   RLSolver (Ours), S2V-DQN  ECO-DQN  S2V-PPO  MCPG  dREINFORCE  iSCO  PI-GNN  RUN-CSP  etc   , I II   , Y      , Y , Y ,Y ,Y,Y ,Y ,Y 
-
+   RL4CO , A2C PPO reinforce , I , Y , Only reinforce , Y,N ,Y,N,N,N
+   RLSolver (Ours), S2V-DQN  ECO-DQN  S2V-PPO  MCPG  dREINFORCE  iSCO  PI-GNN  RUN-CSP  etc, I II, Y, Y , Y ,Y ,Y,Y ,Y ,Y 
 
 .. raw:: html
 
