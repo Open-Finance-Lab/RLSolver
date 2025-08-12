@@ -99,7 +99,7 @@ __Dense-rewards Pattern (II)__: The reward is immediately obtained, and therefor
 
 <a target="\_blank">
 	<div align="center">
-		<img src=rlsolver/fig/parallel_sims_maxcut.png width="80%"/>
+		<img src=rlsolver/fig/parallelSimMaxcut.png width="80%"/>
 	</div>
 </a> 
 
