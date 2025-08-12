@@ -92,11 +92,13 @@ GPU-based parallel environments can significantly improve the quality of solutio
 Comparison of libraries
 ----------------
 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 .. raw:: html
 
     <div style="overflow-x: auto;">
 
-.. csv-table:: Table 1: Comparison of libraries in RL for combinatorial optimization.
+.. csv-table:: Table 1: Comparison of libraries in RL for combinatorial optimization
    :header: Library, RL methods, Supported pattern, AC algs, Non-AC algs, Euclidean topology, Non-Euclidean topology, Distribution-wise, Instance-wise, Problem-specific methods, Commercial solvers
    :widths: 6, 8, 10, 6, 8, 10, 8, 10, 10, 10, 11, 
 
