@@ -8,6 +8,9 @@ This section presents the evaluation results of graph MaxCut algorithms under tw
 1. Distribution-wise Benchmark
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+.. raw:: html
+
+    <div style="overflow-x: auto;">
 
 .. csv-table:: Table 1-1: Results for graph MaxCut on BA distribution
    :header: Nodes, Gurobi, S2V-DQN, S2V-DQN#Gurobi, ECO-DQN, ECO-DQN#Gurobi, Ours, Ours#Gurobi
@@ -171,4 +174,6 @@ This section presents the evaluation results of graph MaxCut algorithms under tw
    m=20, 26.981, 25.622, 18.825, 18.823, 18.543, **18.158**, 18.17
 
 
+.. raw:: html
 
+    </div>
