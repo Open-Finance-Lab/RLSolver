@@ -171,6 +171,4 @@ This section presents the evaluation results of graph MaxCut algorithms under tw
    m=20, 26.981, 25.622, 18.825, 18.823, 18.543, **18.158**, 18.17
 
 
-.. raw:: html
 
-    </div>
