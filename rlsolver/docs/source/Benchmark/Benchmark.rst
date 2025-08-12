@@ -106,3 +106,30 @@ This section presents the evaluation results of graph MaxCut algorithms under tw
    pr299, 48191, 51895, 52136, 51134, 50107, **49357**, 51328, 54914
    lin318, 42029, 45375, 45057, 45653, 44069, **44068**, 45231, 45263
    linhp318, 41345, 45444, 45647, 44362, **43246**, 43627, 44367, 45263
+
+
+
+.. csv-table:: Total flop count in tensor-train network of various sizes. The compared methods are OE Greedy, CTG Greedy, and CTG Kahypar.
+   :header: "Size", "OE Greedy", "CTG Greedy", "CTG Kahypar", "dREINFORCE (Pattern II)", "MCPG (Pattern II)"
+   :widths: auto
+
+   N=100, 30.927, 30.705, 30.710, 30.404, 30.404
+   N=200, 61.030, 60.808, 60.810, **60.507**, **60.507**
+   N=400, 121.236, 121.014, 121.010, **120.713**, 120.968
+   N=600, 181.442, 181.220, 181.220, 180.919, 180.976
+   N=800, 241.648, 241.426, 241.430, **241.125**, **241.125**
+   N=1000, 301.854, 301.632, 301.630, 301.331, 301.937
+   N=1500, -, -, 452.150, **451.846**, 451.925
+   N=2000, -, -, 602.660, **602.361**, 602.571
+
+.. csv-table:: Total flop count in Sycamore circuit of various cycles. The compared methods are OE Greedy, CTG Greedy, CTG Kahypar, AC-QDP, and RL-TNCO.
+   :header: "Cycles", "OE Greedy", "CTG Greedy", "CTG Kahypar", "AC-QDP", "RL-TNCO", "dREINFORCE (Pattern II)", "MCPG (Pattern II)"
+   :widths: auto
+
+   m=12, 17.795, 17.065, 13.407, 13.037, 10.736, **10.117**, **10.117**
+   m=14, 19.679, 19.281, 14.149, 13.851, 12.869, **12.029**, 12.726
+   m=16, 25.889, 23.152, 17.013, 17.061, -, **13.967**, 14.532
+   m=18, 26.793, 23.569, 17.681, 17.412, -, **17.113**, **17.113**
+   m=20, 26.981, 25.622, 18.825, 18.823, 18.543, **18.158**, 18.17
+
+
