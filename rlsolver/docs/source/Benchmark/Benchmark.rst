@@ -119,8 +119,8 @@ This section presents the evaluation results of graph MaxCut algorithms under tw
    N=600, 181.442, 181.220, 181.220, 180.919, 180.976
    N=800, 241.648, 241.426, 241.430, **241.125**, **241.125**
    N=1000, 301.854, 301.632, 301.630, 301.331, 301.937
-   N=1500, -, -, 452.150, **451.846**, 451.925
-   N=2000, -, -, 602.660, **602.361**, 602.571
+   N=1500, --, --, 452.150, **451.846**, 451.925
+   N=2000, --, --, 602.660, **602.361**, 602.571
 
 .. csv-table:: Table 2-4 Total flop count in Sycamore circuit of various cycles. The compared methods are OE Greedy, CTG Greedy, CTG Kahypar, AC-QDP, and RL-TNCO.
    :header: "Cycles", "OE Greedy", "CTG Greedy", "CTG Kahypar", "AC-QDP", "RL-TNCO", "dREINFORCE (Pattern II)", "MCPG (Pattern II)"
