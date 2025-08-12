@@ -65,6 +65,7 @@ This section presents the evaluation results of graph MaxCut algorithms under tw
 
 
 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    .. container:: scrollable-table
 
