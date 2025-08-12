@@ -100,7 +100,7 @@ Comparison of libraries
 
 .. csv-table:: Table 1: Comparison of libraries in RL for combinatorial optimization
    :header: Library, RL methods, Supported pattern, AC algs, Non-AC algs, Euclidean topology, Non-Euclidean topology, Distribution-wise, Instance-wise, Problem-specific methods, Commercial solvers
-   :widths: 6, 8, 10, 6, 8, 10, 8, 10, 10, 10, 11, 
+   :widths: 6, 8, 10, 6, 8, 10, 8, 10, 10, 10, 11
 
   Jumanji, A2C,I II , Y, N, Y ,N ,Y ,N ,N ,N
    RL4CO , A2C PPO reinforce , I , Y , Only reinforce , Y,N ,Y,N,N,N
