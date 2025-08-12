@@ -70,23 +70,18 @@ This section presents the evaluation results of graph MaxCut algorithms under tw
    900, 2507.0, 2540.0, 2514.1, 2658.1, 2643.9, 2526.4, 2594.3, 2645.0, **2676.1**, 2671.9, 2667.4
    1000, 2784.3, 2817.4, 2792.7, 2955.5, 2942.1, 2723.3, 2903.4, 2949.1, 2980.2, **2984.7**, 2963.9
 
-.. raw:: html
 
-    </div>
 
 
 2. Instance-wise Benchmark
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-.. raw:: html
 
-    <div style="overflow-x: auto;">
 
 .. csv-table:: Table 2-1: Results for graph MaxCut on the Gset dataset in instance-wise scenario
    :header: Graph, Nodes, Edges, BLS, DSDP, KHLWG, RUN-CSP, PI-GNN, iSCO, dREINFORCE, MCPG, Jumanji
    :widths: 6, 6, 8, 8, 8, 8, 8, 8, 8, 10, 8, 8
-
 
    G14, 800, 4694, 3064, --, 2922, 3061, 2943, 3056, 3064, 3064, 3064
    G15, 800, 4661, 3050, 2938, 3050, 2928, 2990, 3046, 3050, 3050, 2979
