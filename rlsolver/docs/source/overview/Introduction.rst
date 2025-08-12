@@ -57,8 +57,12 @@ GPU-based massively parallel environments overcome these disadvantages: we can b
    :width: 90%
    :align: center
 
-From the above figures, we used CPU and GPU based environments.  
-We see that the sampling speed is improved by at least 2 orders by using GPU-based massively parallel environments compared with conventional CPUs.
+From the above figures, we used CPU and GPU based environments. We see that the sampling speed is improved by at least 2 orders by using GPU-based massively parallel environments compared with conventional CPUs.
+
+.. figure:: /_static/ maxcutStepVsSamplingSpeed.png
+   :alt: Sampling speed vs. number of environments using CPUs and GPUs
+   :width: 90%
+   :align: center
 
 
 .. raw:: html
