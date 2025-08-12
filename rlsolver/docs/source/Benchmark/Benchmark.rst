@@ -51,6 +51,10 @@ This section presents the evaluation results of graph MaxCut algorithms under tw
    2000, 163637.97, 162162.30, 0.91%, --, --
    3000, 363228.49, 359632.17, 1.00%, --, --
 
+.. raw:: html
+
+    </div>
+
 
 .. csv-table:: Table 1-3: Results for graph maxcut on powerlaw (PL) distribution
    :header: "Nodes", "Greedy", "SDP", "SA", "GA", "Gurobi", "S2V-DQN (Pattern I)", "PI-GNN (Pattern I)", "ISCO (Pattern I)", "dREINFORCE (Pattern II)", "MCPG (Pattern II)", "Jumanji (Pattern I)"
@@ -67,6 +71,9 @@ This section presents the evaluation results of graph MaxCut algorithms under tw
    900, 2507.0, 2540.0, 2514.1, 2658.1, 2643.9, 2526.4, 2594.3, 2645.0, **2676.1**, 2671.9, 2667.4
    1000, 2784.3, 2817.4, 2792.7, 2955.5, 2942.1, 2723.3, 2903.4, 2949.1, 2980.2, **2984.7**, 2963.9
 
+.. raw:: html
+
+    </div>
 
 2. Instance-wise Benchmark
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
