@@ -86,7 +86,7 @@ This section presents the evaluation results of graph MaxCut algorithms under tw
 .. csv-table:: Table 2-1: Results for graph MaxCut on the Gset dataset in instance-wise scenario
    :header: Graph, Nodes, Edges, BLS, DSDP, KHLWG, RUN-CSP, PI-GNN, iSCO, dREINFORCE, MCPG, Jumanji
    :widths: 6, 6, 8, 8, 8, 8, 8, 8, 8, 10, 8, 8
-   :stub-columns: 1
+
 
    G14, 800, 4694, 3064, --, 2922, 3061, 2943, 3056, 3064, 3064, 3064
    G15, 800, 4661, 3050, 2938, 3050, 2928, 2990, 3046, 3050, 3050, 2979
