@@ -60,6 +60,11 @@ This section presents the evaluation results of graph MaxCut algorithms under tw
     </div>
 
 
+
+.. raw:: html
+
+    <div style="overflow-x: auto;">
+
 .. csv-table:: Table 1-3: Results for graph maxcut on powerlaw (PL) distribution
    :header: "Nodes", "Greedy", "SDP", "SA", "GA", "Gurobi", "S2V-DQN (Pattern I)", "PI-GNN (Pattern I)", "ISCO (Pattern I)", "dREINFORCE (Pattern II)", "MCPG (Pattern II)", "Jumanji (Pattern I)"
    :widths: auto
@@ -112,6 +117,7 @@ This section presents the evaluation results of graph MaxCut algorithms under tw
 .. raw:: html
 
     <div style="overflow-x: auto;">
+
    .. csv-table:: Table 2-2: Results for TSP on the TSPLIB dataset in instance-wise scenario
    :header: "Instance", "LKH", "S2V-DQN (Pattern I)", "PI-GNN (Pattern I)", "ISCO (Pattern I)", "dREINFORCE (Pattern II)", "MCPG (Pattern I)", "Jumanji (Pattern II)", "2-opt", "Cheapest", "Christofides"
    :widths: auto
