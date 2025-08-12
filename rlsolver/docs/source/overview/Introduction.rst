@@ -88,24 +88,46 @@ To achieve the same objective value, if we use more parallel environments, the l
 
 GPU-based parallel environments can significantly improve the quality of solutions during training, since RL methods require many high-quality samples from the environments for training. Take graph maxcut as an example. We select G22 in the Gset dataset. The above figure shows the objective values vs. number of epochs with different number of GPU-based parallel environments. We see that, generally, the more parallel environments, the higher objective values, and the faster convergence.
 
-.. Comparison of libraries in RL for combinatorial optimization.
 
-+-----------------+---------------------------+-----------------------------------------------+-------------------+-----------------------------------+--------------------+------------------------+-------------------+-------------------+------------------------------+--------------------+
-| Library         | RL methods                | Supported pattern                             | AC algs           | Non-AC algs                       | Euclidean topology | Non-Euclidean topology | Distribution-wise | Instance-wise     | Problem-specific methods     | Commercial solvers |
-+=================+===========================+===============================================+===================+===================================+====================+========================+===================+===================+==============================+====================+
-| Jumanji         | A2C                       | spare rewards (Pattern I), dense rewards      | Y                 | N                                 | Y                  | N                      | Y                 | N                 | N                            | N                  |
-|                 |                           | (Pattern II)                                  |                   |                                   |                    |                        |                   |                   |                              |                    |
-+-----------------+---------------------------+-----------------------------------------------+-------------------+-----------------------------------+--------------------+------------------------+-------------------+-------------------+------------------------------+--------------------+
-| RL4CO           | A2C, PPO, reinforce       | spare rewards (Pattern I)                     | Y                 | Only reinforce                    | Y                  | N                      | Y                 | N                 | N                            | N                  |
-+-----------------+---------------------------+-----------------------------------------------+-------------------+-----------------------------------+--------------------+------------------------+-------------------+-------------------+------------------------------+--------------------+
-| RLSolver (Ours) | S2V-DQN, ECO-DQN, S2V-PPO,| spare rewards (Pattern I), dense rewards      | Y                 | Y                                 | Y                  | Y                      | Y                 | Y                 | Y                            | Y                  |
-|                 | MCPG, dREINFORCE, iSCO,   | (Pattern II)                                  |                   |                                   |                    |                        |                   |                   |                              |                    |
-|                 | PI-GNN, RUN-CSP, etc      |                                               |                   |                                   |                    |                        |                   |                   |                              |                    |
-+-----------------+---------------------------+-----------------------------------------------+-------------------+-----------------------------------+--------------------+------------------------+-------------------+-------------------+------------------------------+--------------------+
+Comparison of libraries
+----------------
 
-RLSolver supports both actor-critic (AC) and non-AC algorithms. 
+.. raw:: html
 
-Our methods can learn the graph topoliges with arbitriry complex distributions. For example, 30% of weights of edges in the graphs are negative-infinity (i.e., the associated nodes do not connect with each other) and some weights of edges do not follow the euclidean distance topology. The current methods such as Jumanji and rl4co can not learn the complex graph topology. 
+    <div style="overflow-x: auto;">
+
+.. csv-table:: Table 1: Comparison of libraries in RL for combinatorial optimization.
+   :header: Library, RL methods, Supported pattern,AC algs,Non-AC algs ,Euclidean topology, Non-Euclidean topology ,Distribution-wise,Instance-wise,Problem-specific methods,Commercial solvers
+   :widths: 6, 8, 10, 6, 8, 10, 8, 10, 10, 10, 11, 10
+
+  Jumanji, A2C,I II , Y, N, Y ,N ,Y ,N ,N ,N
+RL4CO , A2C  PPO  reinforce , I   , Y  , Only reinforce ,   Y,N ,Y,N,N,N
+   RLSolver (Ours), S2V-DQN  ECO-DQN  S2V-PPO  MCPG  dREINFORCE  iSCO  PI-GNN  RUN-CSP  etc   , I II   , Y      , Y , Y ,Y ,Y,Y ,Y ,Y 
+
+
+.. raw:: html
+
+    </div>
+
+.. note::
+
+   AC denotes actor-critic.
+
+
+1) RLSolver supports more methods than Jumanji and RL4CO: S2V-DQN, ECO-DQN, S2V-PPO, MCPG, dREINFORCE, iSCO, PI-GNN, RUN-CSP, etc. Jumanji only supports A2C methods. RL4CO only supports 3 emthods: A2C, PPO, and reinforce. Therefore, RLSolver is more comprehensive than Jumanji and RL4CO.
+
+2) RLSolver supports two patterns. Jumanji also supports two patterns. But RL4CO only supports one pattern.
+
+3) RLSolver supports both actor-critic (AC) and non-AC algorithms. 
+
+4) RLSolve can learn the graph topoliges with arbitriry complex distributions. For example, 30% of weights of edges in the graphs are negative-infinity (i.e., the associated nodes do not connect with each other) and some weights of edges do not follow the euclidean distance topology. The current methods such as Jumanji and RL4CO can not learn the complex graph topology. 
+
+5) RLSolver supports both distribution-wise and instance-wise scenarios. But both Jumanji and RL4CO only support the distribution-wise scenario
+
+6) RLSolver supports problem-specific methods. For example, the BLS method for maxcut, the MMSE for MIMO, and the Chrisofides algorithm for TSP. Jumanji and RL4CO do not spoort problem-specific methods.
+
+7) RLSolver supports methods using commercial solvers such as Gurobi, and we implement the ILP and QUBO/Ising formulations for CO problems. However, Jumanji and RL4CO do not spoort methods using commercial solvers. Therefore, users can compare their or our methods with the state-of-the-art (SOTA) commercial solver Gurobi. 
+
 
 
 
