@@ -113,7 +113,9 @@ This section presents the evaluation results of graph MaxCut algorithms under tw
 
 
 
+.. raw:: html
 
+    <div style="overflow-x: auto;">
 
 
    .. csv-table:: Table 2-2: Results for TSP on the TSPLIB dataset in instance-wise scenario
@@ -158,7 +160,9 @@ This section presents the evaluation results of graph MaxCut algorithms under tw
    lin318, 42029, 45375, 45057, 45653, 44069, **44068**, 45231, 45263, 49440, 51484
    linhp318, 41345, 45444, 45647, 44362, **43246**, 43627, 44367, 45263, 49440, 51484
 
+.. raw:: html
 
+    </div>
 
 
 
