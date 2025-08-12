@@ -38,7 +38,7 @@ This section presents the evaluation results of graph MaxCut algorithms under tw
 2. Instance-wise Benchmark
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. raw:: html
+.. raw:: htmlf
 
     <div style="overflow-x: auto;">
 
@@ -53,7 +53,7 @@ This section presents the evaluation results of graph MaxCut algorithms under tw
    G49, 3000, 6000, 6000, 6000, 6000, 6000, 5918, 5940, 6000, 6000, 5987
    G50, 3000, 6000, 5880, 5880, 5880, 5880, 5820, 5874, 5880, 5880, 5872
    G55, 5000, 12468, 10294, 9960, 10236, 10116, 10138, 10218, 10298, 10296, 10283
-   G70, 10000, 9999, 9541, 9456, 9458, -, 9421, 9442, 9586, 9578, 9554
+   G70, 10000, 9999, 9541, 9456, 9458, --, 9421, 9442, 9586, 9578, 9554
 
 .. raw:: html
 
