@@ -11,7 +11,7 @@ from torch.nn.utils import clip_grad_norm_
 
 from config import ConfigGraph, ConfigPolicy
 from rlsolver.methods.util_evaluator import Evaluator
-from graph_max_cut_trs import TrsCell, Buffer, convert_solution_to_prob, sub_set_sampling, get_advantages
+from transformer import TrsCell, Buffer, convert_solution_to_prob, sub_set_sampling, get_advantages
 from network import GraphTRS, create_mask
 from rlsolver.methods.util_read_data import load_graph_list, GraphTypes, update_xs_by_vs, pick_xs_by_vs, GraphList, build_adjacency_bool
 from rlsolver.methods.util import gpu_info_str

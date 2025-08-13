@@ -11,8 +11,8 @@ import sys
 import os
 
 from config import ConfigGraph, ConfigPolicy
-from graph_max_cut_trs import get_seq_graph, valid_net
-from graph_max_cut_trs import TrsCell, convert_solution_to_prob, sub_set_sampling, get_advantages
+from transformer import get_seq_graph, valid_net
+from transformer import TrsCell, convert_solution_to_prob, sub_set_sampling, get_advantages
 from network import GraphTRS
 from rlsolver.methods.util_read_data import GraphList, load_graph_list, update_xs_by_vs, pick_xs_by_vs
 from rlsolver.methods.util import gpu_info_str
