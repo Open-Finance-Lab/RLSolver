@@ -12,22 +12,22 @@ This section presents the evaluation results of graph MaxCut algorithms under tw
 
     <div style="overflow-x: auto;">
 
-.. csv-table:: Table 1-1: Results for graph MaxCut on BA distribution
-   :header: Nodes, Gurobi, S2V-DQN, S2V-DQN#Gurobi, ECO-DQN, ECO-DQN#Gurobi, Ours, Ours#Gurobi
-   :widths: 6, 8, 8, 10, 8, 10, 8, 10
+.. csv-table:: Table 1-1: Results for graph maxcut on BA distribution in distribution-wise scenario
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: auto
 
-   100, 283.7, 272.3, -4.0%, 283.63, -0.02%, 283.7, 0
-   200, 583.3, 557.2, -4.5%, 581.7, -0.26%, 582.2, -0.17%
-   300, 880.4, 825.4, -6.2%, 873.9, -0.74%, 878.0, -0.27%
-   400, 1179.2, 1100.6, -6.7%, 1165.3, -1.18%, 1174.2, -0.42%
-   500, 1477.6, 1374.9, -6.9%, 1167.2, -1.0%, 1471.4, -0.42%
-   600, 1774.5, 1647.2, -7.1%, 1752.6, -1.2%, 1769.1, -0.3%
-   700, 2068.6, 1907.3, -7.8%, 2043.3, -1.2%, 2062.6, -0.3%
-   800, 2361.0, 2182.1, -7.6%, 2331.3, -1.3%, 2358.7, -0.1%
-   900, 2655.9, 2425.5, -8.7%, 2616.9, -1.5%, 2647.0, -0.3%
-   1000, 2952.2, 2706.1, -8.3%, 2911.9, -1.3%, 2940.3, -0.4%
-
-.. note::
+   #Nodes,dREINFORCE,Gurobi,dREINFORCE#Gurobi,S2V-DQN#Gurobi,dREINFORCE#S2V-DQN
+   100,283.7,283.7,0,-1.63% (100 ~ 200),1.63%
+   200,583.27,583.27,0,-1.79% (200 ~ 300),1.79%
+   300,880.43,880.43,0,-1.63% (300 ~ 400),1.63%
+   400,1179.70,1179.17,0.0452%,-1.03% (400 ~ 500),1.08%
+   500,1479.53,1477.60,0.131%,-1.63% (500 ~ 600),1.76%
+   1000,2970.50,2952.20,0.487%,-2.38% (1000 ~ 1200),2.87%
+   1100,3265.73,3250.17,0.264%,-2.38% (1000 ~ 1200),2.64%
+   1200,3557.93,3547.07,0.392%,-2.38% (1000 ~ 1200),2.77%
+   2000,5964.41,5912.97,0.87%,-,–
+   3000,8954.70,8873.07,0.92%,-,–
 
    The relative difference (columns with "#Gurobi") represents the performance gap with Gurobi's result. Higher values are better.
 
