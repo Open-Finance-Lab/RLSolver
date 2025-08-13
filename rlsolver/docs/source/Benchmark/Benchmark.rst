@@ -27,7 +27,7 @@ This section presents the evaluation results of graph MaxCut algorithms under tw
    2000,5964.41,5912.97,0.87%,-,–
    3000,8954.70,8873.07,0.92%,-,–
 
---note
+..note
 
    The relative difference (columns with "#Gurobi") represents the performance gap with Gurobi's result. Higher values are better.
 
