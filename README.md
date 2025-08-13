@@ -7,14 +7,14 @@
 RLSolver Contest 2025: [docs](https://rlsolver-competition.readthedocs.io/en/latest/rlsolver_contest_2025/graph_instance.html) [website](https://open-finance-lab.github.io/RLSolver_Contest_2025/)
 
 
-We aim to showcase the effectiveness of GPU-based massively parallel environments for large-scale combinatorial optimization (CO) problems using reinforcement learning (RL). RL with the help of GPU based parallel environments can significantly improve the sampling speed and can obtain high-quality solutions within short time. 
+We aim to showcase the effectiveness of GPU-based massively parallel environments for large-scale combinatorial optimization (CO) problems using reinforcement learning (RL). RL with the help of GPU-based parallel environments can significantly improve the sampling speed and can obtain high-quality solutions within short time. 
 
 # Overview
 
 RLSolver has three layers:
 - Environments: providing massively parallel environments using GPUs.
-- RL agents: providing RL algorithms, e.g., REINFORCE and DQN.
-- Problems: typical CO problems, e.g., graph maxcut and TSP.
+- RL agents: providing RL algorithms, e.g., REINFORCE, PPO, and DQN.
+- Problems: typical CO problems, e.g., graph maxcut, TNCO and TSP.
 
 <a target="\_blank">
 	<div align="center">
