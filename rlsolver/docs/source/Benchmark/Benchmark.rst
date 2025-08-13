@@ -13,11 +13,9 @@ This section presents the evaluation results of graph MaxCut algorithms under tw
     <div style="overflow-x: auto;">
 
 .. csv-table:: Table 1-1: Results for graph maxcut on BA distribution in distribution-wise scenario
-   :header-rows: 1
-   :stub-columns: 1
+   :header: "#Nodes", "dREINFORCE", "Gurobi", "dREINFORCE#Gurobi", "S2V-DQN#Gurobi", "dREINFORCE#S2V-DQN"
    :widths: auto
 
-   #Nodes,dREINFORCE,Gurobi,dREINFORCE#Gurobi,S2V-DQN#Gurobi,dREINFORCE#S2V-DQN
    100,283.7,283.7,0,-1.63% (100 ~ 200),1.63%
    200,583.27,583.27,0,-1.79% (200 ~ 300),1.79%
    300,880.43,880.43,0,-1.63% (300 ~ 400),1.63%
