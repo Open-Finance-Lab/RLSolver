@@ -215,7 +215,7 @@ rlsolver
     └──portfolio_allocation
     └──quantum_circuits
     └──tensor_train
-└──methods_RLOR # Generic RL+OR methods, i.e., one method can solver multiple problems. Integration of RL and OR. 
+└──methods_RLOR # Generic RL+OR methods, i.e., one method can solver multiple problems. Integration of RL and OR using Gurobi. 
     └──RL_branching 
     └──RL_column_generation
     └──RL_cutting
