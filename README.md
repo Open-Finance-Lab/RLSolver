@@ -180,16 +180,18 @@ rlsolver
     └──Env_L2A.py
     └──Env_MCPG.py
     └──Env_S2V.py
-└──methods # generic methods, i.e., one method can solver multiple problems
-    └──L2A (ours)
-    └──PI-GNN
-    └──RUN-CSP
+└──methods # generic RL methods, i.e., one method can solver multiple problems
+    └──attention_model
     └──eco_s2v
           └──eco
           └──s2v
           └──jumanji
           └──rl4co
     └──iSCO
+    └──L2A (ours)
+    └──PI-GNN
+    └──RUN-CSP
+    └──s2v_ppo
     └──config.py
     └──genetic_algorithm.py
     └──greedy.py
@@ -212,6 +214,10 @@ rlsolver
     └──portfolio_allocation
     └──quantum_circuits
     └──tensor_train
+└──methods_RLOR # Generic RL+OR methods, i.e., one method can solver multiple problems. Integration of RL and OR. 
+    └──RL_branching 
+    └──RL_column_generation
+    └──RL_cutting
 └──README.md
 └──result
 ```
