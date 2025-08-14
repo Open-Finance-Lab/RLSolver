@@ -73,7 +73,7 @@ GPU-based parallel environments can significantly improve the quality of solutio
 | RL4CO    | A2C, PPO, reinforce    | I    | Y      | Only reinforce |   Y |N |Y |N |N |N |N |
 | RLSolver (Ours)| PPO, S2V-DQN, ECO-DQN, MCPG, dREINFORCE, iSCO, PI-GNN,  etc    | I, II     | Y      | Y | Y |Y |Y |Y |Y |Y |Y |
 
-RLSolver crosses two domains: operations research (OR) and RL. Commercial solver-based OR methods use commercial solvers (e.g., Gurobi) based on ILP or QUBO/Ising models. RLSolver supports the integration of OR and RL, e.g., RL for branching, cutting plane, or CG.
+RLSolver crosses two domains: operations research (OR) and RL. Commercial solver-based OR methods use Gurobi (or SCIP) based on ILP or QUBO/Ising models. RLSolver supports the integration of OR and RL, e.g., RL for branching, cutting plane, or CG.
 
 # Two Patterns in RL-based methods
 
