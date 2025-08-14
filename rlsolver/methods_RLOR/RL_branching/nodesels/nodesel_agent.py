@@ -1,9 +1,9 @@
 import queue
-import extract
+from ..extract import extract_MLP_state
 import numpy as np
 import torch as th
 
-from nodesels.nodesel_policy import NodeselPolicy
+from nodesel_policy import NodeselPolicy
 
 
 class NodeselAgent(NodeselPolicy):
@@ -43,7 +43,7 @@ class NodeselAgent(NodeselPolicy):
     def nodecomp(self, node1, node2):
         if node1.getParent() != node2.getParent(): return 0
 
-        state1, state2 = extract.extract_MLP_state(self.model, node1, node2)
+        state1, state2 = extract_MLP_state(self.model, node1, node2)
         state = (th.tensor(state1, dtype=th.float32),
                  th.tensor(state2, dtype=th.float32))
 

@@ -1,4 +1,5 @@
-import extract
+# import extract
+from ..extract import extract_MLP_state
 import torch as th
 import pyscipopt as scip
 
@@ -54,7 +55,7 @@ class NodeselPolicy(scip.Nodesel):
     def nodecomp(self, node1, node2):
         if node1.getParent() != node2.getParent(): return 0
 
-        state1, state2 = extract.extract_MLP_state(self.model, node1, node2)
+        state1, state2 = extract_MLP_state(self.model, node1, node2)
         state = (th.tensor(state1, dtype=th.float32),
                  th.tensor(state2, dtype=th.float32))
 

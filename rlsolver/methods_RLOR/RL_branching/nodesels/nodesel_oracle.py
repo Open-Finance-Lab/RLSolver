@@ -1,6 +1,7 @@
 import gzip
 import pickle
-import extract
+# import extract
+from..extract import extract_MLP_state
 import numpy as np
 
 from nodesels.nodesel_baseline import NodeselEstimate
@@ -131,7 +132,7 @@ class NodeselOracle(NodeselEstimate):
               f"| Node {node2.getNumber()}: {sol_rank[1]} "
               f"| Action: {['left', 'right'][action]}")
 
-        state = extract.extract_MLP_state(self.model, node1, node2)
+        state = extract_MLP_state(self.model, node1, node2)
         self.sampler.create_sample(*state, action)
 
         return super().nodecomp(node1, node2)
