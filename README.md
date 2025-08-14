@@ -67,12 +67,13 @@ GPU-based parallel environments can significantly improve the quality of solutio
 
 # Comparison of libraries in RL for combinatorial optimization.
 
-| Library | RL methods | Supported pattern | Actor-critic algs | Non-actor-critic algs |  Euclidean topology |Non-Euclidean topology | Distribution-wise | Instance-wise | Problem-specific methods| Commercial solvers |
-|--------|-----------|------------|-------------|--------|---------|-------------------------|---------|------------|---------|------------|
-| Jumanji   | A2C    | I, II      | Y     | N| Y |N |Y |N |N |N |
-| RL4CO    | A2C, PPO, reinforce    | I    | Y      | Only reinforce |   Y |N |Y |N |N |N |
-| RLSolver (Ours)| PPO, S2V-DQN, ECO-DQN, MCPG, dREINFORCE, iSCO, PI-GNN,  etc    | I, II     | Y      | Y | Y |Y |Y |Y |Y |Y |
+| Library | RL methods | Supported pattern | Actor-critic algs | Non-actor-critic algs |  Euclidean topology |Non-Euclidean topology | Distribution-wise | Instance-wise | Problem-specific methods| Commercial solvers | Integration of OR and RL|
+|--------|-----------|------------|-------------|--------|---------|-------------------------|---------|------------|---------|------------|--------|
+| Jumanji   | A2C    | I, II      | Y     | N| Y |N |Y |N |N |N |N |
+| RL4CO    | A2C, PPO, reinforce    | I    | Y      | Only reinforce |   Y |N |Y |N |N |N |N |
+| RLSolver (Ours)| PPO, S2V-DQN, ECO-DQN, MCPG, dREINFORCE, iSCO, PI-GNN,  etc    | I, II     | Y      | Y | Y |Y |Y |Y |Y |Y |Y |
 
+RLSolver crosses two domains: operations research (OR) and RL. Commercial solver-based OR methods use Gurobi (or SCIP) based on ILP or QUBO/Ising models. RLSolver supports the integration of OR and RL, e.g., RL for branching, cutting plane, or CG.
 
 # Two Patterns in RL-based methods
 
@@ -180,16 +181,18 @@ rlsolver
     └──Env_L2A.py
     └──Env_MCPG.py
     └──Env_S2V.py
-└──methods # generic methods, i.e., one method can solver multiple problems
-    └──L2A (ours)
-    └──PI-GNN
-    └──RUN-CSP
+└──methods # generic RL methods, i.e., one method can solver multiple problems
+    └──attention_model
     └──eco_s2v
           └──eco
           └──s2v
           └──jumanji
           └──rl4co
     └──iSCO
+    └──L2A (ours)
+    └──PI-GNN
+    └──RUN-CSP
+    └──s2v_ppo
     └──config.py
     └──genetic_algorithm.py
     └──greedy.py
@@ -212,6 +215,10 @@ rlsolver
     └──portfolio_allocation
     └──quantum_circuits
     └──tensor_train
+└──methods_RLOR # Generic RL+OR methods, i.e., one method can solver multiple problems. Integration of RL and OR using Gurobi. 
+    └──RL_branching 
+    └──RL_column_generation
+    └──RL_cutting
 └──README.md
 └──result
 ```
