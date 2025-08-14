@@ -73,9 +73,7 @@ GPU-based parallel environments can significantly improve the quality of solutio
 | RL4CO    | A2C, PPO, reinforce    | I    | Y      | Only reinforce |   Y |N |Y |N |N |N |N |
 | RLSolver (Ours)| PPO, S2V-DQN, ECO-DQN, MCPG, dREINFORCE, iSCO, PI-GNN,  etc    | I, II     | Y      | Y | Y |Y |Y |Y |Y |Y |Y |
 
-RL-CO crosses two domains: operations research (OR) and RL. Commercial solver-based OR methods use commercial solvers (e.g., Gurobi) based on ILP or QUBO/Ising models. Column generation (CG)  (in rlsolver/methods_problem_specific/VRPTW) is another OR method, and is effective for VRP. This type of methods are essential in the OR domain. However, Jumanji and RL4CO ignore this type of methods. 
-
-RLSolver supports the integration of OR and RL, and can attract researchers from OR and RL domains. Some works use RL to learn branching, cutting plane, or CG based on Gurobi. RLSolver supports this type of research topics since ILP, QUBO/Ising, and CG have been implemented. We also find that the performance using QUBO/Ising is generally better than ILP, especially in large-scale CO problems.
+RLSolver crosses two domains: operations research (OR) and RL. Commercial solver-based OR methods use commercial solvers (e.g., Gurobi) based on ILP or QUBO/Ising models. RLSolver supports the integration of OR and RL, e.g., RL for branching, cutting plane, or CG.
 
 # Two Patterns in RL-based methods
 
