@@ -1,12 +1,11 @@
 # train.py
-
 import os
 import torch
 import torch.multiprocessing as mp
 import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel as DDP
 
-from models import TSPSolver
+from models import TSPActor
 from dataset import create_distributed_data_loaders
 from trainer import DistributedTSPTrainer
 import config as args
@@ -37,7 +36,7 @@ def main_worker(rank, world_size):
     # Setup distributed training
     setup_ddp(rank, world_size)
     
-    # Set random seeds (different seed per rank for diversity)
+    # Set random seeds
     torch.manual_seed(args.SEED + rank)
     torch.cuda.manual_seed(args.SEED + rank)
     
@@ -49,11 +48,11 @@ def main_worker(rank, world_size):
         print(f"  world_size: {world_size}")
         print()
     
-    # Create data loaders with distributed sampling
+    # Create data loaders
     train_loader, test_loader, eval_loader, test_dataset = create_distributed_data_loaders(args, rank, world_size)
     
     # Create model
-    model = TSPSolver(
+    model = TSPActor(
         embedding_size=args.EMBEDDING_SIZE,
         hidden_size=args.HIDDEN_SIZE,
         seq_len=args.SEQ_LEN,
@@ -61,25 +60,14 @@ def main_worker(rank, world_size):
         C=args.C
     ).cuda(rank)
     
-    # ============ BEST PRACTICE TORCH.COMPILE ============
-    # Apply torch.compile AFTER moving to CUDA, BEFORE DDP wrapping
-    # Use reduce-overhead mode for training with fixed batch sizes
-    model = torch.compile(
-        model, 
-        mode="reduce-overhead",
-        fullgraph=False  # Allow graph breaks for better stability with pointer network
-    )
-    # =====================================================
-    
-    # Wrap model with DDP - all parameters are used, so find_unused_parameters=False
+    # Wrap model with DDP
     model = DDP(model, device_ids=[rank], find_unused_parameters=False)
     
-    # Print model information from rank 0
+    # Print model information
     if rank == 0:
         total_params = sum(p.numel() for p in model.parameters())
         trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
         print(f"Model parameters: {total_params:,} total, {trainable_params:,} trainable")
-        print(f"Compilation: torch.compile enabled with reduce-overhead mode")
         print()
     
     # Create trainer
