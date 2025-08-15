@@ -7,8 +7,8 @@ SEQ_LEN = 30
 NUM_TR_DATASET = 50000
 NUM_TE_DATASET = 2000
 
-NUM_EPOCHS = 100
-BATCH_SIZE = 128  # Per GPU batch size
+NUM_EPOCHS = 500
+BATCH_SIZE = 2048  # Per GPU batch size
 LR = 0.0003       # Fixed learning rate, no scaling with world size
 GRAD_CLIP = 1.5
 BETA = 0.9

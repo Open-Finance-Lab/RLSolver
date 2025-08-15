@@ -1,18 +1,89 @@
-"""Main TSP solver model using attention mechanism."""
+# models.py
+
+"""Non-autoregressive TSP solver model."""
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from torch.distributions import Categorical
 
-from layers import GraphEmbedding, AttentionModule, Glimpse, Pointer
+from layers import GraphEmbedding, AttentionModule
 
 
-class AttentionTSP(nn.Module):
-    """TSP solver using self-attention and pointer networks."""
+class ManualCrossAttention(nn.Module):
+    """Manual implementation of cross-attention - much faster than nn.MultiheadAttention."""
+    def __init__(self, embed_dim, num_heads=4):
+        super().__init__()
+        self.embed_dim = embed_dim
+        self.num_heads = num_heads
+        self.head_dim = embed_dim // num_heads
+        assert self.head_dim * num_heads == embed_dim, "embed_dim must be divisible by num_heads"
+        
+        # Linear projections for Q, K, V
+        self.q_proj = nn.Linear(embed_dim, embed_dim, bias=False)
+        self.k_proj = nn.Linear(embed_dim, embed_dim, bias=False)
+        self.v_proj = nn.Linear(embed_dim, embed_dim, bias=False)
+        self.out_proj = nn.Linear(embed_dim, embed_dim)
+        
+        self.scale = self.head_dim ** -0.5
     
+    def forward(self, query, key, value, key_padding_mask=None):
+        """
+        Args:
+            query: [batch_size, 1, embed_dim]  # Single query for next node
+            key: [batch_size, seq_len, embed_dim]
+            value: [batch_size, seq_len, embed_dim]
+            key_padding_mask: [batch_size, seq_len] True for positions to ignore
+        
+        Returns:
+            output: [batch_size, 1, embed_dim]
+            attn_weights: [batch_size, num_heads, 1, seq_len]
+        """
+        batch_size = query.size(0)
+        seq_len = key.size(1)
+        
+        # Project Q, K, V
+        Q = self.q_proj(query)  # [batch_size, 1, embed_dim]
+        K = self.k_proj(key)    # [batch_size, seq_len, embed_dim]
+        V = self.v_proj(value)  # [batch_size, seq_len, embed_dim]
+        
+        # Reshape for multi-head attention
+        # [batch_size, seq_len, num_heads, head_dim]
+        Q = Q.view(batch_size, 1, self.num_heads, self.head_dim).transpose(1, 2)
+        K = K.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
+        V = V.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
+        # Now: [batch_size, num_heads, seq_len/1, head_dim]
+        
+        # Compute attention scores using einsum (more efficient)
+        # [batch_size, num_heads, 1, seq_len]
+        scores = torch.einsum('bhqd,bhkd->bhqk', Q, K) * self.scale
+        
+        # Apply mask if provided
+        if key_padding_mask is not None:
+            # Expand mask for all heads
+            mask = key_padding_mask.unsqueeze(1).unsqueeze(1)  # [batch_size, 1, 1, seq_len]
+            scores = scores.masked_fill(mask, float('-inf'))
+        
+        # Softmax
+        attn_weights = F.softmax(scores, dim=-1)
+        
+        # Apply attention to values
+        # [batch_size, num_heads, 1, head_dim]
+        context = torch.einsum('bhqk,bhkd->bhqd', attn_weights, V)
+        
+        # Reshape back
+        context = context.transpose(1, 2).contiguous().view(batch_size, 1, self.embed_dim)
+        
+        # Output projection
+        output = self.out_proj(context)
+        
+        return output, attn_weights
+
+
+class NonAutoregressiveTSP(nn.Module):
+    """Non-autoregressive TSP solver - single step prediction."""
     def __init__(self, embedding_size, hidden_size, seq_len, n_head=4, C=10):
         super().__init__()
-        
         self.embedding_size = embedding_size
         self.hidden_size = hidden_size
         self.seq_len = seq_len
@@ -22,129 +93,127 @@ class AttentionTSP(nn.Module):
         # Node embedding
         self.embedding = GraphEmbedding(2, embedding_size)
         
-        # Self-attention encoder (Pre-LN inside)
-        self.encoder = AttentionModule(embedding_size, n_head)
+        # Shared encoder (torso)
+        self.encoder = AttentionModule(embedding_size, n_head, n_layers=3)
         
-        # Context embedding
+        # Context processing
         self.h_context_embed = nn.Linear(embedding_size, embedding_size)
-        self.v_weight_embed = nn.Linear(embedding_size * 2, embedding_size)
         
-        # Glimpse and pointer for decoding
-        self.glimpse = Glimpse(embedding_size, hidden_size, n_head)
-        self.pointer = Pointer(embedding_size, hidden_size, 1, C)
+        # Query construction components
+        self.current_embed = nn.Linear(embedding_size, embedding_size)
+        self.first_embed = nn.Linear(embedding_size, embedding_size)
         
-        # Learnable initial query vector
-        self.init_w = nn.Parameter(torch.Tensor(2 * embedding_size))
-        self.init_w.data.uniform_(-1, 1)
+        # CHANGED: Use Manual Cross Attention instead of nn.MultiheadAttention
+        self.cross_attention = ManualCrossAttention(embedding_size, n_head)
         
-    def forward(self, inputs):
-        """
+        # Output projection for logits
+        self.output_projection = nn.Linear(embedding_size, embedding_size)
+    
+    def forward(self, observation):
+        """Single-step forward pass.
+        
         Args:
-            inputs: FloatTensor [batch_size, seq_len, 2]
-            
+            observation: dict with:
+                - nodes: [batch_size, seq_len, 2]
+                - current_node: [batch_size] or None (for first step)
+                - first_node: [batch_size] or None
+                - action_mask: [batch_size, seq_len] (True for available actions)
+                - encoded: [batch_size, seq_len, embedding_size] (optional, cached encoder output)
+        
         Returns:
-            log_probs: log probabilities of selected actions [batch_size, seq_len]
-            actions: selected node indices [batch_size, seq_len]
+            logits: [batch_size, seq_len] unnormalized scores
         """
-        batch_size = inputs.shape[0]
+        nodes = observation['nodes']
+        current_node = observation['current_node']
+        first_node = observation['first_node']
+        action_mask = observation['action_mask']
+        batch_size = nodes.size(0)
+        device = nodes.device
         
-        # Encode all nodes (can run under AMP)
-        embedded = self.embedding(inputs)  # [batch_size, seq_len, embedding_size]
-        encoded = self.encoder(embedded)   # [batch_size, seq_len, embedding_size]
+        # Check if we have cached encoder output
+        if 'encoded' in observation and observation['encoded'] is not None:
+            # Use cached encoder output
+            encoded = observation['encoded']
+        else:
+            # Compute encoder output (original path for training)
+            embedded = self.embedding(nodes)  # [batch_size, seq_len, embedding_size]
+            encoded = self.encoder(embedded)  # [batch_size, seq_len, embedding_size]
         
-        # Compute context
+        # Compute context (mean of all embeddings)
         h_mean = encoded.mean(dim=1)  # [batch_size, embedding_size]
         h_context = self.h_context_embed(h_mean)
         
-        # Initialize query with learned weights (broadcasting to batch)
-        query = h_context + self.v_weight_embed(self.init_w)  # [batch_size, embedding_size]
+        # Build query vector based on current state
+        query = h_context.clone()
         
-        # Decode path
-        log_probs = []
-        actions = []
-        mask = torch.zeros(batch_size, self.seq_len, dtype=torch.bool, device=inputs.device)
-        first_node_h = None
+        # Add current node embedding if available
+        if current_node is not None:
+            current_idx = current_node.unsqueeze(1).unsqueeze(2).expand(-1, -1, self.embedding_size)
+            current_h = encoded.gather(1, current_idx).squeeze(1)
+            query = query + self.current_embed(current_h)
         
-        for step in range(self.seq_len):
-            # Glimpse to refine query
-            _, glimpsed_query = self.glimpse(query, encoded, mask)
-            
-            # Point to next node - get logits (FP32)
-            logits = self.pointer(glimpsed_query, encoded, mask)  # [batch_size, seq_len], FP32
-            
-            # Use logits directly for more stable sampling (already in FP32 from Pointer)
-            categorical = Categorical(logits=logits)
-            action = categorical.sample()  # [batch_size]
-            
-            # Store log probability and action
-            log_probs.append(categorical.log_prob(action))  # [batch_size]
-            actions.append(action)  # [batch_size]
-            
-            # Update mask
-            mask = mask.scatter(1, action.unsqueeze(1), True)
-            
-            # Gather selected node embedding
-            action_expanded = action.unsqueeze(1).unsqueeze(2).expand(-1, -1, self.embedding_size)
-            selected_h = encoded.gather(1, action_expanded).squeeze(1)  # [batch_size, embedding_size]
-            
-            if first_node_h is None:
-                first_node_h = selected_h
-                
-            # Update query for next step
-            query = h_context + self.v_weight_embed(torch.cat([first_node_h, selected_h], dim=-1))
+        # Add first node embedding if available
+        if first_node is not None:
+            first_idx = first_node.unsqueeze(1).unsqueeze(2).expand(-1, -1, self.embedding_size)
+            first_h = encoded.gather(1, first_idx).squeeze(1)
+            query = query + self.first_embed(first_h)
         
-        # Stack results
-        log_probs = torch.stack(log_probs, dim=1)  # [batch_size, seq_len]
-        actions = torch.stack(actions, dim=1)       # [batch_size, seq_len]
+        # Cross-attention: query attends to all nodes
+        query = query.unsqueeze(1)  # [batch_size, 1, embedding_size]
         
-        return log_probs, actions
+        # Apply cross-attention with Manual implementation
+        context_vector, _ = self.cross_attention(
+            query, encoded, encoded,
+            key_padding_mask=~action_mask  # True for positions to ignore
+        )
+        context_vector = context_vector.squeeze(1)  # [batch_size, embedding_size]
+        
+        # Project context vector
+        context_vector = self.output_projection(context_vector)
+        
+        # Compute logits via dot product
+        logits = torch.einsum('bnd,bd->bn', encoded, context_vector)  # [batch_size, seq_len]
+        
+        # Scale and clip
+        logits = logits / torch.sqrt(torch.tensor(self.embedding_size, dtype=torch.float32))
+        logits = self.C * torch.tanh(logits)
+        
+        # Apply action mask (set invalid actions to -inf)
+        logits = logits.masked_fill(~action_mask, -1e4)
+        
+        return logits
 
 
-class TSPSolver(nn.Module):
-    """Wrapper for TSP solver with reward calculation."""
-    
+class TSPActor(nn.Module):
+    """Actor network wrapper for policy."""
     def __init__(self, embedding_size, hidden_size, seq_len, n_head=4, C=10):
         super().__init__()
-        self.model = AttentionTSP(embedding_size, hidden_size, seq_len, n_head, C)
-        
-    def forward(self, inputs):
-        """
-        Args:
-            inputs: FloatTensor [batch_size, seq_len, 2]
-            
-        Returns:
-            rewards: tour lengths [batch_size]
-            log_probs: log probabilities [batch_size, seq_len]
-            actions: selected actions [batch_size, seq_len]
-        """
-        log_probs, actions = self.model(inputs)
-        
-        # Gather nodes in tour order
-        batch_size = inputs.size(0)
-        tour = inputs.gather(1, actions.unsqueeze(2).expand(-1, -1, 2))  # [batch_size, seq_len, 2]
-        
-        # Calculate tour length
-        rewards = self.calculate_reward(tour)
-        
-        return rewards, log_probs, actions
+        self.network = NonAutoregressiveTSP(embedding_size, hidden_size, seq_len, n_head, C)
     
-    @staticmethod
-    def calculate_reward(tour):
-        """Calculate total tour length.
+    def forward(self, observation):
+        """Get action distribution.
         
-        Args:
-            tour: FloatTensor [batch_size, seq_len, 2]
-            
         Returns:
-            lengths: FloatTensor [batch_size]
+            dist: Categorical distribution
+            logits: Raw logits
         """
-        # Calculate distances between consecutive nodes
-        distances = torch.norm(tour[:, 1:] - tour[:, :-1], dim=2)
+        logits = self.network(observation)
+        dist = Categorical(logits=logits)
+        return dist, logits
+    
+    def get_action(self, observation, deterministic=False):
+        """Sample or select action.
         
-        # Add distance from last node back to first
-        distances_to_first = torch.norm(tour[:, -1] - tour[:, 0], dim=1)
+        Returns:
+            action: [batch_size]
+            log_prob: [batch_size]
+        """
+        dist, logits = self.forward(observation)
         
-        # Total tour length
-        total_length = distances.sum(dim=1) + distances_to_first
+        if deterministic:
+            action = logits.argmax(dim=-1)
+        else:
+            action = dist.sample()
         
-        return total_length
+        log_prob = dist.log_prob(action)
+        return action, log_prob

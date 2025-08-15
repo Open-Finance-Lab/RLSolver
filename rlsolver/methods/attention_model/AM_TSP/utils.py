@@ -1,5 +1,4 @@
-"""Utility functions for TSP solver."""
-
+# utils.py
 import numpy as np
 import torch
 
