@@ -29,6 +29,15 @@ NUM_INFERENCE_ENVS = SEQ_LEN  # Number of parallel rollouts during inference
 COMPUTE_HEURISTIC_GAP = True  # Whether to compute gap vs heuristic solver
 SAVE_RESULTS = True  # Whether to save inference results
 
+# ================== GPU Configuration ==================
+# Training GPU configuration
+TRAIN_MODE = 0  # 0: train, 1: inference
+MULTI_GPU_MODE = True  # Whether to use all available GPUs
+SINGLE_GPU_ID = 0  # GPU ID when not using multi-GPU mode
+
+# Inference GPU configuration  
+INFERENCE_GPU_ID = 0  # GPU for inference/evaluation
+
 # ================== Paths ==================
 # Model paths
 MODEL_PATH = "model.pth"  # Path to trained model for inference
@@ -46,3 +55,21 @@ SEED = 111
 # ================== Distributed Training ==================
 MASTER_ADDR = 'localhost'
 MASTER_PORT = '12355'
+
+# ================== Device Mapping ==================
+import torch
+
+def get_device(gpu_id):
+   
+    if not USE_CUDA or gpu_id == -1:
+        return 'cpu'
+    if not torch.cuda.is_available():
+        print("Warning: CUDA not available, using CPU")
+        return 'cpu'
+    return f'cuda:{gpu_id}'
+
+def get_num_gpus():
+    """Get number of available GPUs."""
+    if not USE_CUDA:
+        return 0
+    return torch.cuda.device_count()
