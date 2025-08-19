@@ -47,11 +47,17 @@ def main_worker(rank, world_size):
         print("TSP Solver with POMO (Policy Optimization with Multiple Optima)")
         print("="*50)
         print("\nConfiguration:")
+        print(f"  GPU Configuration:")
+        print(f"    - Mode: {'Multi-GPU' if args.MULTI_GPU_MODE else 'Single-GPU'}")
+        print(f"    - World size: {world_size}")
+        print(f"    - Training GPUs: {list(range(world_size))}")
+        print(f"    - Inference GPU: {args.INFERENCE_GPU_ID}")
+        print("\n  Model Configuration:")
         for key, value in vars(args).items():
-            print(f"  {key}: {value}")
-        print(f"  world_size: {world_size}")
-        print(f"  algorithm: POMO")
-        print(f"  pomo_size: {args.NUM_TRAIN_ENVS}")
+            if not key.startswith('__') and not callable(value) and 'GPU' not in key:
+                print(f"    {key}: {value}")
+        print(f"  Algorithm: POMO")
+        print(f"  POMO size: {args.NUM_TRAIN_ENVS}")
         print()
     
     # Create data loaders
@@ -91,15 +97,45 @@ def main_worker(rank, world_size):
     cleanup()
 
 
+def train_single_gpu():
+    """Training on single GPU (non-distributed)."""
+    device = args.get_device(args.SINGLE_GPU_ID)
+    
+    print("="*50)
+    print("TSP Solver with POMO (Single GPU Mode)")
+    print("="*50)
+    print(f"\nUsing device: {device}")
+    
+    # Set random seeds
+    torch.manual_seed(args.SEED)
+    if 'cuda' in device:
+        torch.cuda.manual_seed(args.SEED)
+        torch.cuda.set_device(args.SINGLE_GPU_ID)
+    
+    # Note: For single GPU, you would need to implement non-distributed versions
+    # of the data loader and trainer. This is a simplified placeholder.
+    raise NotImplementedError("Single GPU training not implemented. Use multi-GPU mode with world_size=1")
+
+
 def main():
     """Main entry point."""
-    world_size = torch.cuda.device_count()
+    if args.TRAIN_MODE == 1:
+        print("Inference mode selected. Please run inference.py instead.")
+        return
     
-    if world_size == 0:
-        raise RuntimeError("No GPUs available for training")
-    
-    print(f"Starting POMO distributed training on {world_size} GPUs")
-    mp.spawn(main_worker, args=(world_size,), nprocs=world_size, join=True)
+    # Determine world size based on configuration
+    if args.MULTI_GPU_MODE:
+        world_size = args.get_num_gpus()
+        if world_size == 0:
+            raise RuntimeError("No GPUs available for training. Set USE_CUDA=False for CPU training.")
+        
+        print(f"Starting POMO distributed training on {world_size} GPUs")
+        mp.spawn(main_worker, args=(world_size,), nprocs=world_size, join=True)
+    else:
+        # Single GPU training
+        if args.get_num_gpus() == 0:
+            raise RuntimeError("No GPUs available. Set USE_CUDA=False for CPU training.")
+        train_single_gpu()
 
 
 if __name__ == '__main__':
