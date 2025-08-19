@@ -1,4 +1,4 @@
-# TSP Solver with POMO
+# TSP Solver
 
 A deep reinforcement learning approach for solving the Traveling Salesman Problem (TSP) using Policy Optimization with Multiple Optima (POMO) algorithm.
 
