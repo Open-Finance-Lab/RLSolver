@@ -14,8 +14,16 @@ from utils import get_heuristic_solution
 import config as args
 
 
-def load_model(model_path, device='cuda'):
-    """Load trained model from checkpoint."""
+def load_model(model_path, device):
+    """Load trained model from checkpoint.
+    
+    Args:
+        model_path: Path to model checkpoint
+        device: Device string or torch.device
+    
+    Returns:
+        model: Loaded TSPActor model
+    """
     model = TSPActor(
         embedding_size=args.EMBEDDING_SIZE,
         hidden_size=args.HIDDEN_SIZE,
@@ -35,18 +43,22 @@ def load_model(model_path, device='cuda'):
 
 
 @torch.no_grad()
-def rollout_inference(model, nodes, num_rollouts=None, device='cuda'):
+def rollout_inference(model, nodes, num_rollouts=None, device=None):
     """POMO rollout for inference - optimized version.
     
     Args:
         model: TSPActor model
         nodes: [batch_size, seq_len, 2]
         num_rollouts: Number of parallel rollouts (default: seq_len for POMO)
+        device: Device string or torch.device
     
     Returns:
         best_tours: [batch_size, seq_len] - best tour for each instance
         best_lengths: [batch_size] - length of best tours
     """
+    if device is None:
+        device = nodes.device
+        
     batch_size = nodes.size(0)
     seq_len = nodes.size(1)
     if num_rollouts is None:
@@ -111,8 +123,14 @@ def rollout_inference(model, nodes, num_rollouts=None, device='cuda'):
     return best_tours, best_lengths
 
 
-def inference_on_dataset(model, dataset, batch_size=None, device='cuda'):
+def inference_on_dataset(model, dataset, batch_size=None, device=None):
     """Run inference on entire dataset.
+    
+    Args:
+        model: TSPActor model
+        dataset: TSPDataset
+        batch_size: Batch size for inference
+        device: Device string or torch.device
     
     Returns:
         all_tours: List of best tours
@@ -121,6 +139,9 @@ def inference_on_dataset(model, dataset, batch_size=None, device='cuda'):
     """
     if batch_size is None:
         batch_size = args.INFERENCE_BATCH_SIZE
+    
+    if device is None:
+        device = args.get_device(args.INFERENCE_GPU_ID)
     
     all_tours = []
     all_lengths = []
@@ -180,10 +201,16 @@ def inference_on_dataset(model, dataset, batch_size=None, device='cuda'):
 
 def main():
     """Main inference function."""
-    device = 'cuda' if torch.cuda.is_available() and args.USE_CUDA else 'cpu'
+    # Get device from config
+    device = args.get_device(args.INFERENCE_GPU_ID)
+    
+    # Print configuration
+    print("="*50)
+    print("TSP Solver - Inference Mode")
+    print("="*50)
     
     # Load model
-    print(f"Loading model from {args.MODEL_PATH}...")
+    print(f"\nLoading model from {args.MODEL_PATH}...")
     model = load_model(args.MODEL_PATH, device)
     
     # Create test dataset
@@ -191,14 +218,20 @@ def main():
     
     # Run inference
     print(f"\nInference Configuration:")
+    print(f"  Device: {device} (GPU ID: {args.INFERENCE_GPU_ID})")
     print(f"  Problem size: {args.SEQ_LEN}")
     print(f"  Test samples: {args.NUM_TEST_SAMPLES}")
     print(f"  Inference batch size: {args.INFERENCE_BATCH_SIZE}")
-    print(f"  Number of parallel rollouts: {args.NUM_INFERENCE_ENVS}")
-    print(f"  Device: {device}")
+    print(f"  Number of parallel rollouts (POMO): {args.NUM_INFERENCE_ENVS}")
+    print(f"  Compute heuristic gap: {args.COMPUTE_HEURISTIC_GAP}")
+    print(f"  Save results: {args.SAVE_RESULTS}")
     print()
     
-    tours, lengths, gap = inference_on_dataset(model, test_dataset, device=device)
+    tours, lengths, gap = inference_on_dataset(
+        model, test_dataset, 
+        batch_size=args.INFERENCE_BATCH_SIZE,
+        device=device
+    )
     
     # Print statistics
     print(f"\nResults:")
@@ -226,7 +259,9 @@ def main():
                 'seq_len': args.SEQ_LEN,
                 'num_samples': args.NUM_TEST_SAMPLES,
                 'num_rollouts': args.NUM_INFERENCE_ENVS,
-                'model_path': args.MODEL_PATH
+                'model_path': args.MODEL_PATH,
+                'inference_gpu_id': args.INFERENCE_GPU_ID,
+                'device': str(device)
             }
         }
         
@@ -237,7 +272,16 @@ def main():
             json.dump(results, f, indent=2)
         
         print(f"\nResults saved to {results_path}")
+        
+    print("="*50)
+    print("Inference completed successfully!")
+    print("="*50)
 
 
 if __name__ == '__main__':
+    # Check if we're in inference mode
+    if hasattr(args, 'TRAIN_MODE') and args.TRAIN_MODE == 0:
+        print("Warning: TRAIN_MODE is set to 0 (training). Set TRAIN_MODE=1 for inference.")
+        print("Proceeding with inference anyway...")
+    
     main()
