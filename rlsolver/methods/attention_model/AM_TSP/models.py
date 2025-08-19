@@ -1,7 +1,4 @@
 # models.py
-
-"""Non-autoregressive TSP solver model."""
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -12,6 +9,7 @@ from layers import GraphEmbedding, AttentionModule
 
 class ManualCrossAttention(nn.Module):
     """Manual implementation of cross-attention - much faster than nn.MultiheadAttention."""
+    
     def __init__(self, embed_dim, num_heads=4):
         super().__init__()
         self.embed_dim = embed_dim
@@ -30,11 +28,11 @@ class ManualCrossAttention(nn.Module):
     def forward(self, query, key, value, key_padding_mask=None):
         """
         Args:
-            query: [batch_size, 1, embed_dim]  # Single query for next node
+            query: [batch_size, 1, embed_dim] # Single query for next node
             key: [batch_size, seq_len, embed_dim]
             value: [batch_size, seq_len, embed_dim]
             key_padding_mask: [batch_size, seq_len] True for positions to ignore
-        
+            
         Returns:
             output: [batch_size, 1, embed_dim]
             attn_weights: [batch_size, num_heads, 1, seq_len]
@@ -48,27 +46,22 @@ class ManualCrossAttention(nn.Module):
         V = self.v_proj(value)  # [batch_size, seq_len, embed_dim]
         
         # Reshape for multi-head attention
-        # [batch_size, seq_len, num_heads, head_dim]
         Q = Q.view(batch_size, 1, self.num_heads, self.head_dim).transpose(1, 2)
         K = K.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
         V = V.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
-        # Now: [batch_size, num_heads, seq_len/1, head_dim]
         
-        # Compute attention scores using einsum (more efficient)
-        # [batch_size, num_heads, 1, seq_len]
+        # Compute attention scores
         scores = torch.einsum('bhqd,bhkd->bhqk', Q, K) * self.scale
         
         # Apply mask if provided
         if key_padding_mask is not None:
-            # Expand mask for all heads
-            mask = key_padding_mask.unsqueeze(1).unsqueeze(1)  # [batch_size, 1, 1, seq_len]
+            mask = key_padding_mask.unsqueeze(1).unsqueeze(1)
             scores = scores.masked_fill(mask, float('-inf'))
         
         # Softmax
         attn_weights = F.softmax(scores, dim=-1)
         
         # Apply attention to values
-        # [batch_size, num_heads, 1, head_dim]
         context = torch.einsum('bhqk,bhkd->bhqd', attn_weights, V)
         
         # Reshape back
@@ -80,8 +73,7 @@ class ManualCrossAttention(nn.Module):
         return output, attn_weights
 
 
-class NonAutoregressiveTSP(nn.Module):
-    """Non-autoregressive TSP solver - single step prediction."""
+class AutoregressiveTSP(nn.Module):
     def __init__(self, embedding_size, hidden_size, seq_len, n_head=4, C=10):
         super().__init__()
         self.embedding_size = embedding_size
@@ -103,47 +95,37 @@ class NonAutoregressiveTSP(nn.Module):
         self.current_embed = nn.Linear(embedding_size, embedding_size)
         self.first_embed = nn.Linear(embedding_size, embedding_size)
         
-        # CHANGED: Use Manual Cross Attention instead of nn.MultiheadAttention
+        # Use Manual Cross Attention
         self.cross_attention = ManualCrossAttention(embedding_size, n_head)
         
         # Output projection for logits
         self.output_projection = nn.Linear(embedding_size, embedding_size)
+        
+        # Compile the core forward logic
+        self._forward_core = torch.compile(
+            self._forward_impl,
+            mode='reduce-overhead',
+            disable=torch.cuda.is_available() and torch.cuda.get_device_capability()[0] < 7
+        )
     
-    def forward(self, observation):
-        """Single-step forward pass.
-        
-        Args:
-            observation: dict with:
-                - nodes: [batch_size, seq_len, 2]
-                - current_node: [batch_size] or None (for first step)
-                - first_node: [batch_size] or None
-                - action_mask: [batch_size, seq_len] (True for available actions)
-                - encoded: [batch_size, seq_len, embedding_size] (optional, cached encoder output)
-        
-        Returns:
-            logits: [batch_size, seq_len] unnormalized scores
-        """
-        nodes = observation['nodes']
-        current_node = observation['current_node']
-        first_node = observation['first_node']
-        action_mask = observation['action_mask']
+    def _forward_impl(self, nodes, current_node, first_node, action_mask, encoded):
+        """Core forward implementation - separated for compilation."""
         batch_size = nodes.size(0)
-        device = nodes.device
         
         # Check if we have cached encoder output
-        if 'encoded' in observation and observation['encoded'] is not None:
+        if encoded is not None:
             # Use cached encoder output
-            encoded = observation['encoded']
+            pass
         else:
-            # Compute encoder output (original path for training)
-            embedded = self.embedding(nodes)  # [batch_size, seq_len, embedding_size]
-            encoded = self.encoder(embedded)  # [batch_size, seq_len, embedding_size]
+            # Compute encoder output
+            embedded = self.embedding(nodes)
+            encoded = self.encoder(embedded)
         
         # Compute context (mean of all embeddings)
-        h_mean = encoded.mean(dim=1)  # [batch_size, embedding_size]
+        h_mean = encoded.mean(dim=1)
         h_context = self.h_context_embed(h_mean)
         
-        # Build query vector based on current state
+        # Build query vector
         query = h_context.clone()
         
         # Add current node embedding if available
@@ -158,37 +140,58 @@ class NonAutoregressiveTSP(nn.Module):
             first_h = encoded.gather(1, first_idx).squeeze(1)
             query = query + self.first_embed(first_h)
         
-        # Cross-attention: query attends to all nodes
-        query = query.unsqueeze(1)  # [batch_size, 1, embedding_size]
-        
-        # Apply cross-attention with Manual implementation
+        # Cross-attention
+        query = query.unsqueeze(1)
         context_vector, _ = self.cross_attention(
             query, encoded, encoded,
-            key_padding_mask=~action_mask  # True for positions to ignore
+            key_padding_mask=~action_mask
         )
-        context_vector = context_vector.squeeze(1)  # [batch_size, embedding_size]
+        context_vector = context_vector.squeeze(1)
         
         # Project context vector
         context_vector = self.output_projection(context_vector)
         
-        # Compute logits via dot product
-        logits = torch.einsum('bnd,bd->bn', encoded, context_vector)  # [batch_size, seq_len]
+        # Compute logits
+        logits = torch.einsum('bnd,bd->bn', encoded, context_vector)
         
         # Scale and clip
         logits = logits / torch.sqrt(torch.tensor(self.embedding_size, dtype=torch.float32))
         logits = self.C * torch.tanh(logits)
         
-        # Apply action mask (set invalid actions to -inf)
+        # Apply action mask
         logits = logits.masked_fill(~action_mask, -1e4)
         
         return logits
+    
+    def forward(self, observation):
+        """Single-step forward pass.
+        
+        Args:
+            observation: dict with:
+                - nodes: [batch_size, seq_len, 2]
+                - current_node: [batch_size] or None
+                - first_node: [batch_size] or None
+                - action_mask: [batch_size, seq_len]
+                - encoded: [batch_size, seq_len, embedding_size] (optional)
+                
+        Returns:
+            logits: [batch_size, seq_len]
+        """
+        return self._forward_core(
+            observation['nodes'],
+            observation.get('current_node'),
+            observation.get('first_node'),
+            observation['action_mask'],
+            observation.get('encoded')
+        )
 
 
 class TSPActor(nn.Module):
     """Actor network wrapper for policy."""
+    
     def __init__(self, embedding_size, hidden_size, seq_len, n_head=4, C=10):
         super().__init__()
-        self.network = NonAutoregressiveTSP(embedding_size, hidden_size, seq_len, n_head, C)
+        self.network = AutoregressiveTSP(embedding_size, hidden_size, seq_len, n_head, C)
     
     def forward(self, observation):
         """Get action distribution.
