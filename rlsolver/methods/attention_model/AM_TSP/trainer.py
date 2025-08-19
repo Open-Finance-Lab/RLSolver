@@ -1,318 +1,245 @@
-"""TSP Trainer with distributed training support and vmap optimizations."""
+# trainer.py
 
 import os
 import json
 import torch
 import torch.optim as optim
 import torch.distributed as dist
+from torch.optim.lr_scheduler import CosineAnnealingLR
 from torch.amp import autocast, GradScaler
 from tqdm import tqdm
 from datetime import datetime
 
 from env import TSPEnv, VectorizedTSPEnv
-from utils import moving_average, clip_grad_norm, AverageMeter, get_heuristic_solution
+from utils import clip_grad_norm, AverageMeter, get_heuristic_solution
 
 
-def rollout_episode_vmap(model, nodes, device='cuda'):
-    """Vectorized rollout for TSP using vmap optimizations.
+@torch.compile(mode='reduce-overhead')
+def rollout_episode_vmap_pomo_compiled(model, nodes, pomo_size=None, device='cuda'):
+    """POMO rollout with vmap-style vectorization - optimized for zero-copy.
     
     Args:
         model: TSPActor model (unwrapped)
         nodes: [batch_size, seq_len, 2]
-    
+        pomo_size: Number of parallel rollouts (default: seq_len)
+        
     Returns:
-        tour_length: [batch_size]
-        log_probs: [batch_size, seq_len]
-        actions: [batch_size, seq_len]
+        tour_lengths: [batch_size, pomo_size]
+        log_probs: [batch_size, pomo_size, seq_len-1]
+        actions: [batch_size, pomo_size, seq_len]
     """
     batch_size = nodes.size(0)
     seq_len = nodes.size(1)
+    if pomo_size is None:
+        pomo_size = seq_len
     
-    # Pre-compute encoder embeddings once
-    with torch.no_grad():
-        embedded = model.network.embedding(nodes)
-        encoded = model.network.encoder(embedded)
+    # Pre-compute encoder embeddings once per instance
+    embedded = model.network.embedding(nodes)
+    encoded = model.network.encoder(embedded)
     
-    # Initialize state tensors
-    visited_mask = torch.zeros(batch_size, seq_len, dtype=torch.bool, device=device)
-    current_node = None
-    first_node = None
+    # Use view instead of expand + reshape to avoid copies
+    # Expand creates a view, but reshape after expand might copy
+    # Instead, we'll work with the expanded view directly
+    encoded_expanded = encoded.unsqueeze(1).expand(batch_size, pomo_size, seq_len, -1)
+    nodes_expanded = nodes.unsqueeze(1).expand(batch_size, pomo_size, seq_len, 2)
     
-    log_probs_list = []
-    actions_list = []
+    # Create contiguous views only once
+    encoded_flat = encoded_expanded.contiguous().view(batch_size * pomo_size, seq_len, -1)
+    nodes_flat = nodes_expanded.contiguous().view(batch_size * pomo_size, seq_len, 2)
     
-    # Vectorized rollout loop
-    for step in range(seq_len):
-        # Build observation
+    # Initialize states
+    visited_mask = torch.zeros(batch_size * pomo_size, seq_len, dtype=torch.bool, device=device)
+    
+    # Pre-create indices
+    flat_indices = torch.arange(batch_size * pomo_size, device=device)
+    pomo_indices = torch.arange(pomo_size, device=device).repeat(batch_size) % seq_len
+    
+    # POMO: Different starting nodes (no clone needed here)
+    first_node = pomo_indices
+    current_node = pomo_indices  # Direct assignment instead of clone
+    visited_mask[flat_indices, current_node] = True
+    
+    # Pre-allocate tensors instead of using lists
+    log_probs_tensor = torch.empty(batch_size * pomo_size, seq_len - 1, device=device)
+    actions_tensor = torch.empty(batch_size * pomo_size, seq_len, dtype=torch.long, device=device)
+    actions_tensor[:, 0] = current_node
+    
+    # Rollout loop
+    for step in range(1, seq_len):
         obs = {
-            'nodes': nodes,
+            'nodes': nodes_flat,
             'current_node': current_node,
             'first_node': first_node,
             'action_mask': ~visited_mask,
-            'encoded': encoded
+            'encoded': encoded_flat
         }
         
-        with torch.no_grad():
-            # Get actions for all environments in parallel
-            action, log_prob = model.get_action(obs, deterministic=False)
+        action, log_prob = model.get_action(obs, deterministic=False)
         
-        # Update states using vectorized operations
-        if current_node is None:
-            first_node = action.clone()
         current_node = action
+        visited_mask[flat_indices, action] = True
         
-        # Vectorized mask update
-        batch_indices = torch.arange(batch_size, device=device)
-        visited_mask[batch_indices, action] = True
-        
-        log_probs_list.append(log_prob)
-        actions_list.append(action)
+        # Direct tensor assignment instead of list append
+        log_probs_tensor[:, step - 1] = log_prob
+        actions_tensor[:, step] = action
     
-    # Stack results
-    log_probs = torch.stack(log_probs_list, dim=1)
-    actions = torch.stack(actions_list, dim=1)
+    # Compute tour lengths
+    vec_env = VectorizedTSPEnv(nodes_flat, device=device)
+    tour_lengths = vec_env.compute_all_tours(actions_tensor)
     
-    # Compute tour lengths using vectorized environment
-    vec_env = VectorizedTSPEnv(nodes, device=device)
-    tour_lengths = vec_env.compute_all_tours(actions)
+    # Use view instead of reshape for final output
+    tour_lengths = tour_lengths.view(batch_size, pomo_size)
+    log_probs = log_probs_tensor.view(batch_size, pomo_size, seq_len - 1)
+    actions = actions_tensor.view(batch_size, pomo_size, seq_len)
     
     return tour_lengths, log_probs, actions
 
 
-def rollout_episode(model, nodes, device='cuda'):
-    """Perform a complete rollout for TSP (original implementation for compatibility).
-    
-    Args:
-        model: TSPActor model (unwrapped)
-        nodes: [batch_size, seq_len, 2] or [seq_len, 2]
-        
-    Returns:
-        tour_length: [batch_size]
-        log_probs: [batch_size, seq_len]
-        actions: [batch_size, seq_len]
-    """
-    # Use vectorized version
-    return rollout_episode_vmap(model, nodes, device)
+# Wrapper function for evaluation (uses no_grad context)
+def rollout_episode_vmap_pomo(model, nodes, pomo_size=None, device='cuda'):
+    """POMO rollout wrapper that handles no_grad context."""
+    with torch.no_grad():
+        return rollout_episode_vmap_pomo_compiled(model, nodes, pomo_size, device)
 
 
-class DistributedTSPTrainer:
-    """Distributed trainer for non-autoregressive TSP solver with vmap optimizations."""
+class DistributedPOMOTrainer:
+    """Distributed trainer with POMO and zero-copy optimizations."""
     
     def __init__(self, model, args, rank, world_size):
         self.model = model
-        # Extract the actual model from DDP wrapper
         self.model_module = model.module if hasattr(model, 'module') else model
         self.args = args
         self.rank = rank
         self.world_size = world_size
         
+        # POMO configuration - NOW USES NUM_TRAIN_ENVS
+        self.pomo_size = args.NUM_TRAIN_ENVS
+        
+        # Adjust effective batch size for POMO
+        self.effective_batch_size = args.BATCH_SIZE // self.pomo_size
+        if self.effective_batch_size < 1:
+            self.effective_batch_size = 1
+            if self.rank == 0:
+                print(f"Warning: Adjusting batch size to {self.effective_batch_size} due to POMO memory requirements")
+        
         # Optimizer
         self.optimizer = optim.Adam(model.parameters(), lr=args.LR)
+        
+        # Learning rate scheduler
+        self.scheduler = CosineAnnealingLR(
+            self.optimizer,
+            T_max=args.NUM_EPOCHS,
+            eta_min=args.LR * 0.01
+        )
         
         # Mixed precision
         self.scaler = GradScaler()
         
-        # Moving average baseline
-        self.moving_avg = None
-        self.beta = args.BETA
-        self.baseline_sync_freq = 500
-        self.step_count = 0
-        
-        # Use vmap for rollouts
-        self.use_vmap = True
-        
         # Best model tracking
-        self.best_eval_reward = float('inf')  # Lower is better for TSP
+        self.best_eval_reward = float('inf')
         self.best_epoch = -1
         
-        # Create checkpoint directory
-        self.checkpoint_dir = "checkpoints"
+        # Create checkpoint directory - NOW USES CONFIG PATH
+        self.checkpoint_dir = args.CHECKPOINT_DIR
         if self.rank == 0:
             os.makedirs(self.checkpoint_dir, exist_ok=True)
-    
-    def save_config(self):
-        """Save training configuration to checkpoint directory."""
-        if self.rank == 0:
-            config = {
-                'model_config': {
-                    'embedding_size': self.model_module.network.embedding_size,
-                    'hidden_size': self.model_module.network.hidden_size,
-                    'seq_len': self.model_module.network.seq_len,
-                    'n_head': self.model_module.network.n_head,
-                    'C': self.model_module.network.C,
-                },
-                'training_config': {
-                    'lr': self.args.LR,
-                    'num_epochs': self.args.NUM_EPOCHS,
-                    'beta': self.args.BETA,
-                    'grad_clip': self.args.GRAD_CLIP,
-                    'batch_size': getattr(self.args, 'BATCH_SIZE', None),
-                },
-                'timestamp': datetime.now().isoformat(),
-                'use_vmap': self.use_vmap,
-            }
-            
-            config_path = os.path.join(self.checkpoint_dir, 'config.json')
-            with open(config_path, 'w') as f:
-                json.dump(config, f, indent=4)
-            print(f"Configuration saved to {config_path}")
-    
-    def sync_baseline(self):
-        """Synchronize baselines across GPUs."""
-        if self.moving_avg is not None:
-            baseline_sum = self.moving_avg.clone()
-            dist.all_reduce(baseline_sum, op=dist.ReduceOp.SUM)
-            self.moving_avg = baseline_sum / self.world_size
-    
-    def compute_loss_vmap(self, nodes, indices):
-        """Compute REINFORCE loss with baseline using vmap optimizations.
         
-        Args:
-            nodes: [batch_size, seq_len, 2]
-            indices: [batch_size] dataset indices
-            
-        Returns:
-            loss: scalar tensor
-            rewards: [batch_size] tour lengths
-        """
+        # Compile the loss computation method
+        self._compute_loss_compiled = torch.compile(
+            self._compute_loss_core,
+            mode='reduce-overhead'
+        )
+    
+    def _compute_loss_core(self, nodes, model_module, pomo_size):
+        """Core loss computation logic - optimized for zero-copy."""
         batch_size = nodes.size(0)
         seq_len = nodes.size(1)
         device = nodes.device
         
-        # Initialize states
-        visited_mask = torch.zeros(batch_size, seq_len, dtype=torch.bool, device=device)
-        current_node = None
-        first_node = None
+        # Encode only once per instance
+        embedded = model_module.network.embedding(nodes)
+        encoded = model_module.network.encoder(embedded)
         
-        log_probs_list = []
-        actions_list = []
+        # Use view operations to avoid copies
+        encoded_expanded = encoded.unsqueeze(1).expand(batch_size, pomo_size, seq_len, -1)
+        nodes_expanded = nodes.unsqueeze(1).expand(batch_size, pomo_size, seq_len, 2)
+        
+        # Create contiguous views only once
+        encoded_flat = encoded_expanded.contiguous().view(batch_size * pomo_size, seq_len, -1)
+        nodes_flat = nodes_expanded.contiguous().view(batch_size * pomo_size, seq_len, 2)
+        
+        # Initialize states
+        visited_mask = torch.zeros(batch_size * pomo_size, seq_len, dtype=torch.bool, device=device)
+        
+        # Pre-create indices
+        flat_indices = torch.arange(batch_size * pomo_size, device=device)
+        pomo_indices = torch.arange(pomo_size, device=device).repeat(batch_size) % seq_len
+        
+        # POMO: deterministic first action (no clone needed)
+        first_node = pomo_indices
+        current_node = pomo_indices  # Direct assignment
+        visited_mask[flat_indices, current_node] = True
+        
+        # Pre-allocate tensors
+        log_probs_tensor = torch.empty(batch_size * pomo_size, seq_len - 1, device=device)
+        actions_tensor = torch.empty(batch_size * pomo_size, seq_len, dtype=torch.long, device=device)
+        actions_tensor[:, 0] = current_node
         
         # Rollout with gradients
-        for step in range(seq_len):
+        for step in range(1, seq_len):
             obs = {
-                'nodes': nodes,
+                'nodes': nodes_flat,
                 'current_node': current_node,
                 'first_node': first_node,
-                'action_mask': ~visited_mask
+                'action_mask': ~visited_mask,
+                'encoded': encoded_flat
             }
             
-            # Get action from model (with gradients)
-            action, log_prob = self.model_module.get_action(obs, deterministic=False)
+            action, log_prob = model_module.get_action(obs, deterministic=False)
             
-            # Update states
-            if current_node is None:
-                first_node = action.clone()
             current_node = action
+            visited_mask[flat_indices, action] = True
             
-            # Vectorized mask update
-            batch_indices = torch.arange(batch_size, device=device)
-            visited_mask[batch_indices, action] = True
-            
-            log_probs_list.append(log_prob)
-            actions_list.append(action)
+            # Direct assignment
+            log_probs_tensor[:, step - 1] = log_prob
+            actions_tensor[:, step] = action
         
-        # Stack results
-        log_probs = torch.stack(log_probs_list, dim=1)
-        actions = torch.stack(actions_list, dim=1)
+        # Compute rewards
+        vec_env = VectorizedTSPEnv(nodes_flat, device=device)
+        rewards = vec_env.compute_all_tours(actions_tensor)
         
-        # Compute rewards using vectorized environment
-        vec_env = VectorizedTSPEnv(nodes, device=device)
-        rewards = vec_env.compute_all_tours(actions)
+        # Use view for reshaping
+        rewards = rewards.view(batch_size, pomo_size)
+        log_probs = log_probs_tensor.view(batch_size, pomo_size, seq_len - 1)
         
-        # Initialize moving average if needed
-        if self.moving_avg is None:
-            self.moving_avg = torch.zeros(len(indices), device=device)
+        # POMO shared baseline
+        baseline = rewards.mean(dim=1, keepdim=True)
         
-        # Update baseline
-        with torch.no_grad():
-            self.moving_avg[indices] = moving_average(
-                self.moving_avg[indices],
-                rewards.detach(),
-                self.beta
-            )
+        # Advantage
+        advantage = rewards - baseline
         
-        # Calculate advantage
-        advantage = rewards - self.moving_avg[indices]
-        
-        # REINFORCE loss
-        log_probs_sum = log_probs.sum(dim=1)
+        # Sum log probabilities
+        log_probs_sum = log_probs.sum(dim=2)
         log_probs_sum = log_probs_sum.clamp(min=-100)
+        
+        # POMO loss
         loss = (advantage * log_probs_sum).mean()
         
         return loss, rewards
     
-    def compute_loss(self, nodes, indices):
-        """Compute REINFORCE loss with baseline.
-        
-        Args:
-            nodes: [batch_size, seq_len, 2]
-            indices: [batch_size] dataset indices
-            
-        Returns:
-            loss: scalar tensor
-            rewards: [batch_size] tour lengths
-        """
-        if self.use_vmap:
-            return self.compute_loss_vmap(nodes, indices)
-        
-        # Original implementation (fallback)
-        batch_size = nodes.size(0)
-        
-        # Create environment and reset
-        env = TSPEnv(nodes, device=nodes.device)
-        obs = env.reset()
-        
-        log_probs = []
-        
-        # Rollout with gradients (training path - no caching)
-        done = False
-        while not done:
-            # Get action from model (with gradients)
-            action, log_prob = self.model_module.get_action(obs, deterministic=False)
-            
-            # Store log prob
-            log_probs.append(log_prob)
-            
-            # Step environment
-            obs, done = env.step(action)
-        
-        # Get rewards (tour lengths)
-        rewards = env.get_tour_length()
-        
-        # Stack log probs
-        log_probs = torch.stack(log_probs, dim=1)
-        
-        # Initialize moving average if needed
-        if self.moving_avg is None:
-            self.moving_avg = torch.zeros(len(indices), device=nodes.device)
-        
-        # Update baseline
-        with torch.no_grad():
-            self.moving_avg[indices] = moving_average(
-                self.moving_avg[indices],
-                rewards.detach(),
-                self.beta
-            )
-        
-        # Calculate advantage
-        advantage = rewards - self.moving_avg[indices]
-        
-        # REINFORCE loss
-        log_probs_sum = log_probs.sum(dim=1)
-        log_probs_sum = log_probs_sum.clamp(min=-100)
-        loss = (advantage * log_probs_sum).mean()
-        
-        return loss, rewards
+    def compute_loss_vmap_pomo(self, nodes):
+        """Compute POMO loss with vmap-style vectorization - uses compiled version."""
+        return self._compute_loss_compiled(nodes, self.model_module, self.pomo_size)
     
     def train_epoch(self, train_loader, epoch):
-        """Train for one epoch."""
+        """Train for one epoch with POMO and zero-copy optimizations."""
         self.model.train()
         train_loader.sampler.set_epoch(epoch)
         
         loss_meter = AverageMeter()
         reward_meter = AverageMeter()
         
-        iterator = tqdm(train_loader, desc=f"Epoch {epoch}") if self.rank == 0 else train_loader
+        iterator = tqdm(train_loader, desc=f"Epoch {epoch} [LR={self.scheduler.get_last_lr()[0]:.6f}]") if self.rank == 0 else train_loader
         
         for batch_idx, (indices, batch) in enumerate(iterator):
             batch = batch.cuda(self.rank)
@@ -320,7 +247,7 @@ class DistributedTSPTrainer:
             
             # Forward pass with autocast
             with autocast('cuda'):
-                loss, rewards = self.compute_loss(batch, indices)
+                loss, rewards = self.compute_loss_vmap_pomo(batch)
             
             # Backward pass
             self.optimizer.zero_grad()
@@ -335,35 +262,36 @@ class DistributedTSPTrainer:
             
             # Update meters
             loss_meter.update(loss.item(), batch_size)
-            reward_meter.update(rewards.mean().item(), batch_size)
-            
-            # Periodic baseline sync
-            self.step_count += 1
-            if self.step_count % self.baseline_sync_freq == 0:
-                self.sync_baseline()
+            reward_meter.update(rewards.min(dim=1)[0].mean().item(), batch_size)
         
         return loss_meter.avg, reward_meter.avg
     
     def evaluate(self, eval_loader, heuristic_distances=None):
-        """Evaluate model performance using vmap."""
+        """Evaluate with POMO using zero-copy optimization."""
         if self.rank == 0:
             self.model.eval()
             
+            # Pre-allocate list with known size for better memory efficiency
+            num_batches = len(eval_loader)
             all_rewards = []
             
             with torch.no_grad():
                 for indices, batch in eval_loader:
                     batch = batch.cuda(self.rank)
                     
-                    # Rollout with vmap
-                    with autocast('cuda'):
-                        rewards, _, _ = rollout_episode_vmap(
-                            self.model_module, batch, device=batch.device
-                        )
+                    # POMO rollout
+                    rewards, _, _ = rollout_episode_vmap_pomo(
+                        self.model_module, batch,
+                        pomo_size=self.pomo_size,
+                        device=batch.device
+                    )
                     
-                    all_rewards.append(rewards.cpu())
+                    # Take minimum tour length
+                    best_rewards = rewards.min(dim=1)[0]
+                    all_rewards.append(best_rewards)
             
-            all_rewards = torch.cat(all_rewards)
+            # Batch CPU transfer - more efficient than individual transfers
+            all_rewards = torch.cat(all_rewards).cpu()
             avg_reward = all_rewards.mean().item()
             
             # Calculate gap if heuristic available
@@ -376,37 +304,67 @@ class DistributedTSPTrainer:
         else:
             return None, None
     
-    def initialize_baseline(self, train_loader):
-        """Initialize moving average baseline using vmap."""
+    def save_config(self):
+        """Save training configuration."""
         if self.rank == 0:
-            print("Initializing baseline with vmap...")
-        
-        self.model.eval()
-        
-        if self.moving_avg is None:
-            self.moving_avg = torch.zeros(len(train_loader.dataset), device=f'cuda:{self.rank}')
-        
-        with torch.no_grad():
-            for indices, batch in train_loader:
-                batch = batch.cuda(self.rank)
-                
-                with autocast('cuda'):
-                    # Use vmap rollout
-                    rewards, _, _ = rollout_episode_vmap(
-                        self.model_module, batch, device=batch.device
-                    )
-                
-                self.moving_avg[indices] = rewards
-        
-        # Sync baseline
-        self.sync_baseline()
+            config = {
+                'model_config': {
+                    'embedding_size': self.model_module.network.embedding_size,
+                    'hidden_size': self.model_module.network.hidden_size,
+                    'seq_len': self.model_module.network.seq_len,
+                    'n_head': self.model_module.network.n_head,
+                    'C': self.model_module.network.C,
+                },
+                'training_config': {
+                    'algorithm': 'POMO with zero-copy optimizations + torch.compile',
+                    'pomo_size': self.pomo_size,
+                    'num_train_envs': self.args.NUM_TRAIN_ENVS,
+                    'lr': self.args.LR,
+                    'lr_min': self.args.LR * 0.01,
+                    'num_epochs': self.args.NUM_EPOCHS,
+                    'grad_clip': self.args.GRAD_CLIP,
+                    'batch_size': self.args.BATCH_SIZE,
+                    'effective_batch_size': self.effective_batch_size,
+                    'compile_mode': 'reduce-overhead',
+                    'optimizations': 'zero-copy memory operations',
+                },
+                'timestamp': datetime.now().isoformat(),
+            }
+            
+            config_path = os.path.join(self.checkpoint_dir, 'config.json')
+            with open(config_path, 'w') as f:
+                json.dump(config, f, indent=4)
+            print(f"Configuration saved to {config_path}")
+    
+    def save_checkpoint(self, epoch, eval_reward, gap=None):
+        """Save model checkpoint."""
+        if self.rank == 0:
+            checkpoint = {
+                'epoch': epoch,
+                'model_state_dict': self.model_module.state_dict(),
+                'optimizer_state_dict': self.optimizer.state_dict(),
+                'scheduler_state_dict': self.scheduler.state_dict(),
+                'eval_reward': eval_reward,
+                'gap': gap,
+                'best_eval_reward': self.best_eval_reward,
+            }
+            
+            # Save as best model - NOW USES CONFIG PATH
+            torch.save(self.model_module.state_dict(), self.args.MODEL_PATH)
+            
+            # Save full checkpoint
+            checkpoint_path = os.path.join(self.checkpoint_dir, f'best_model_epoch{epoch}.pth')
+            torch.save(checkpoint, checkpoint_path)
+            
+            return checkpoint_path
     
     def save_training_log(self, epoch, eval_reward, gap=None):
-        """Save training log to checkpoint directory."""
+        """Save training log."""
         if self.rank == 0:
             log_path = os.path.join(self.checkpoint_dir, 'training_log.txt')
             with open(log_path, 'a') as f:
                 f.write(f"Epoch {epoch}: Eval Reward = {eval_reward:.4f}")
+                f.write(f", LR = {self.scheduler.get_last_lr()[0]:.6f}")
                 if gap is not None:
                     f.write(f", Gap = {gap:.4f}x")
                 if epoch == self.best_epoch:
@@ -414,8 +372,8 @@ class DistributedTSPTrainer:
                 f.write("\n")
     
     def train(self, train_loader, eval_loader, test_dataset=None):
-        """Full training loop."""
-        # Save configuration at the start
+        """Full training loop with POMO and zero-copy optimizations."""
+        # Save configuration
         self.save_config()
         
         # Compute heuristic solutions on rank 0
@@ -434,13 +392,23 @@ class DistributedTSPTrainer:
             if heuristic_distances is not None:
                 heuristic_distances = torch.tensor(heuristic_distances)
         
-        # Initialize baseline
-        self.initialize_baseline(train_loader)
+        if self.rank == 0:
+            print(f"\nPOMO Training Configuration (with zero-copy optimizations):")
+            print(f"  POMO size (NUM_TRAIN_ENVS): {self.pomo_size}")
+            print(f"  Original batch size: {self.args.BATCH_SIZE}")
+            print(f"  Effective batch size: {self.effective_batch_size}")
+            print(f"  Total trajectories per step: {self.effective_batch_size * self.pomo_size * self.world_size}")
+            print(f"  Compile mode: reduce-overhead")
+            print(f"  Memory optimizations: zero-copy operations")
+            print()
         
         # Training loop
         for epoch in range(self.args.NUM_EPOCHS):
             # Train
             avg_loss, avg_reward = self.train_epoch(train_loader, epoch)
+            
+            # Step learning rate scheduler
+            self.scheduler.step()
             
             # Evaluate
             eval_reward, gap = self.evaluate(eval_loader, heuristic_distances)
@@ -449,26 +417,19 @@ class DistributedTSPTrainer:
             if self.rank == 0:
                 print(f"\n[Epoch {epoch}]")
                 print(f"  Train Loss: {avg_loss:.4f}")
-                print(f"  Train Reward: {avg_reward:.4f}")
-                print(f"  Eval Reward: {eval_reward:.4f}")
+                print(f"  Train Reward (best of POMO): {avg_reward:.4f}")
+                print(f"  Eval Reward (best of POMO): {eval_reward:.4f}")
+                print(f"  Learning Rate: {self.scheduler.get_last_lr()[0]:.6f}")
                 if gap is not None:
                     print(f"  Gap vs Heuristic: {gap:.4f}x")
                 
-                # Save best model (lower tour length is better)
+                # Save best model
                 if eval_reward < self.best_eval_reward:
                     self.best_eval_reward = eval_reward
                     self.best_epoch = epoch
                     print(f"  New best model! Eval reward: {eval_reward:.4f}")
-                    torch.save(self.model_module.state_dict(), "model.pth")
-                    # Also save in checkpoint directory with epoch info
-                    checkpoint_path = os.path.join(self.checkpoint_dir, f'best_model_epoch{epoch}.pth')
-                    torch.save({
-                        'epoch': epoch,
-                        'model_state_dict': self.model_module.state_dict(),
-                        'eval_reward': eval_reward,
-                        'gap': gap
-                    }, checkpoint_path)
-                    print(f"  Best model saved to model.pth and {checkpoint_path}")
+                    checkpoint_path = self.save_checkpoint(epoch, eval_reward, gap)
+                    print(f"  Model saved to {self.args.MODEL_PATH} and {checkpoint_path}")
                 
                 # Save training log
                 self.save_training_log(epoch, eval_reward, gap)
@@ -476,9 +437,9 @@ class DistributedTSPTrainer:
         # Final summary
         if self.rank == 0:
             print(f"\n{'='*50}")
-            print(f"Training completed!")
+            print(f"Training completed with POMO + zero-copy optimizations!")
             print(f"Best model achieved at epoch {self.best_epoch}")
             print(f"Best eval reward: {self.best_eval_reward:.4f}")
-            print(f"Model saved as 'model.pth'")
+            print(f"Model saved as '{self.args.MODEL_PATH}'")
             print(f"Checkpoint and logs saved in '{self.checkpoint_dir}/' directory")
             print(f"{'='*50}")

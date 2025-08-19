@@ -1,323 +1,242 @@
-#!/usr/bin/env python
-"""TSP Model Inference Script for evaluation."""
+# inference.py
 
+import torch
+import torch.nn.functional as F
+from tqdm import tqdm
+import numpy as np
 import os
 import json
-import time
-import argparse
-import torch
-import numpy as np
-from tqdm import tqdm
-from pathlib import Path
 
 from models import TSPActor
 from dataset import TSPDataset
 from env import VectorizedTSPEnv
 from utils import get_heuristic_solution
-import config as default_config
+import config as args
 
 
-def load_model(checkpoint_path, device='cuda'):
-    """Load trained model from checkpoint.
-    
-    Args:
-        checkpoint_path: Path to model checkpoint
-        device: Device to load model on
-        
-    Returns:
-        model: Loaded TSPActor model
-        config: Model configuration
-    """
-    # Try to load config from checkpoint directory
-    config_path = Path(checkpoint_path).parent / 'config.json'
-    if config_path.exists():
-        with open(config_path, 'r') as f:
-            saved_config = json.load(f)
-            model_config = saved_config['model_config']
-    else:
-        # Fall back to default config
-        print("Warning: No config.json found, using default configuration")
-        model_config = {
-            'embedding_size': default_config.EMBEDDING_SIZE,
-            'hidden_size': default_config.HIDDEN_SIZE,
-            'seq_len': default_config.SEQ_LEN,
-            'n_head': default_config.N_HEAD,
-            'C': default_config.C,
-        }
-    
-    # Create model
+def load_model(model_path, device='cuda'):
+    """Load trained model from checkpoint."""
     model = TSPActor(
-        embedding_size=model_config['embedding_size'],
-        hidden_size=model_config['hidden_size'],
-        seq_len=model_config['seq_len'],
-        n_head=model_config['n_head'],
-        C=model_config['C']
+        embedding_size=args.EMBEDDING_SIZE,
+        hidden_size=args.HIDDEN_SIZE,
+        seq_len=args.SEQ_LEN,
+        n_head=args.N_HEAD,
+        C=args.C
     ).to(device)
     
-    # Load checkpoint
-    if checkpoint_path.endswith('.pth'):
-        checkpoint = torch.load(checkpoint_path, map_location=device)
-        if isinstance(checkpoint, dict) and 'model_state_dict' in checkpoint:
-            model.load_state_dict(checkpoint['model_state_dict'])
-        else:
-            model.load_state_dict(checkpoint)
+    checkpoint = torch.load(model_path, map_location=device)
+    if isinstance(checkpoint, dict) and 'model_state_dict' in checkpoint:
+        model.load_state_dict(checkpoint['model_state_dict'])
     else:
-        raise ValueError(f"Invalid checkpoint path: {checkpoint_path}")
+        model.load_state_dict(checkpoint)
     
     model.eval()
-    return model, model_config
+    return model
 
 
-def rollout_batch(model, nodes, device='cuda', greedy=False):
-    """Perform batch rollout for TSP instances.
+@torch.no_grad()
+def rollout_inference(model, nodes, num_rollouts=None, device='cuda'):
+    """POMO rollout for inference - optimized version.
     
     Args:
         model: TSPActor model
-        nodes: [batch_size, seq_len, 2] node coordinates
-        device: Device to run on
-        greedy: If True, use greedy decoding
-        
+        nodes: [batch_size, seq_len, 2]
+        num_rollouts: Number of parallel rollouts (default: seq_len for POMO)
+    
     Returns:
-        tour_lengths: [batch_size] tour lengths
-        tours: [batch_size, seq_len] tour indices
+        best_tours: [batch_size, seq_len] - best tour for each instance
+        best_lengths: [batch_size] - length of best tours
     """
     batch_size = nodes.size(0)
     seq_len = nodes.size(1)
+    if num_rollouts is None:
+        num_rollouts = seq_len
     
     # Pre-compute encoder embeddings once
-    with torch.no_grad():
-        embedded = model.network.embedding(nodes)
-        encoded = model.network.encoder(embedded)
+    embedded = model.network.embedding(nodes)
+    encoded = model.network.encoder(embedded)
     
-    # Initialize state
-    visited_mask = torch.zeros(batch_size, seq_len, dtype=torch.bool, device=device)
-    current_node = None
-    first_node = None
-    tours = []
+    # Expand for parallel rollouts
+    encoded_expanded = encoded.unsqueeze(1).expand(batch_size, num_rollouts, seq_len, -1)
+    nodes_expanded = nodes.unsqueeze(1).expand(batch_size, num_rollouts, seq_len, 2)
     
-    # Rollout loop
-    for step in range(seq_len):
+    encoded_flat = encoded_expanded.contiguous().view(batch_size * num_rollouts, seq_len, -1)
+    nodes_flat = nodes_expanded.contiguous().view(batch_size * num_rollouts, seq_len, 2)
+    
+    # Initialize states
+    visited_mask = torch.zeros(batch_size * num_rollouts, seq_len, dtype=torch.bool, device=device)
+    flat_indices = torch.arange(batch_size * num_rollouts, device=device)
+    
+    # POMO: Different starting nodes
+    pomo_indices = torch.arange(num_rollouts, device=device).repeat(batch_size) % seq_len
+    first_node = pomo_indices
+    current_node = pomo_indices
+    visited_mask[flat_indices, current_node] = True
+    
+    # Store actions
+    actions_tensor = torch.empty(batch_size * num_rollouts, seq_len, dtype=torch.long, device=device)
+    actions_tensor[:, 0] = current_node
+    
+    # Rollout
+    for step in range(1, seq_len):
         obs = {
-            'nodes': nodes,
+            'nodes': nodes_flat,
             'current_node': current_node,
             'first_node': first_node,
             'action_mask': ~visited_mask,
-            'encoded': encoded  # Use cached encoding
+            'encoded': encoded_flat
         }
         
-        with torch.no_grad():
-            if greedy:
-                # Greedy selection
-                logits = model.network(obs)
-                action = logits.argmax(dim=-1)
-            else:
-                # Sample from policy
-                action, _ = model.get_action(obs, deterministic=False)
+        # Greedy action selection for inference
+        logits = model.network(obs)
+        action = logits.argmax(dim=-1)
         
-        # Update state
-        if current_node is None:
-            first_node = action.clone()
         current_node = action
-        
-        # Update visited mask
-        batch_indices = torch.arange(batch_size, device=device)
-        visited_mask[batch_indices, action] = True
-        tours.append(action)
-    
-    # Stack tour indices
-    tours = torch.stack(tours, dim=1)
+        visited_mask[flat_indices, action] = True
+        actions_tensor[:, step] = action
     
     # Compute tour lengths
-    vec_env = VectorizedTSPEnv(nodes, device=device)
-    tour_lengths = vec_env.compute_all_tours(tours)
+    vec_env = VectorizedTSPEnv(nodes_flat, device=device)
+    tour_lengths = vec_env.compute_all_tours(actions_tensor)
     
-    return tour_lengths, tours
+    # Reshape and find best tours
+    tour_lengths = tour_lengths.view(batch_size, num_rollouts)
+    actions = actions_tensor.view(batch_size, num_rollouts, seq_len)
+    
+    # Get best tour for each instance
+    best_indices = tour_lengths.argmin(dim=1)
+    best_lengths = tour_lengths.gather(1, best_indices.unsqueeze(1)).squeeze(1)
+    best_tours = actions.gather(1, best_indices.unsqueeze(1).unsqueeze(2).expand(-1, -1, seq_len)).squeeze(1)
+    
+    return best_tours, best_lengths
 
 
-def evaluate_model(model, test_dataset, batch_size=256, device='cuda', 
-                  use_heuristic=True, num_samples=10, greedy=False):
-    """Evaluate model on test dataset.
+def inference_on_dataset(model, dataset, batch_size=None, device='cuda'):
+    """Run inference on entire dataset.
     
-    Args:
-        model: TSPActor model
-        test_dataset: TSPDataset to evaluate on
-        batch_size: Batch size for evaluation
-        device: Device to run on
-        use_heuristic: If True, compare with heuristic solution
-        num_samples: Number of samples per instance (for stochastic policy)
-        greedy: If True, use greedy decoding
-        
     Returns:
-        results: Dictionary with evaluation metrics
+        all_tours: List of best tours
+        all_lengths: Tensor of tour lengths
+        heuristic_gap: Average gap vs heuristic (if available)
     """
-    model.eval()
+    if batch_size is None:
+        batch_size = args.INFERENCE_BATCH_SIZE
     
-    # Prepare data
-    all_nodes = torch.stack([test_dataset[i][1] for i in range(len(test_dataset))])
-    num_instances = len(test_dataset)
+    all_tours = []
+    all_lengths = []
     
-    # Results storage
-    model_lengths = []
-    heuristic_lengths = []
+    # Create batches
+    num_samples = len(dataset)
+    num_batches = (num_samples + batch_size - 1) // batch_size
     
-    # Compute heuristic solutions if requested
-    if use_heuristic:
-        print("Computing heuristic solutions...")
-        for i in tqdm(range(num_instances)):
-            nodes = all_nodes[i]
-            heur_len = get_heuristic_solution(nodes)
-            if heur_len is not None:
-                heuristic_lengths.append(heur_len)
+    print(f"Running inference on {num_samples} instances...")
+    for batch_idx in tqdm(range(num_batches)):
+        start_idx = batch_idx * batch_size
+        end_idx = min(start_idx + batch_size, num_samples)
+        
+        # Gather batch
+        batch_nodes = []
+        for i in range(start_idx, end_idx):
+            _, nodes = dataset[i]
+            batch_nodes.append(nodes)
+        
+        batch_nodes = torch.stack(batch_nodes).to(device)
+        
+        # Run inference
+        tours, lengths = rollout_inference(
+            model, batch_nodes, 
+            num_rollouts=args.NUM_INFERENCE_ENVS,
+            device=device
+        )
+        
+        all_tours.extend(tours.cpu().numpy())
+        all_lengths.append(lengths.cpu())
+    
+    all_lengths = torch.cat(all_lengths)
+    
+    # Calculate heuristic gap if available
+    heuristic_gap = None
+    if args.COMPUTE_HEURISTIC_GAP:
+        print("Computing heuristic solutions for comparison...")
+        heuristic_lengths = []
+        
+        for i in tqdm(range(num_samples)):
+            _, nodes = dataset[i]
+            h_length = get_heuristic_solution(nodes)
+            if h_length is not None:
+                heuristic_lengths.append(h_length)
             else:
                 print("Warning: elkai not available, skipping heuristic comparison")
-                use_heuristic = False
                 break
         
-        if use_heuristic:
+        if len(heuristic_lengths) == num_samples:
             heuristic_lengths = torch.tensor(heuristic_lengths)
+            gap = (all_lengths / heuristic_lengths).mean().item()
+            heuristic_gap = gap
+            print(f"Average gap vs heuristic: {gap:.4f}x")
     
-    # Evaluate model
-    print(f"Evaluating model ({'greedy' if greedy else f'sampling {num_samples} times'})...")
-    
-    for batch_start in tqdm(range(0, num_instances, batch_size)):
-        batch_end = min(batch_start + batch_size, num_instances)
-        batch_nodes = all_nodes[batch_start:batch_end].to(device)
-        batch_size_actual = batch_nodes.size(0)
-        
-        if greedy or num_samples == 1:
-            # Single rollout per instance
-            lengths, _ = rollout_batch(model, batch_nodes, device, greedy=greedy)
-            model_lengths.append(lengths.cpu())
-        else:
-            # Multiple samples per instance
-            batch_best_lengths = torch.full((batch_size_actual,), float('inf'))
-            
-            for _ in range(num_samples):
-                lengths, _ = rollout_batch(model, batch_nodes, device, greedy=False)
-                batch_best_lengths = torch.minimum(batch_best_lengths, lengths.cpu())
-            
-            model_lengths.append(batch_best_lengths)
-    
-    # Concatenate results
-    model_lengths = torch.cat(model_lengths)
-    
-    # Compute statistics
-    results = {
-        'num_instances': num_instances,
-        'model_mean_length': model_lengths.mean().item(),
-        'model_std_length': model_lengths.std().item(),
-        'model_min_length': model_lengths.min().item(),
-        'model_max_length': model_lengths.max().item(),
-    }
-    
-    if use_heuristic:
-        gaps = model_lengths / heuristic_lengths
-        results.update({
-            'heuristic_mean_length': heuristic_lengths.mean().item(),
-            'mean_gap': gaps.mean().item(),
-            'std_gap': gaps.std().item(),
-            'min_gap': gaps.min().item(),
-            'max_gap': gaps.max().item(),
-            'num_better_than_heuristic': (gaps < 1.0).sum().item(),
-        })
-    
-    return results
+    return all_tours, all_lengths, heuristic_gap
 
 
 def main():
-    parser = argparse.ArgumentParser(description='TSP Model Inference')
-    parser.add_argument('--checkpoint', type=str, default='model.pth',
-                       help='Path to model checkpoint')
-    parser.add_argument('--num_nodes', type=int, default=30,
-                       help='Number of nodes in TSP instances')
-    parser.add_argument('--num_test', type=int, default=2000,
-                       help='Number of test instances')
-    parser.add_argument('--batch_size', type=int, default=256,
-                       help='Batch size for evaluation')
-    parser.add_argument('--num_samples', type=int, default=1,
-                       help='Number of samples per instance (1 for greedy)')
-    parser.add_argument('--greedy', action='store_true',
-                       help='Use greedy decoding instead of sampling')
-    parser.add_argument('--no_heuristic', action='store_true',
-                       help='Skip heuristic comparison')
-    parser.add_argument('--seed', type=int, default=111,
-                       help='Random seed')
-    parser.add_argument('--device', type=str, default='cuda',
-                       help='Device to use (cuda/cpu)')
-    
-    args = parser.parse_args()
-    
-    # Set device
-    if args.device == 'cuda' and not torch.cuda.is_available():
-        print("CUDA not available, using CPU")
-        args.device = 'cpu'
-    device = torch.device(args.device)
-    
-    # Set random seed
-    torch.manual_seed(args.seed)
-    if args.device == 'cuda':
-        torch.cuda.manual_seed(args.seed)
+    """Main inference function."""
+    device = 'cuda' if torch.cuda.is_available() and args.USE_CUDA else 'cpu'
     
     # Load model
-    print(f"Loading model from {args.checkpoint}...")
-    model, config = load_model(args.checkpoint, device)
-    
-    # Verify node count matches model
-    if config['seq_len'] != args.num_nodes:
-        print(f"Warning: Model trained on {config['seq_len']} nodes, "
-              f"but testing on {args.num_nodes} nodes")
-        args.num_nodes = config['seq_len']
+    print(f"Loading model from {args.MODEL_PATH}...")
+    model = load_model(args.MODEL_PATH, device)
     
     # Create test dataset
-    print(f"Creating test dataset with {args.num_test} instances...")
-    test_dataset = TSPDataset(args.num_nodes, args.num_test, random_seed=args.seed)
+    test_dataset = TSPDataset(args.SEQ_LEN, args.NUM_TEST_SAMPLES, args.TEST_SEED)
     
-    # Evaluate model
-    print("\nStarting evaluation...")
-    start_time = time.time()
+    # Run inference
+    print(f"\nInference Configuration:")
+    print(f"  Problem size: {args.SEQ_LEN}")
+    print(f"  Test samples: {args.NUM_TEST_SAMPLES}")
+    print(f"  Inference batch size: {args.INFERENCE_BATCH_SIZE}")
+    print(f"  Number of parallel rollouts: {args.NUM_INFERENCE_ENVS}")
+    print(f"  Device: {device}")
+    print()
     
-    results = evaluate_model(
-        model, 
-        test_dataset,
-        batch_size=args.batch_size,
-        device=device,
-        use_heuristic=not args.no_heuristic,
-        num_samples=args.num_samples,
-        greedy=args.greedy
-    )
+    tours, lengths, gap = inference_on_dataset(model, test_dataset, device=device)
     
-    eval_time = time.time() - start_time
+    # Print statistics
+    print(f"\nResults:")
+    print(f"  Average tour length: {lengths.mean().item():.4f}")
+    print(f"  Best tour length: {lengths.min().item():.4f}")
+    print(f"  Worst tour length: {lengths.max().item():.4f}")
+    print(f"  Std deviation: {lengths.std().item():.4f}")
     
-    # Print results
-    print("\n" + "="*50)
-    print("EVALUATION RESULTS")
-    print("="*50)
-    print(f"Number of instances: {results['num_instances']}")
-    print(f"Model mean tour length: {results['model_mean_length']:.4f}")
-    print(f"Model std tour length: {results['model_std_length']:.4f}")
-    print(f"Model min tour length: {results['model_min_length']:.4f}")
-    print(f"Model max tour length: {results['model_max_length']:.4f}")
+    if gap is not None:
+        print(f"  Gap vs heuristic: {gap:.4f}x")
     
-    if 'mean_gap' in results:
-        print("\nComparison with heuristic (LKH):")
-        print(f"Heuristic mean length: {results['heuristic_mean_length']:.4f}")
-        print(f"Mean gap (model/heuristic): {results['mean_gap']:.4f}x")
-        print(f"Std gap: {results['std_gap']:.4f}")
-        print(f"Min gap: {results['min_gap']:.4f}x")
-        print(f"Max gap: {results['max_gap']:.4f}x")
-        print(f"Instances better than heuristic: {results['num_better_than_heuristic']}/{results['num_instances']}")
-    
-    print(f"\nEvaluation time: {eval_time:.2f} seconds")
-    print(f"Time per instance: {eval_time/results['num_instances']*1000:.2f} ms")
-    
-    # Save results
-    results_path = Path(args.checkpoint).parent / 'inference_results.json'
-    results['eval_time'] = eval_time
-    results['args'] = vars(args)
-    
-    with open(results_path, 'w') as f:
-        json.dump(results, f, indent=4)
-    print(f"\nResults saved to {results_path}")
+    # Save results if requested
+    if args.SAVE_RESULTS:
+        results = {
+            'tours': [tour.tolist() for tour in tours],
+            'lengths': lengths.tolist(),
+            'statistics': {
+                'mean': lengths.mean().item(),
+                'min': lengths.min().item(),
+                'max': lengths.max().item(),
+                'std': lengths.std().item(),
+                'gap': gap
+            },
+            'config': {
+                'seq_len': args.SEQ_LEN,
+                'num_samples': args.NUM_TEST_SAMPLES,
+                'num_rollouts': args.NUM_INFERENCE_ENVS,
+                'model_path': args.MODEL_PATH
+            }
+        }
+        
+        os.makedirs(args.RESULTS_DIR, exist_ok=True)
+        results_path = os.path.join(args.RESULTS_DIR, args.RESULTS_FILENAME)
+        
+        with open(results_path, 'w') as f:
+            json.dump(results, f, indent=2)
+        
+        print(f"\nResults saved to {results_path}")
 
 
 if __name__ == '__main__':
