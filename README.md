@@ -83,7 +83,7 @@ RLSolver crosses two domains: operations research (OR) and RL. Commercial solver
 	</div>
 </a>  
 
-__Sparse-rewards Pattern (I)__: The rewards are given when the goal is finished, and therefore are sparse. RL-based heuristic formulates the CO problem as Markov decision process (MDP), and then use RL algorithms to select the node and add it into a node set. There are three important functions for a gym-style environment:  
+__Sparse-rewards Pattern (I)__: The rewards are given when the goal is finished, and therefore are sparse. We formulate the CO problem as Markov decision process (MDP), and then use RL algorithms to select the node and add it into a node set. There are three important functions for a gym-style environment:  
 - reset(): Set the selected nodes as an empty set. 
 - step(): Select the node with the maximum Q-value and then add it to the set.  
 - reward(): Calculate the objective values over all parallel environments.
