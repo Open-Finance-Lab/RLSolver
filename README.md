@@ -33,13 +33,9 @@ The bottleneck of using RL for solving large-scale CO problems especially in dis
 Existing CPU-based environments have two significant disadvantages: 1) The number of CPU cores is typically small, generally ranging from 16 to 256, resulting in a small number of parallel environments. 2) The communication link between CPUs and GPUs has limited bandwidth. The massively parallel environments can overcome these disadvantages, since we can build thounsands of environments and the communication bottleneck between CPUs and GPUs is bypassed; therefore the sampling speed is significantly improved. 
 
 # Improving the Sampling Speed
-<a target="\_blank">
-	<div align="center">
-		<img src=rlsolver/fig/sampling_efficiency_maxcut.png width="80%"/>
-	</div>
-</a> 
 
-The sampling speed denotes the number of collect samples per second. From the above figures, we used CPU and GPU based environments. We see that the sampling speed is improved by at least 2 orders by using GPU-based massively parallel environments compared with conventional CPUs.
+
+The sampling speed denotes the number of collect samples per second. We used CPU and GPU based environments. We see that the sampling speed is improved by at least 2 orders by using GPU-based massively parallel environments compared with conventional CPUs.
 
 <a target="\_blank">
 	<div align="center">
