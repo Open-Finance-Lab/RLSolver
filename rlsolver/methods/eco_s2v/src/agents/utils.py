@@ -374,7 +374,7 @@ class Logger:
     def __init__(self, save_path, args, n_sims):
         self._memory = {}
         self._saves = 0
-        self._maxsize = NB_STEPS
+        self._maxsize = NUM_STEPS
         self._dumps = 0
         self.save_path = save_path
         self.result = {}

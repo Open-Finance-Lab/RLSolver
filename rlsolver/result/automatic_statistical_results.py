@@ -25,14 +25,17 @@ def extract_data_from_file(file_path):
 def process_folder(result_folder_path, total_result_folder):
     all_dirs = os.listdir(result_folder_path)
 
-    categories = {
-        'gset': [d for d in all_dirs if d.startswith('gset')],
-        'BA': [d for d in all_dirs if 'BA' in d.upper()],
-        'ER': [d for d in all_dirs if 'ER' in d.upper()],
-        'PL': [d for d in all_dirs if 'PL' in d.upper()]
-    }
+    # categories = {
+    #     'gset': [d for d in all_dirs if d.startswith('gset')],
+    #     'BA': [d for d in all_dirs if 'BA' in d.upper()],
+    #     'ER': [d for d in all_dirs if 'ER' in d.upper()],
+    #     'PL': [d for d in all_dirs if 'PL' in d.upper()]
+    # }
 
-    for category, dirs in categories.items():
+    categories = list(set([i.split("_")[0] for i in all_dirs]))
+
+    for category in categories:
+        dirs = [d for d in all_dirs if d.startswith(category)]
         summary_data = {}
 
         for dir_name in dirs:
@@ -131,7 +134,7 @@ def rename_files_with_prefix(old_prefix: str, new_prefix: str, directory: str):
 
 if __name__ == "__main__":
 
-    exe_rename = True
+    exe_rename = False
     if exe_rename:
         # old_prefix = 'barabasi_albert'
         # new_prefix = 'BA'
@@ -139,12 +142,12 @@ if __name__ == "__main__":
         new_prefix = 'ER'
         # old_prefix = 'powerlaw'
         # new_prefix = 'PL'
-        directory = r'D:/cs/RLSolver_data_result/result_maxcut/syn_ER_gurobi_QUBO'
+        directory = r'/home/mingzhu/cs/RLSolver_data_result/result_maxcut/synER_gurobiQUBO'
         rename_files_with_prefix(old_prefix, new_prefix, directory)
 
     exe_stat = True
     if exe_stat:
-        result_folder_path = r'D:/cs/RLSolver_data_result/result_maxcut'  # 替换为实际路径
+        result_folder_path = r'/home/mingzhu/cs/RLSolver_data_result/result_maxcut'  # 替换为实际路径
         total_result_folder = r'./output'  # 替换为要存放结果的路径
 
         if os.path.exists(total_result_folder):

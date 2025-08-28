@@ -52,14 +52,14 @@ def run(save_loc):
 
     if GRAPH_TYPE == GraphType.ER:
         train_graph_generator = RandomErdosRenyiGraphGenerator(n_spins=n_spins_train, p_connection=0.15,
-                                                               edge_type=EdgeType.DISCRETE, n_sims=NUM_TRAIN_SIMS, device=TRAIN_DEVICE)
+                                                               edge_type=EdgeType.DISCRETE, n_sims=NUM_TRAIN_ENVS, device=TRAIN_DEVICE)
     if GRAPH_TYPE == GraphType.BA:
         train_graph_generator = RandomBarabasiAlbertGraphGenerator(n_spins=n_spins_train, m_insertion_edges=4,
-                                                                   edge_type=EdgeType.DISCRETE, n_sims=NUM_TRAIN_SIMS, device=TRAIN_DEVICE)
+                                                                   edge_type=EdgeType.DISCRETE, n_sims=NUM_TRAIN_ENVS, device=TRAIN_DEVICE)
 
     validation_graph_generator = ValidationGraphGenerator(n_spins=NUM_VALIDATION_NODES, graph_type=GRAPH_TYPE,
                                                           edge_type=EdgeType.DISCRETE, device=TRAIN_DEVICE,
-                                                          n_sims=NUM_VALIDATION_SIMS, seed=VALIDATION_SEED)
+                                                          n_sims=NUM_VALIDATION_ENVS, seed=VALIDATION_SEED)
 
     ####
     # Pre-generated test graphs
@@ -76,7 +76,7 @@ def run(save_loc):
                                 train_graph_generator,
                                 int(n_spins_train * step_fact),
                                 **env_args, device=device,
-                                n_sims=NUM_TRAIN_SIMS)
+                                n_sims=NUM_TRAIN_ENVS)
 
     n_spins_test = validation_graph_generator.get().shape[1]
     test_envs = ising_env.make("SpinSystem",
@@ -98,8 +98,6 @@ def run(save_loc):
     ####################################################
     # SET UP AGENT
     ####################################################
-
-    nb_steps = NB_STEPS
 
     network_fn = lambda: MPNN(n_obs_in=train_envs.observation_space.shape[1],
                               n_layers=3,
@@ -153,18 +151,11 @@ def run(save_loc):
         'buffer_device': BUFFER_DEVICE, # added
     }
     args['args'] = args
-    # if TEST_SAMPLING_SPEED:
-    #     nb_steps = int(2e4)
-    #     args['test_obj_frequency'] = args['update_target_frequency'] = args['update_frequency'] = args[
-    #         'save_network_frequency'] = 1e6
-    #     args['replay_start_size'] = args['initial_exploration_rate'] =0
-    #     args['replay_buffer_size'] = NUM_TRAIN_SIMS
-    #     args['update_exploration'] = False
     agent = DQN(**args)
     #############
     # TRAIN AGENT
     #############
-    agent.learn(timesteps=nb_steps, start_time=start_time, verbose=True)
+    agent.learn(timesteps=NUM_STEPS, start_time=start_time, verbose=True)
 
 
 if __name__ == "__main__":

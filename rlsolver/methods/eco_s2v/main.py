@@ -30,8 +30,8 @@ if TRAIN_INFERENCE == 1:
         from rlsolver.methods.eco_s2v.train_and_inference.inference_eeco import run
 
         run(graph_folder=DATA_DIR,
-            n_sims=NUM_INFERENCE_SIMS,
-            mini_sims=MINI_INFERENCE_SIMS)
+            n_sims=NUM_INFERENCE_ENVS,
+            mini_sims=MINI_INFERENCE_ENVS)
     elif ALG == Alg.eco or ALG == Alg.s2v:
         from rlsolver.methods.eco_s2v.train_and_inference.inference import run
 
@@ -40,11 +40,11 @@ if TRAIN_INFERENCE == 1:
     elif ALG == Alg.jumanji:
         from rlsolver.methods.eco_s2v.jumanji.train_and_inference.inference import run
 
-        run(graph_folder=DATA_DIR, n_sims=NUM_INFERENCE_SIMS, mini_sims=MINI_INFERENCE_SIMS)
+        run(graph_folder=DATA_DIR, n_sims=NUM_INFERENCE_ENVS, mini_sims=MINI_INFERENCE_ENVS)
     elif ALG == Alg.rl4co:
         from rlsolver.methods.eco_s2v.rl4co.inference import run
 
-        run(graph_dir=RL4CO_GRAPH_DIR, n_sims=NUM_INFERENCE_SIMS)
+        run(graph_dir=RL4CO_GRAPH_DIR, n_sims=NUM_INFERENCE_ENVS)
     else:
         raise ValueError('Algorithm not recognized')
 running_duration = time.time() - start_time

@@ -29,7 +29,7 @@ def run(graph_folder, n_sims, mini_sims):
     print("Testing network: ", network_save_path)
     env_args_ = {
         'env_name': 'maxcut',
-        'num_envs': NUM_TRAIN_SIMS,
+        'num_envs': NUM_TRAIN_ENVS,
         'num_nodes': NUM_TRAIN_NODES,
         'state_dim': 2,
         'action_dim': 1,
