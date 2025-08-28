@@ -19,15 +19,15 @@ class Problem(Enum):
     graph_partitioning = "graph_partitioning"
     number_partitioning = "number_partitioning"
     minimum_vertex_cover = "minimum_vertex_cover"
-    bilp = "bilp"
-    maximum_independent_set = "maximum_independent_set"
+    BILP = "BILP"
+    MIS = "MIS" # maximum_independent_set
     knapsack = "knapsack"
     set_cover = "set_cover"
     graph_coloring = "graph_coloring"
     portfolio_allocation = "portfolio_allocation"
-    tnco = "tnco"
-    vrp = "vrp"
-    tsp = "tsp"
+    TNCO = "TNCO"
+    VRP = "VRP"
+    TSP = "TSP"
 PROBLEM = Problem.maxcut
 
 GPU_ID: int = 0  # -1: cpu, >=0: gpu
@@ -42,7 +42,6 @@ GRAPH_TYPE = GraphType.PL
 GRAPH_TYPES: List[GraphType] = [GraphType.ER, GraphType.PL, GraphType.BA]
     # graph_types = ["erdos_renyi", "powerlaw", "barabasi_albert"]
 NUM_IDS = 30  # ID0, ..., ID29
-
 
 
 INF = 1e6

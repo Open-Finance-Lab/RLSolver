@@ -145,7 +145,7 @@ def run(neural_network_folder, n_sims, mini_sims, num_generated_instances, alg, 
 
 if __name__ == "__main__":
     LOCAL_SEARCH_FREQUENCY = 10000000000
-    run(neural_network_folder=NEURAL_NETWORK_FOLDER, n_sims=NUM_INFERENCE_SIMS,
-        mini_sims=MINI_INFERENCE_SIMS, num_generated_instances=NUM_GENERATED_INSTANCES_IN_SELECT_BEST,
+    run(neural_network_folder=NEURAL_NETWORK_FOLDER, n_sims=NUM_INFERENCE_ENVS,
+        mini_sims=MINI_INFERENCE_ENVS, num_generated_instances=NUM_GENERATED_INSTANCES_IN_SELECT_BEST,
         alg=ALG, num_nodes=NUM_TRAINED_NODES_IN_INFERENCE,
         graph_type=GRAPH_TYPE)

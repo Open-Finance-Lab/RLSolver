@@ -14,7 +14,7 @@ from rlsolver.methods.eco_s2v.rl4co.models import S2VModel
 from rlsolver.methods.eco_s2v.config import *
 
 
-def run(graph_dir=DATA_DIR, n_sims=NUM_INFERENCE_SIMS):
+def run(graph_dir=DATA_DIR, n_sims=NUM_INFERENCE_ENVS):
     torch.set_grad_enabled(False)
     device = INFERENCE_DEVICE
 

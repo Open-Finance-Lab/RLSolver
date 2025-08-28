@@ -103,7 +103,6 @@ def run(save_loc):
     # SET UP AGENT
     ####################################################
 
-    nb_steps = NB_STEPS
 
     network_fn = lambda: MPNN(n_obs_in=train_envs[0].observation_space.shape[1],
                               n_layers=3,
@@ -117,7 +116,7 @@ def run(save_loc):
         'init_weight_std': 0.01,
         'double_dqn': True,
         'clip_Q_targets': False,
-        'replay_start_size': int(round(REPLAY_START_SIZE / (NUM_TRAIN_SIMS))),
+        'replay_start_size': int(round(REPLAY_START_SIZE / (NUM_TRAIN_ENVS))),
         'replay_buffer_size': REPLAY_BUFFER_SIZE,
         'gamma': gamma,
         'update_learning_rate': False,
@@ -136,8 +135,8 @@ def run(save_loc):
         'adam_epsilon': 1e-8,
         'logging': True,
         'evaluate': True,
-        'update_target_frequency': max(1, int(round(UPDATE_TARGET_FREQUENCY / (NUM_TRAIN_SIMS)))),
-        'update_frequency': max(1, int(UPDATE_FREQUENCY / (NUM_TRAIN_SIMS))),
+        'update_target_frequency': max(1, int(round(UPDATE_TARGET_FREQUENCY / (NUM_TRAIN_ENVS)))),
+        'update_frequency': max(1, int(UPDATE_FREQUENCY / (NUM_TRAIN_ENVS))),
         'save_network_frequency': SAVE_NETWORK_FREQUENCY,
         'loss': "mse",
         'network_save_path': network_save_path,
@@ -151,7 +150,7 @@ def run(save_loc):
         'test_sampling_speed': TEST_SAMPLING_SPEED
     }
     # if TEST_SAMPLING_SPEED:
-    #         nb_steps = 2000
+    #         NUM_STEPS = 2000
     #         args['test_obj_frequency']=args['update_target_frequency']=args['update_frequency']=args['save_network_frequency']=1e6
     #         args['replay_start_size'] = 0
     agent = DQN(**args)
@@ -162,10 +161,10 @@ def run(save_loc):
     # TRAIN AGENT
     #############
     sampling_start_time = time.time()
-    agent.learn(timesteps=nb_steps, start_time=start_time, verbose=True)
+    agent.learn(timesteps=NUM_STEPS, start_time=start_time, verbose=True)
     print(time.time() - start_time)
     if TEST_SAMPLING_SPEED:
-        sampling_speed = NUM_TRAIN_SIMS * nb_steps / (time.time() - sampling_start_time)
+        sampling_speed = NUM_TRAIN_ENVS * NUM_STEPS / (time.time() - sampling_start_time)
         write_sampling_speed(sampling_speed_save_path, sampling_speed)
 
     else:

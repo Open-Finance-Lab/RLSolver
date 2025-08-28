@@ -109,5 +109,5 @@ def run(graph_folder="../../data/syn_BA",
 if __name__ == "__main__":
     run(graph_folder='../../../rlsolver/data/syn_BA',
         if_greedy=False,
-        n_sims=NUM_INFERENCE_SIMS,
-        mini_sims=MINI_INFERENCE_SIMS)
+        n_sims=NUM_INFERENCE_ENVS,
+        mini_sims=MINI_INFERENCE_ENVS)

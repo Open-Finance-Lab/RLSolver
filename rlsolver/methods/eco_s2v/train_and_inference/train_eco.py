@@ -66,7 +66,7 @@ def run(save_loc):
 
     validation_graph_generator = ValidationGraphGenerator(n_spins=n_spins_train, graph_type=GRAPH_TYPE,
                                                           edge_type=EdgeType.DISCRETE,
-                                                          n_sims=NUM_VALIDATION_SIMS, seed=VALIDATION_SEED)
+                                                          n_sims=NUM_VALIDATION_ENVS, seed=VALIDATION_SEED)
 
     ####
     # Pre-generated test graphs
@@ -109,7 +109,6 @@ def run(save_loc):
     # SET UP AGENT
     ####################################################
 
-    nb_steps = NB_STEPS
     network_fn = lambda: MPNN(n_obs_in=train_envs[0].observation_space.shape[1],
                               n_layers=3,
                               n_features=64,
@@ -158,7 +157,7 @@ def run(save_loc):
     }
     args['args'] = args
     # if TEST_SAMPLING_SPEED:
-    #     nb_steps = int(1e4)
+    #     NUM_STEPS = int(1e4)
     #     args['test_obj_frequency'] = args['update_target_frequency'] = args['update_frequency'] = args[
     #         'save_network_frequency'] = 1e6
     #     args['replay_start_size'] = args['initial_exploration_rate'] =0
@@ -171,7 +170,7 @@ def run(save_loc):
     #############
     # TRAIN AGENT
     #############
-    agent.learn(timesteps=nb_steps, start_time=start_time, verbose=True)
+    agent.learn(timesteps=NUM_STEPS, start_time=start_time, verbose=True)
     print(time.time() - start_time)
 
 
