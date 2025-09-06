@@ -51,8 +51,8 @@ def create_distributed_data_loaders(args, rank, world_size):
         test_dataset: Test dataset for heuristic comparison
     """
     # Create datasets
-    train_dataset = TSPDataset(args.SEQ_LEN, args.NUM_TR_DATASET)
-    test_dataset = TSPDataset(args.SEQ_LEN, args.NUM_TE_DATASET)
+    train_dataset = TSPDataset(args.NUM_NODES, args.NUM_TR_DATASET)
+    test_dataset = TSPDataset(args.NUM_NODES, args.NUM_TE_DATASET)
     
     # Create distributed sampler for training
     train_sampler = DistributedSampler(

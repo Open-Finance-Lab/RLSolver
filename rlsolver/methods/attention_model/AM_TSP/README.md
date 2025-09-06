@@ -33,7 +33,7 @@ python train.py
 Edit `config.py` to adjust training parameters:
 
 ```python
-SEQ_LEN = 20          # TSP problem size (number of cities)
+NUM_NODES = 20          # TSP problem size (number of cities)
 NUM_EPOCHS = 10       # Training epochs
 BATCH_SIZE = 256      # Batch size
 LR = 0.0002          # Learning rate
@@ -41,7 +41,7 @@ LR = 0.0002          # Learning rate
 
 ### Key Training Parameters
 
-- `SEQ_LEN`: Number of cities in TSP instance (default: 20)
+- `NUM_NODES`: Number of cities in TSP instance (default: 20)
 - `NUM_TRAIN_ENVS`: Number of POMO rollouts per instance (default: same as SEQ_LEN)
 - `EMBEDDING_SIZE`: Neural network embedding dimension
 - `NUM_TR_DATASET`: Number of training instances
@@ -64,7 +64,7 @@ After training:
 ├── layers.py          # Attention layers
 ├── env.py             # TSP environment
 ├── dataset.py         # Data loading
-└── utils.py           # Utility functions
+└── util.py           # Utility functions
 ```
 
 ## How It Works
@@ -102,7 +102,7 @@ For larger problems or batch sizes, you may need to:
 ### Custom Problem Size
 ```python
 # In config.py
-SEQ_LEN = 50  # For 50-city TSP
+NUM_NODES = 50  # For 50-city TSP
 NUM_TRAIN_ENVS = 50  # POMO rollouts
 ```
 

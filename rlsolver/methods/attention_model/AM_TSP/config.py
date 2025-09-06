@@ -1,11 +1,14 @@
-# config.py
-
+import torch
+from rlsolver.methods.util import calc_device
 # ================== Model Configuration ==================
 EMBEDDING_SIZE = 128
 HIDDEN_SIZE = 128
 N_HEAD = 8
 C = 15.0
-SEQ_LEN = 20  # TSP problem size
+
+TRAIN_INFERENCE = 0  # 0: train, 1: inference
+assert TRAIN_INFERENCE in [0, 1]
+NUM_NODES = 20  # TSP problem size
 
 # ================== Dataset Configuration ==================
 NUM_TR_DATASET = 100000
@@ -21,22 +24,24 @@ GRAD_CLIP = 1.5
 BETA = 0.9  # Legacy, kept for compatibility
 
 # POMO specific - Training
-NUM_TRAIN_ENVS = SEQ_LEN  # Number of parallel rollouts during training (POMO uses problem size)
+NUM_TRAIN_ENVS = NUM_NODES  # Number of parallel rollouts during training (POMO uses problem size)
 
 # ================== Inference Configuration ==================
 INFERENCE_BATCH_SIZE = 64  # Batch size for inference
-NUM_INFERENCE_ENVS = SEQ_LEN  # Number of parallel rollouts during inference
+NUM_INFERENCE_ENVS = NUM_NODES  # Number of parallel rollouts during inference
 COMPUTE_HEURISTIC_GAP = True  # Whether to compute gap vs heuristic solver
 SAVE_RESULTS = True  # Whether to save inference results
 
-# ================== GPU Configuration ==================
-# Training GPU configuration
-TRAIN_MODE = 0  # 0: train, 1: inference
-MULTI_GPU_MODE = True  # Whether to use all available GPUs
-SINGLE_GPU_ID = 0  # GPU ID when not using multi-GPU mode
 
-# Inference GPU configuration  
+
+# Training
+MULTI_GPU_MODE = False  # Whether to use all available GPUs
+TRAIN_GPU_ID = 0  # GPU ID when not using multi-GPU mode
+TRAIN_DEVICE = calc_device(TRAIN_GPU_ID)
+
+# Inference
 INFERENCE_GPU_ID = 0  # GPU for inference/evaluation
+INFERENCE_DEVICE = calc_device(INFERENCE_GPU_ID)
 
 # ================== Paths ==================
 # Model paths
@@ -48,7 +53,6 @@ RESULTS_DIR = "results"
 RESULTS_FILENAME = "inference_results.json"
 
 # ================== System Configuration ==================
-USE_CUDA = True
 NUM_WORKERS = 0  # DataLoader workers (increase based on CPU cores)
 SEED = 111
 
@@ -57,19 +61,10 @@ MASTER_ADDR = 'localhost'
 MASTER_PORT = '12355'
 
 # ================== Device Mapping ==================
-import torch
 
-def get_device(gpu_id):
-   
-    if not USE_CUDA or gpu_id == -1:
-        return 'cpu'
-    if not torch.cuda.is_available():
-        print("Warning: CUDA not available, using CPU")
-        return 'cpu'
-    return f'cuda:{gpu_id}'
 
-def get_num_gpus():
+def get_num_gpus(use_cuda: bool):
     """Get number of available GPUs."""
-    if not USE_CUDA:
+    if not use_cuda:
         return 0
     return torch.cuda.device_count()

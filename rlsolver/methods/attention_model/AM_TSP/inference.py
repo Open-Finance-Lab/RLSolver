@@ -10,9 +10,8 @@ import json
 from models import TSPActor
 from dataset import TSPDataset
 from env import VectorizedTSPEnv
-from utils import get_heuristic_solution
-import config as args
-
+from util import get_heuristic_solution
+from config import *
 
 def load_model(model_path, device):
     """Load trained model from checkpoint.
@@ -25,11 +24,11 @@ def load_model(model_path, device):
         model: Loaded TSPActor model
     """
     model = TSPActor(
-        embedding_size=args.EMBEDDING_SIZE,
-        hidden_size=args.HIDDEN_SIZE,
-        seq_len=args.SEQ_LEN,
-        n_head=args.N_HEAD,
-        C=args.C
+        embedding_size=EMBEDDING_SIZE,
+        hidden_size=HIDDEN_SIZE,
+        seq_len=NUM_NODES,
+        n_head=N_HEAD,
+        C=C
     ).to(device)
     
     checkpoint = torch.load(model_path, map_location=device)
@@ -138,10 +137,10 @@ def inference_on_dataset(model, dataset, batch_size=None, device=None):
         heuristic_gap: Average gap vs heuristic (if available)
     """
     if batch_size is None:
-        batch_size = args.INFERENCE_BATCH_SIZE
+        batch_size = INFERENCE_BATCH_SIZE
     
     if device is None:
-        device = args.get_device(args.INFERENCE_GPU_ID)
+        device = INFERENCE_DEVICE
     
     all_tours = []
     all_lengths = []
@@ -166,7 +165,7 @@ def inference_on_dataset(model, dataset, batch_size=None, device=None):
         # Run inference
         tours, lengths = rollout_inference(
             model, batch_nodes, 
-            num_rollouts=args.NUM_INFERENCE_ENVS,
+            num_rollouts=NUM_INFERENCE_ENVS,
             device=device
         )
         
@@ -177,7 +176,7 @@ def inference_on_dataset(model, dataset, batch_size=None, device=None):
     
     # Calculate heuristic gap if available
     heuristic_gap = None
-    if args.COMPUTE_HEURISTIC_GAP:
+    if COMPUTE_HEURISTIC_GAP:
         print("Computing heuristic solutions for comparison...")
         heuristic_lengths = []
         
@@ -202,7 +201,7 @@ def inference_on_dataset(model, dataset, batch_size=None, device=None):
 def main():
     """Main inference function."""
     # Get device from config
-    device = args.get_device(args.INFERENCE_GPU_ID)
+    device = INFERENCE_DEVICE
     
     # Print configuration
     print("="*50)
@@ -210,26 +209,26 @@ def main():
     print("="*50)
     
     # Load model
-    print(f"\nLoading model from {args.MODEL_PATH}...")
-    model = load_model(args.MODEL_PATH, device)
+    print(f"\nLoading model from {MODEL_PATH}...")
+    model = load_model(MODEL_PATH, device)
     
     # Create test dataset
-    test_dataset = TSPDataset(args.SEQ_LEN, args.NUM_TEST_SAMPLES, args.TEST_SEED)
+    test_dataset = TSPDataset(NUM_NODES, NUM_TEST_SAMPLES, TEST_SEED)
     
     # Run inference
     print(f"\nInference Configuration:")
-    print(f"  Device: {device} (GPU ID: {args.INFERENCE_GPU_ID})")
-    print(f"  Problem size: {args.SEQ_LEN}")
-    print(f"  Test samples: {args.NUM_TEST_SAMPLES}")
-    print(f"  Inference batch size: {args.INFERENCE_BATCH_SIZE}")
-    print(f"  Number of parallel rollouts (POMO): {args.NUM_INFERENCE_ENVS}")
-    print(f"  Compute heuristic gap: {args.COMPUTE_HEURISTIC_GAP}")
-    print(f"  Save results: {args.SAVE_RESULTS}")
+    print(f"  Device: {device} (GPU ID: {INFERENCE_GPU_ID})")
+    print(f"  Problem size: {NUM_NODES}")
+    print(f"  Test samples: {NUM_TEST_SAMPLES}")
+    print(f"  Inference batch size: {INFERENCE_BATCH_SIZE}")
+    print(f"  Number of parallel rollouts (POMO): {NUM_INFERENCE_ENVS}")
+    print(f"  Compute heuristic gap: {COMPUTE_HEURISTIC_GAP}")
+    print(f"  Save results: {SAVE_RESULTS}")
     print()
     
     tours, lengths, gap = inference_on_dataset(
         model, test_dataset, 
-        batch_size=args.INFERENCE_BATCH_SIZE,
+        batch_size=INFERENCE_BATCH_SIZE,
         device=device
     )
     
@@ -244,7 +243,7 @@ def main():
         print(f"  Gap vs heuristic: {gap:.4f}x")
     
     # Save results if requested
-    if args.SAVE_RESULTS:
+    if SAVE_RESULTS:
         results = {
             'tours': [tour.tolist() for tour in tours],
             'lengths': lengths.tolist(),
@@ -256,17 +255,17 @@ def main():
                 'gap': gap
             },
             'config': {
-                'seq_len': args.SEQ_LEN,
-                'num_samples': args.NUM_TEST_SAMPLES,
-                'num_rollouts': args.NUM_INFERENCE_ENVS,
-                'model_path': args.MODEL_PATH,
-                'inference_gpu_id': args.INFERENCE_GPU_ID,
+                'seq_len': NUM_NODES,
+                'num_samples': NUM_TEST_SAMPLES,
+                'num_rollouts': NUM_INFERENCE_ENVS,
+                'model_path': MODEL_PATH,
+                'inference_gpu_id': INFERENCE_GPU_ID,
                 'device': str(device)
             }
         }
         
-        os.makedirs(args.RESULTS_DIR, exist_ok=True)
-        results_path = os.path.join(args.RESULTS_DIR, args.RESULTS_FILENAME)
+        os.makedirs(RESULTS_DIR, exist_ok=True)
+        results_path = os.path.join(RESULTS_DIR, RESULTS_FILENAME)
         
         with open(results_path, 'w') as f:
             json.dump(results, f, indent=2)
@@ -280,7 +279,7 @@ def main():
 
 if __name__ == '__main__':
     # Check if we're in inference mode
-    if hasattr(args, 'TRAIN_MODE') and args.TRAIN_MODE == 0:
+    if hasattr(args, 'TRAIN_MODE') and TRAIN_INFERENCE == 0:
         print("Warning: TRAIN_MODE is set to 0 (training). Set TRAIN_MODE=1 for inference.")
         print("Proceeding with inference anyway...")
     

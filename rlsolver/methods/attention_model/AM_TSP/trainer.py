@@ -11,7 +11,7 @@ from tqdm import tqdm
 from datetime import datetime
 
 from env import TSPEnv, VectorizedTSPEnv
-from utils import clip_grad_norm, AverageMeter, get_heuristic_solution
+from util import clip_grad_norm, AverageMeter, get_heuristic_solution
 
 
 @torch.compile(mode='reduce-overhead')
