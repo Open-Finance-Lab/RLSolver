@@ -14,8 +14,8 @@ import torch.nn.functional as F
 import torch.optim as optim
 
 from rlsolver.methods.eco_s2v.config import *
-from rlsolver.methods.eco_s2v.src.agents.utils import Logger, TestMetric, set_global_seed
-from rlsolver.methods.eco_s2v.src.agents.utils import eeco_ReplayBuffer as ReplayBuffer
+from rlsolver.methods.eco_s2v.src.agents.util import Logger, TestMetric, set_global_seed
+from rlsolver.methods.eco_s2v.src.agents.util import eeco_ReplayBuffer as ReplayBuffer
 from rlsolver.methods.eco_s2v.src.envs.util_envs import ExtraAction
 
 fix_seed = False # if test stepVsObj, set it as True; and False otherwise.

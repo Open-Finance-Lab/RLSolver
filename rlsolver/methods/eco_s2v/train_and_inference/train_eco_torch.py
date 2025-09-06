@@ -6,7 +6,7 @@ import rlsolver.methods.eco_s2v.src.envs.core as ising_env
 from rlsolver.methods.eco_s2v.config import *
 from rlsolver.methods.eco_s2v.plot import plot_scatter
 from rlsolver.methods.eco_s2v.src.agents.dqn_torch import DQN
-from rlsolver.methods.eco_s2v.src.agents.utils import TestMetric
+from rlsolver.methods.eco_s2v.src.agents.util import TestMetric
 from rlsolver.methods.eco_s2v.src.envs.util_envs_torch import (SetGraphGenerator,
                                                                RandomBarabasiAlbertGraphGenerator, RandomErdosRenyiGraphGenerator,
                                                                EdgeType, RewardSignal, ExtraAction,

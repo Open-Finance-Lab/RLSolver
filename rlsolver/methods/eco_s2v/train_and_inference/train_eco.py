@@ -8,7 +8,7 @@ if USE_TWO_DEVICES_IN_ECO_S2V:
     from rlsolver.methods.eco_s2v.src.agents.dqn_two_devices import DQN
 else:
     from rlsolver.methods.eco_s2v.src.agents.dqn import DQN
-from rlsolver.methods.eco_s2v.src.agents.utils import TestMetric
+from rlsolver.methods.eco_s2v.src.agents.util import TestMetric
 from rlsolver.methods.eco_s2v.src.envs.util_envs import (SetGraphGenerator,
                                                          RandomBarabasiAlbertGraphGenerator, RandomErdosRenyiGraphGenerator,
                                                          EdgeType, RewardSignal, ExtraAction,
