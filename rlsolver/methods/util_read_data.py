@@ -1,5 +1,11 @@
 import sys
 import os
+import plotly.io as pio
+import plotly.graph_objects as go
+import numpy  as np
+import random
+import networkx as nx
+from numpy.core.defchararray import isnumeric
 cur_path = os.path.dirname(os.path.abspath(__file__))
 rlsolver_path = os.path.join(cur_path, '../../rlsolver')
 sys.path.append(os.path.dirname(rlsolver_path))
@@ -316,7 +322,44 @@ def read_set_cover_data(filename):
     return total_elements, total_subsets, subsets
 
 
-
+def read_tsp_file(filename: str):
+    coordinates = np.array([])
+    prev_index = None
+    with open(filename, 'r') as file:
+        count = 0
+        while True:
+            line = file.readline()
+            count += 1
+            if 'EOF' in line:
+                break
+            parts = line.split(' ')
+            new_parts = [i for i in parts if len(i) > 0 and i != '\n']
+            if len(new_parts) == 3 and isnumeric(new_parts[0]):
+                index_str, x_str, y_str = new_parts
+                index = int(index_str)
+                if (prev_index is None and index == 1) or (prev_index is not None and index == prev_index + 1):
+                    if (prev_index is None and index == 1) and len(coordinates) > 0:
+                        coordinates = np.array([])
+                        continue
+                    x = float(x_str)
+                    y = float(y_str)
+                    if len(coordinates) == 0:
+                        coordinates = np.array([(x, y)])
+                    else:
+                        coordinates = np.append(coordinates, [(x, y)], axis=0)
+                    prev_index = index
+    assert index == len(coordinates)
+    num_nodes = len(coordinates)
+    nodes = list(range(num_nodes))
+    graph = nx.Graph()
+    graph.add_nodes_from(nodes)
+    for i in range(num_nodes):
+        for j in range(i + 1, num_nodes):
+            xi, yi = coordinates[i]
+            xj, yj = coordinates[j]
+            dist = np.sqrt((xi - xj) ** 2 + (yi - yj) ** 2)
+            graph.add_edge(i, j, weight=dist)
+    return graph, coordinates
 
 if __name__ == '__main__':
 
