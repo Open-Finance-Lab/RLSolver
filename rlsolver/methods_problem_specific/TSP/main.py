@@ -10,7 +10,7 @@ from typing import List
 import util
 from config import *
 from util import plot_tour
-from util import read_tsp_file
+from rlsolver.methods.util_read_data import read_tsp_file
 from christofides import christofides_algorithm
 from ga import genetic_algorithm
 from gksp import greedy_karp_steele_patching
