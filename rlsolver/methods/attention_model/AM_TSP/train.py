@@ -9,7 +9,6 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 from models import TSPActor
 from dataset import create_distributed_data_loaders
 from trainer import DistributedPOMOTrainer
-from config import *
 import config as args
 
 # Global performance settings
@@ -22,8 +21,8 @@ torch.backends.cudnn.benchmark = True
 
 def setup_ddp(rank, world_size):
     """Initialize distributed training."""
-    os.environ['MASTER_ADDR'] = MASTER_ADDR
-    os.environ['MASTER_PORT'] = MASTER_PORT
+    os.environ['MASTER_ADDR'] = args.MASTER_ADDR
+    os.environ['MASTER_PORT'] = args.MASTER_PORT
     torch.cuda.set_device(rank)
     dist.init_process_group("nccl", rank=rank, world_size=world_size)
 
@@ -39,26 +38,19 @@ def main_worker(rank, world_size):
     setup_ddp(rank, world_size)
     
     # Set random seeds
-    torch.manual_seed(SEED + rank)
-    torch.cuda.manual_seed(SEED + rank)
+    torch.manual_seed(args.SEED + rank)
+    torch.cuda.manual_seed(args.SEED + rank)
     
     # Print configuration from rank 0
     if rank == 0:
         print("="*50)
         print("TSP Solver with POMO (Policy Optimization with Multiple Optima)")
         print("="*50)
-        print("\nConfiguration:")
-        print(f"  GPU Configuration:")
-        print(f"    - Mode: {'Multi-GPU' if MULTI_GPU_MODE else 'Single-GPU'}")
-        print(f"    - World size: {world_size}")
-        print(f"    - Training GPUs: {list(range(world_size))}")
-        print(f"    - Inference GPU: {INFERENCE_GPU_ID}")
-        print("\n  Model Configuration:")
+        print("\\nConfiguration:")
         for key, value in vars(args).items():
-            if not key.startswith('__') and not callable(value) and 'GPU' not in key:
-                print(f"    {key}: {value}")
-        print(f"  Algorithm: POMO")
-        print(f"  POMO size: {NUM_TRAIN_ENVS}")
+            if not key.startswith('__'):
+                print(f"  {key}: {value}")
+        print(f"  world_size: {world_size}")
         print()
     
     # Create data loaders
@@ -66,11 +58,11 @@ def main_worker(rank, world_size):
     
     # Create model
     model = TSPActor(
-        embedding_size=EMBEDDING_SIZE,
-        hidden_size=HIDDEN_SIZE,
-        seq_len=NUM_NODES,
-        n_head=N_HEAD,
-        C=C
+        embedding_size=args.EMBEDDING_SIZE,
+        hidden_size=args.HIDDEN_SIZE,
+        seq_len=args.SEQ_LEN,
+        n_head=args.N_HEAD,
+        C=args.C
     ).cuda(rank)
     
     # Wrap model with DDP
@@ -81,9 +73,11 @@ def main_worker(rank, world_size):
         total_params = sum(p.numel() for p in model.parameters())
         trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
         print(f"Model parameters: {total_params:,} total, {trainable_params:,} trainable")
-        print(f"\nPOMO will generate {NUM_TRAIN_ENVS} rollouts per TSP instance")
-        print(f"Each rollout starts from a different node (0 to {NUM_TRAIN_ENVS-1})")
-        print(f"Shared baseline computed as mean of all {NUM_TRAIN_ENVS} rollouts")
+        print(f"\\nPOMO Algorithm:")
+        print(f"  - Each TSP instance generates {args.NUM_TRAIN_ENVS} parallel rollouts")
+        print(f"  - Each rollout starts from a different node (0 to {args.SEQ_LEN-1})")
+        print(f"  - Shared baseline = mean reward of all {args.NUM_TRAIN_ENVS} rollouts")
+        print(f"  - This encourages exploration of multiple optimal solutions")
         print()
     
     # Create POMO trainer
@@ -93,48 +87,20 @@ def main_worker(rank, world_size):
     trainer.train(train_loader, eval_loader, test_dataset)
     
     if rank == 0:
-        print("\nTraining with POMO completed!")
+        print("\\nTraining with POMO completed!")
     
     cleanup()
 
 
-def train_single_gpu():
-    """Training on single GPU (non-distributed)."""
-    device = TRAIN_DEVICE
-    
-    print("="*50)
-    print("TSP Solver with POMO (Single GPU Mode)")
-    print("="*50)
-    print(f"\nUsing device: {device}")
-    
-    # Set random seeds
-    torch.manual_seed(SEED)
-    if 'cuda' in device:
-        torch.cuda.manual_seed(SEED)
-        torch.cuda.set_device(TRAIN_GPU_ID)
-    
-    # Note: For single GPU, you would need to implement non-distributed versions
-    # of the data loader and trainer. This is a simplified placeholder.
-    raise NotImplementedError("Single GPU training not implemented. Use multi-GPU mode with world_size=1")
-
-
 def main():
     """Main entry point."""
-    if TRAIN_INFERENCE == 1:
-        print("Inference mode selected. Please run inference.py instead.")
-        return
+    world_size = torch.cuda.device_count()
     
-    # Determine world size based on configuration
-    if MULTI_GPU_MODE:
-        world_size = get_num_gpus(True)
-        if world_size == 0:
-            raise RuntimeError("No GPUs available for training. Set USE_CUDA=False for CPU training.")
-        
-        print(f"Starting POMO distributed training on {world_size} GPUs")
-        mp.spawn(main_worker, args=(world_size,), nprocs=world_size, join=True)
-    else:
-        # Single GPU training
-        train_single_gpu()
+    if world_size == 0:
+        raise RuntimeError("No GPUs available for training")
+    
+    print(f"Starting POMO distributed training on {world_size} GPUs")
+    mp.spawn(main_worker, args=(world_size,), nprocs=world_size, join=True)
 
 
 if __name__ == '__main__':

@@ -1,4 +1,5 @@
 # dataset.py
+
 import torch
 from torch.utils.data import Dataset, DataLoader
 from torch.utils.data.distributed import DistributedSampler
@@ -6,7 +7,6 @@ from torch.utils.data.distributed import DistributedSampler
 
 class TSPDataset(Dataset):
     """Dataset for TSP instances."""
-    
     def __init__(self, num_nodes, num_samples, random_seed=111):
         """
         Args:
@@ -15,7 +15,6 @@ class TSPDataset(Dataset):
             random_seed: Random seed for reproducibility
         """
         super().__init__()
-        
         # Set random seed for reproducibility
         generator = torch.Generator()
         generator.manual_seed(random_seed)
@@ -26,9 +25,9 @@ class TSPDataset(Dataset):
             # Generate random 2D coordinates in [0, 1] x [0, 1]
             nodes = torch.rand(num_nodes, 2, generator=generator)
             self.data.append(nodes)
-            
-        self.size = len(self.data)
         
+        self.size = len(self.data)
+    
     def __len__(self):
         return self.size
     
@@ -51,8 +50,8 @@ def create_distributed_data_loaders(args, rank, world_size):
         test_dataset: Test dataset for heuristic comparison
     """
     # Create datasets
-    train_dataset = TSPDataset(args.NUM_NODES, args.NUM_TR_DATASET)
-    test_dataset = TSPDataset(args.NUM_NODES, args.NUM_TE_DATASET)
+    train_dataset = TSPDataset(args.SEQ_LEN, args.NUM_TR_DATASET)
+    test_dataset = TSPDataset(args.SEQ_LEN, args.NUM_TE_DATASET)
     
     # Create distributed sampler for training
     train_sampler = DistributedSampler(
@@ -61,6 +60,13 @@ def create_distributed_data_loaders(args, rank, world_size):
         rank=rank,
         shuffle=True
     )
+    
+    # Calculate per-GPU batch size
+    per_gpu_batch_size = args.BATCH_SIZE // world_size
+    if per_gpu_batch_size < 1:
+        per_gpu_batch_size = 1
+        if rank == 0:
+            print(f"Warning: Batch size {args.BATCH_SIZE} too small for {world_size} GPUs, using 1 per GPU")
     
     # Common DataLoader kwargs for performance
     common_kwargs = {
@@ -73,16 +79,17 @@ def create_distributed_data_loaders(args, rank, world_size):
     if args.NUM_WORKERS > 0:
         common_kwargs["prefetch_factor"] = 4
     
-    # Train loader with drop_last=True to avoid DDP issues with uneven batches
+    # Train loader with correct per-GPU batch size
     train_loader = DataLoader(
         train_dataset,
-        batch_size=args.BATCH_SIZE,
+        batch_size=per_gpu_batch_size,  # Fixed: use per-GPU batch size
         sampler=train_sampler,
         drop_last=True,
         **common_kwargs
     )
     
     # Test loader without distributed sampling (for evaluation)
+    # Keep full batch size for evaluation since it's not distributed
     test_loader = DataLoader(
         test_dataset,
         batch_size=args.BATCH_SIZE,

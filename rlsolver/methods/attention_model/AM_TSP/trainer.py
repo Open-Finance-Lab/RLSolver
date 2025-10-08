@@ -10,19 +10,46 @@ from torch.amp import autocast, GradScaler
 from tqdm import tqdm
 from datetime import datetime
 
-from env import TSPEnv, VectorizedTSPEnv
-from util import clip_grad_norm, AverageMeter, get_heuristic_solution
+from env import TSPEnv
+from utils import clip_grad_norm, AverageMeter, get_heuristic_solution
+
+
+def compute_tour_lengths_structured(nodes, actions):
+    """Compute tour lengths without expanding nodes.
+    
+    Args:
+        nodes: [batch_size, seq_len, 2]
+        actions: [batch_size, pomo_size, seq_len]
+    
+    Returns:
+        lengths: [batch_size, pomo_size]
+    """
+    batch_size, pomo_size, seq_len = actions.shape
+    
+    # Use advanced indexing to gather tour nodes
+    batch_idx = torch.arange(batch_size, device=nodes.device)[:, None, None].expand(-1, pomo_size, seq_len)
+    tour_nodes = nodes[batch_idx, actions]  # [batch, pomo, seq_len, 2]
+    
+    # Calculate distances
+    diffs = tour_nodes[:, :, 1:] - tour_nodes[:, :, :-1]
+    distances = torch.norm(diffs, dim=3)
+    
+    # Add distance from last to first
+    last_to_first = torch.norm(tour_nodes[:, :, -1] - tour_nodes[:, :, 0], dim=2)
+    
+    lengths = distances.sum(dim=2) + last_to_first
+    return lengths
 
 
 @torch.compile(mode='reduce-overhead')
-def rollout_episode_vmap_pomo_compiled(model, nodes, pomo_size=None, device='cuda'):
-    """POMO rollout with vmap-style vectorization - optimized for zero-copy.
+def rollout_episode_pomo_structured_compiled(model, nodes, pomo_size=None, device='cuda'):
+    """POMO rollout with structured batching (no physical expansion).
     
     Args:
         model: TSPActor model (unwrapped)
         nodes: [batch_size, seq_len, 2]
         pomo_size: Number of parallel rollouts (default: seq_len)
-        
+    
     Returns:
         tour_lengths: [batch_size, pomo_size]
         log_probs: [batch_size, pomo_size, seq_len-1]
@@ -33,77 +60,68 @@ def rollout_episode_vmap_pomo_compiled(model, nodes, pomo_size=None, device='cud
     if pomo_size is None:
         pomo_size = seq_len
     
-    # Pre-compute encoder embeddings once per instance
+    # Pre-compute encoder embeddings ONCE (shared across all POMO)
     embedded = model.network.embedding(nodes)
-    encoded = model.network.encoder(embedded)
+    encoded = model.network.encoder(embedded)  # [batch, seq_len, embed_dim]
     
-    # Use view instead of expand + reshape to avoid copies
-    # Expand creates a view, but reshape after expand might copy
-    # Instead, we'll work with the expanded view directly
-    encoded_expanded = encoded.unsqueeze(1).expand(batch_size, pomo_size, seq_len, -1)
-    nodes_expanded = nodes.unsqueeze(1).expand(batch_size, pomo_size, seq_len, 2)
+    # Initialize states - structured format
+    visited_mask = torch.zeros(batch_size, pomo_size, seq_len, dtype=torch.bool, device=device)
     
-    # Create contiguous views only once
-    encoded_flat = encoded_expanded.contiguous().view(batch_size * pomo_size, seq_len, -1)
-    nodes_flat = nodes_expanded.contiguous().view(batch_size * pomo_size, seq_len, 2)
+    # POMO: Different starting nodes for each rollout
+    pomo_indices = torch.arange(pomo_size, device=device) % seq_len
+    first_node = pomo_indices.unsqueeze(0).expand(batch_size, -1)  # [batch, pomo]
+    current_node = first_node.clone()
     
-    # Initialize states
-    visited_mask = torch.zeros(batch_size * pomo_size, seq_len, dtype=torch.bool, device=device)
+    # Mark first nodes as visited using advanced indexing
+    batch_idx = torch.arange(batch_size, device=device)[:, None].expand(-1, pomo_size)
+    pomo_idx = torch.arange(pomo_size, device=device)[None, :].expand(batch_size, -1)
+    visited_mask[batch_idx, pomo_idx, current_node] = True
     
-    # Pre-create indices
-    flat_indices = torch.arange(batch_size * pomo_size, device=device)
-    pomo_indices = torch.arange(pomo_size, device=device).repeat(batch_size) % seq_len
-    
-    # POMO: Different starting nodes (no clone needed here)
-    first_node = pomo_indices
-    current_node = pomo_indices  # Direct assignment instead of clone
-    visited_mask[flat_indices, current_node] = True
-    
-    # Pre-allocate tensors instead of using lists
-    log_probs_tensor = torch.empty(batch_size * pomo_size, seq_len - 1, device=device)
-    actions_tensor = torch.empty(batch_size * pomo_size, seq_len, dtype=torch.long, device=device)
-    actions_tensor[:, 0] = current_node
+    # Pre-allocate results
+    log_probs_list = []
+    actions_list = [current_node]
     
     # Rollout loop
     for step in range(1, seq_len):
         obs = {
-            'nodes': nodes_flat,
-            'current_node': current_node,
-            'first_node': first_node,
-            'action_mask': ~visited_mask,
-            'encoded': encoded_flat
+            'nodes': nodes,  # Shared, not expanded
+            'current_node': current_node,  # [batch, pomo]
+            'first_node': first_node,  # [batch, pomo]
+            'action_mask': ~visited_mask,  # [batch, pomo, seq_len]
+            'encoded': encoded  # Shared encoding
         }
         
         action, log_prob = model.get_action(obs, deterministic=False)
+        # action: [batch, pomo], log_prob: [batch, pomo]
         
         current_node = action
-        visited_mask[flat_indices, action] = True
+        visited_mask[batch_idx, pomo_idx, action] = True
         
-        # Direct tensor assignment instead of list append
-        log_probs_tensor[:, step - 1] = log_prob
-        actions_tensor[:, step] = action
+        log_probs_list.append(log_prob)
+        actions_list.append(action)
+    
+    # Stack results
+    log_probs = torch.stack(log_probs_list, dim=2)  # [batch, pomo, seq_len-1]
+    actions = torch.stack(actions_list, dim=2)  # [batch, pomo, seq_len]
     
     # Compute tour lengths
-    vec_env = VectorizedTSPEnv(nodes_flat, device=device)
-    tour_lengths = vec_env.compute_all_tours(actions_tensor)
-    
-    # Use view instead of reshape for final output
-    tour_lengths = tour_lengths.view(batch_size, pomo_size)
-    log_probs = log_probs_tensor.view(batch_size, pomo_size, seq_len - 1)
-    actions = actions_tensor.view(batch_size, pomo_size, seq_len)
+    tour_lengths = compute_tour_lengths_structured(nodes, actions)
     
     return tour_lengths, log_probs, actions
 
 
-# Wrapper function for evaluation (uses no_grad context)
-def rollout_episode_vmap_pomo(model, nodes, pomo_size=None, device='cuda'):
+def rollout_episode_pomo_structured(model, nodes, pomo_size=None, device='cuda'):
     """POMO rollout wrapper that handles no_grad context."""
     with torch.no_grad():
-        return rollout_episode_vmap_pomo_compiled(model, nodes, pomo_size, device)
+        return rollout_episode_pomo_structured_compiled(model, nodes, pomo_size, device)
+
+
+# Keep the old function name for compatibility but use new implementation
+rollout_episode_vmap_pomo = rollout_episode_pomo_structured
 
 
 class DistributedPOMOTrainer:
-    """Distributed trainer with POMO and zero-copy optimizations."""
+    """Distributed trainer with memory-efficient POMO."""
     
     def __init__(self, model, args, rank, world_size):
         self.model = model
@@ -112,15 +130,8 @@ class DistributedPOMOTrainer:
         self.rank = rank
         self.world_size = world_size
         
-        # POMO configuration - NOW USES NUM_TRAIN_ENVS
+        # POMO configuration
         self.pomo_size = args.NUM_TRAIN_ENVS
-        
-        # Adjust effective batch size for POMO
-        self.effective_batch_size = args.BATCH_SIZE // self.pomo_size
-        if self.effective_batch_size < 1:
-            self.effective_batch_size = 1
-            if self.rank == 0:
-                print(f"Warning: Adjusting batch size to {self.effective_batch_size} due to POMO memory requirements")
         
         # Optimizer
         self.optimizer = optim.Adam(model.parameters(), lr=args.LR)
@@ -139,88 +150,75 @@ class DistributedPOMOTrainer:
         self.best_eval_reward = float('inf')
         self.best_epoch = -1
         
-        # Create checkpoint directory - NOW USES CONFIG PATH
+        # Create checkpoint directory
         self.checkpoint_dir = args.CHECKPOINT_DIR
         if self.rank == 0:
             os.makedirs(self.checkpoint_dir, exist_ok=True)
         
-        # Compile the loss computation method
+        # Compile the optimized loss computation
         self._compute_loss_compiled = torch.compile(
             self._compute_loss_core,
             mode='reduce-overhead'
         )
     
     def _compute_loss_core(self, nodes, model_module, pomo_size):
-        """Core loss computation logic - optimized for zero-copy."""
+        """Core loss computation with structured batching."""
         batch_size = nodes.size(0)
         seq_len = nodes.size(1)
         device = nodes.device
         
-        # Encode only once per instance
+        # Encode ONCE (shared across all POMO)
         embedded = model_module.network.embedding(nodes)
-        encoded = model_module.network.encoder(embedded)
+        encoded = model_module.network.encoder(embedded)  # [batch, seq_len, embed_dim]
         
-        # Use view operations to avoid copies
-        encoded_expanded = encoded.unsqueeze(1).expand(batch_size, pomo_size, seq_len, -1)
-        nodes_expanded = nodes.unsqueeze(1).expand(batch_size, pomo_size, seq_len, 2)
+        # Initialize structured states
+        visited_mask = torch.zeros(batch_size, pomo_size, seq_len, dtype=torch.bool, device=device)
         
-        # Create contiguous views only once
-        encoded_flat = encoded_expanded.contiguous().view(batch_size * pomo_size, seq_len, -1)
-        nodes_flat = nodes_expanded.contiguous().view(batch_size * pomo_size, seq_len, 2)
+        # POMO starting nodes
+        pomo_indices = torch.arange(pomo_size, device=device) % seq_len
+        first_node = pomo_indices.unsqueeze(0).expand(batch_size, -1)  # [batch, pomo]
+        current_node = first_node.clone()
         
-        # Initialize states
-        visited_mask = torch.zeros(batch_size * pomo_size, seq_len, dtype=torch.bool, device=device)
+        # Mark first nodes as visited
+        batch_idx = torch.arange(batch_size, device=device)[:, None].expand(-1, pomo_size)
+        pomo_idx = torch.arange(pomo_size, device=device)[None, :].expand(batch_size, -1)
+        visited_mask[batch_idx, pomo_idx, current_node] = True
         
-        # Pre-create indices
-        flat_indices = torch.arange(batch_size * pomo_size, device=device)
-        pomo_indices = torch.arange(pomo_size, device=device).repeat(batch_size) % seq_len
-        
-        # POMO: deterministic first action (no clone needed)
-        first_node = pomo_indices
-        current_node = pomo_indices  # Direct assignment
-        visited_mask[flat_indices, current_node] = True
-        
-        # Pre-allocate tensors
-        log_probs_tensor = torch.empty(batch_size * pomo_size, seq_len - 1, device=device)
-        actions_tensor = torch.empty(batch_size * pomo_size, seq_len, dtype=torch.long, device=device)
-        actions_tensor[:, 0] = current_node
+        # Collect log probabilities and actions
+        log_probs_list = []
+        actions_list = [current_node]
         
         # Rollout with gradients
         for step in range(1, seq_len):
             obs = {
-                'nodes': nodes_flat,
-                'current_node': current_node,
-                'first_node': first_node,
-                'action_mask': ~visited_mask,
-                'encoded': encoded_flat
+                'nodes': nodes,  # Shared, not expanded
+                'current_node': current_node,  # [batch, pomo]
+                'first_node': first_node,  # [batch, pomo]
+                'action_mask': ~visited_mask,  # [batch, pomo, seq_len]
+                'encoded': encoded  # Shared encoding
             }
             
             action, log_prob = model_module.get_action(obs, deterministic=False)
             
             current_node = action
-            visited_mask[flat_indices, action] = True
+            visited_mask[batch_idx, pomo_idx, action] = True
             
-            # Direct assignment
-            log_probs_tensor[:, step - 1] = log_prob
-            actions_tensor[:, step] = action
+            log_probs_list.append(log_prob)
+            actions_list.append(action)
         
-        # Compute rewards
-        vec_env = VectorizedTSPEnv(nodes_flat, device=device)
-        rewards = vec_env.compute_all_tours(actions_tensor)
+        # Stack results
+        log_probs = torch.stack(log_probs_list, dim=2)  # [batch, pomo, seq_len-1]
+        actions = torch.stack(actions_list, dim=2)  # [batch, pomo, seq_len]
         
-        # Use view for reshaping
-        rewards = rewards.view(batch_size, pomo_size)
-        log_probs = log_probs_tensor.view(batch_size, pomo_size, seq_len - 1)
+        # Compute rewards (tour lengths)
+        rewards = compute_tour_lengths_structured(nodes, actions)  # [batch, pomo]
         
         # POMO shared baseline
         baseline = rewards.mean(dim=1, keepdim=True)
-        
-        # Advantage
         advantage = rewards - baseline
         
         # Sum log probabilities
-        log_probs_sum = log_probs.sum(dim=2)
-        log_probs_sum = log_probs_sum.clamp(min=-100)
+        log_probs_sum = log_probs.sum(dim=2).clamp(min=-5.0 * seq_len)
         
         # POMO loss
         loss = (advantage * log_probs_sum).mean()
@@ -228,11 +226,11 @@ class DistributedPOMOTrainer:
         return loss, rewards
     
     def compute_loss_vmap_pomo(self, nodes):
-        """Compute POMO loss with vmap-style vectorization - uses compiled version."""
+        """Compute POMO loss with memory-efficient structured batching."""
         return self._compute_loss_compiled(nodes, self.model_module, self.pomo_size)
     
     def train_epoch(self, train_loader, epoch):
-        """Train for one epoch with POMO and zero-copy optimizations."""
+        """Train for one epoch with memory-efficient POMO."""
         self.model.train()
         train_loader.sampler.set_epoch(epoch)
         
@@ -267,20 +265,17 @@ class DistributedPOMOTrainer:
         return loss_meter.avg, reward_meter.avg
     
     def evaluate(self, eval_loader, heuristic_distances=None):
-        """Evaluate with POMO using zero-copy optimization."""
+        """Evaluate with memory-efficient POMO."""
         if self.rank == 0:
             self.model.eval()
-            
-            # Pre-allocate list with known size for better memory efficiency
-            num_batches = len(eval_loader)
             all_rewards = []
             
             with torch.no_grad():
                 for indices, batch in eval_loader:
                     batch = batch.cuda(self.rank)
                     
-                    # POMO rollout
-                    rewards, _, _ = rollout_episode_vmap_pomo(
+                    # POMO rollout with structured batching
+                    rewards, _, _ = rollout_episode_pomo_structured(
                         self.model_module, batch,
                         pomo_size=self.pomo_size,
                         device=batch.device
@@ -290,7 +285,7 @@ class DistributedPOMOTrainer:
                     best_rewards = rewards.min(dim=1)[0]
                     all_rewards.append(best_rewards)
             
-            # Batch CPU transfer - more efficient than individual transfers
+            # Batch CPU transfer
             all_rewards = torch.cat(all_rewards).cpu()
             avg_reward = all_rewards.mean().item()
             
@@ -316,7 +311,7 @@ class DistributedPOMOTrainer:
                     'C': self.model_module.network.C,
                 },
                 'training_config': {
-                    'algorithm': 'POMO with zero-copy optimizations + torch.compile',
+                    'algorithm': 'POMO with memory-efficient structured batching',
                     'pomo_size': self.pomo_size,
                     'num_train_envs': self.args.NUM_TRAIN_ENVS,
                     'lr': self.args.LR,
@@ -324,9 +319,10 @@ class DistributedPOMOTrainer:
                     'num_epochs': self.args.NUM_EPOCHS,
                     'grad_clip': self.args.GRAD_CLIP,
                     'batch_size': self.args.BATCH_SIZE,
-                    'effective_batch_size': self.effective_batch_size,
+                    'batch_size_per_gpu': self.args.BATCH_SIZE // self.world_size,
+                    'world_size': self.world_size,
                     'compile_mode': 'reduce-overhead',
-                    'optimizations': 'zero-copy memory operations',
+                    'optimizations': 'structured batching, shared encoding, zero-copy operations',
                 },
                 'timestamp': datetime.now().isoformat(),
             }
@@ -349,7 +345,7 @@ class DistributedPOMOTrainer:
                 'best_eval_reward': self.best_eval_reward,
             }
             
-            # Save as best model - NOW USES CONFIG PATH
+            # Save as best model
             torch.save(self.model_module.state_dict(), self.args.MODEL_PATH)
             
             # Save full checkpoint
@@ -372,7 +368,7 @@ class DistributedPOMOTrainer:
                 f.write("\n")
     
     def train(self, train_loader, eval_loader, test_dataset=None):
-        """Full training loop with POMO and zero-copy optimizations."""
+        """Full training loop with memory-efficient POMO."""
         # Save configuration
         self.save_config()
         
@@ -393,13 +389,15 @@ class DistributedPOMOTrainer:
                 heuristic_distances = torch.tensor(heuristic_distances)
         
         if self.rank == 0:
-            print(f"\nPOMO Training Configuration (with zero-copy optimizations):")
-            print(f"  POMO size (NUM_TRAIN_ENVS): {self.pomo_size}")
-            print(f"  Original batch size: {self.args.BATCH_SIZE}")
-            print(f"  Effective batch size: {self.effective_batch_size}")
-            print(f"  Total trajectories per step: {self.effective_batch_size * self.pomo_size * self.world_size}")
-            print(f"  Compile mode: reduce-overhead")
-            print(f"  Memory optimizations: zero-copy operations")
+            batch_size_per_gpu = self.args.BATCH_SIZE // self.world_size
+            print(f"\nPOMO Training Configuration (Memory-Efficient):")
+            print(f"  POMO size: {self.pomo_size}")
+            print(f"  Total batch size: {self.args.BATCH_SIZE}")
+            print(f"  Batch size per GPU: {batch_size_per_gpu}")
+            print(f"  TSP instances per GPU: {batch_size_per_gpu}")
+            print(f"  Trajectories per GPU: {batch_size_per_gpu * self.pomo_size}")
+            print(f"  Total trajectories per step: {self.args.BATCH_SIZE * self.pomo_size}")
+            print(f"  Memory optimization: Structured batching with shared encoding")
             print()
         
         # Training loop
@@ -437,7 +435,7 @@ class DistributedPOMOTrainer:
         # Final summary
         if self.rank == 0:
             print(f"\n{'='*50}")
-            print(f"Training completed with POMO + zero-copy optimizations!")
+            print(f"Training completed with memory-efficient POMO!")
             print(f"Best model achieved at epoch {self.best_epoch}")
             print(f"Best eval reward: {self.best_eval_reward:.4f}")
             print(f"Model saved as '{self.args.MODEL_PATH}'")
