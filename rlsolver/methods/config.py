@@ -18,7 +18,7 @@ class Problem(Enum):
     maxcut = "maxcut"
     graph_partitioning = "graph_partitioning"
     number_partitioning = "number_partitioning"
-    minimum_vertex_cover = "minimum_vertex_cover"
+    MVC = "MVC" # minimum_vertex_cover
     BILP = "BILP"
     MIS = "MIS" # maximum_independent_set
     knapsack = "knapsack"

@@ -19,13 +19,13 @@ from rlsolver.methods.util import (plot_fig,
 from rlsolver.methods.util_read_data import (read_nxgraph,
                             )
 from rlsolver.methods.util_obj import (cover_all_edges,
-                  obj_maxcut,
-                  obj_graph_partitioning,
-                  obj_minimum_vertex_cover,
-                  obj_maximum_independent_set,
-                  obj_set_cover_ratio,
-                  obj_set_cover,
-                  obj_graph_coloring,)
+                                       obj_maxcut,
+                                       obj_graph_partitioning,
+                                       obj_MVC,
+                                       obj_MIS,
+                                       obj_set_cover_ratio,
+                                       obj_set_cover,
+                                       obj_graph_coloring, )
 from rlsolver.methods.util_result import (write_graph_result,
                                           )
 from rlsolver.methods.config import *
@@ -123,7 +123,7 @@ def greedy_graph_partitioning(num_steps:Optional[int], graph: nx.Graph) -> (int,
     return curr_score, curr_solution, scores
 
 
-def greedy_minimum_vertex_cover(num_steps: int, graph: nx.Graph) -> (int, Union[List[int], np.array], List[int]):
+def greedy_MVC(num_steps: int, graph: nx.Graph) -> (int, Union[List[int], np.array], List[int]):
     print('greedy')
     init_solution = [0] * graph.number_of_nodes()
     assert sum(init_solution) == 0
@@ -132,7 +132,7 @@ def greedy_minimum_vertex_cover(num_steps: int, graph: nx.Graph) -> (int, Union[
     num_nodes = int(graph.number_of_nodes())
     nodes = list(range(num_nodes))
     curr_solution = copy.deepcopy(init_solution)
-    curr_score: int = obj_minimum_vertex_cover(curr_solution, graph)
+    curr_score: int = obj_MVC(curr_solution, graph)
     init_score = curr_score
     scores = []
     iter = 0
@@ -154,14 +154,14 @@ def greedy_minimum_vertex_cover(num_steps: int, graph: nx.Graph) -> (int, Union[
         iter += 1
         if iter > num_nodes:
             break
-    curr_score = obj_minimum_vertex_cover(curr_solution, graph)
+    curr_score = obj_MVC(curr_solution, graph)
     print("score, init_score", curr_score, init_score)
     print("solution: ", curr_solution)
     running_duration = time.time() - start_time
     print('running_duration: ', running_duration)
     return curr_score, curr_solution, scores
 
-def greedy_maximum_independent_set(num_steps: Optional[int], graph: nx.Graph) -> (int, Union[List[int], np.array], List[int]):
+def greedy_MIS(num_steps: Optional[int], graph: nx.Graph) -> (int, Union[List[int], np.array], List[int]):
     def calc_candidate_nodes(unselected_nodes: List[int], selected_nodes: List[int], graph: nx.Graph):
         candidate_nodes = []
         remove_nodes = set()
@@ -182,7 +182,7 @@ def greedy_maximum_independent_set(num_steps: Optional[int], graph: nx.Graph) ->
         num_steps = num_nodes
     start_time = time.time()
     curr_solution = copy.deepcopy(init_solution)
-    curr_score: int = obj_maximum_independent_set(curr_solution, graph)
+    curr_score: int = obj_MIS(curr_solution, graph)
     init_score = curr_score
     scores = []
     selected_nodes = []
@@ -209,13 +209,12 @@ def greedy_maximum_independent_set(num_steps: Optional[int], graph: nx.Graph) ->
             unselected_nodes.remove(selected_node)
             candidate_graph.remove_node(selected_node)
             curr_solution[selected_node] = 1
-            # curr_score2 = obj_maximum_independent_set(curr_solution, graph)
             curr_score += 1
             # assert curr_score == curr_score2
             scores.append(curr_score)
         if step > num_steps:
             break
-    curr_score2 = obj_maximum_independent_set(curr_solution, graph)
+    curr_score2 = obj_MIS(curr_solution, graph)
     assert curr_score == curr_score2
     print("init_score, final score of greedy", init_score, curr_score, )
     print("scores: ", scores)
@@ -360,16 +359,16 @@ if __name__ == '__main__':
             num_steps = None
             gr_score, gr_solution, gr_scores = greedy_graph_partitioning(num_steps, graph)
 
-        elif PROBLEM == Problem.minimum_vertex_cover:
+        elif PROBLEM == Problem.MVC:
             num_steps = None
-            gr_score, gr_solution, gr_scores = greedy_minimum_vertex_cover(num_steps, graph)
-            obj = obj_minimum_vertex_cover(gr_solution, graph)
+            gr_score, gr_solution, gr_scores = greedy_MVC(num_steps, graph)
+            obj = obj_MVC(gr_solution, graph)
             print('obj: ', obj)
 
-        elif PROBLEM == Problem.maximum_independent_set:
+        elif PROBLEM == Problem.MIS:
             num_steps = None
-            gr_score, gr_solution, gr_scores = greedy_maximum_independent_set(num_steps, graph)
-            obj = obj_maximum_independent_set(gr_solution, graph)
+            gr_score, gr_solution, gr_scores = greedy_MIS(num_steps, graph)
+            obj = obj_MIS(gr_solution, graph)
             print('obj: ', obj)
 
         elif PROBLEM == Problem.set_cover:
@@ -395,10 +394,10 @@ if __name__ == '__main__':
             alg = greedy_maxcut
         elif PROBLEM == Problem.graph_partitioning:
             alg = greedy_graph_partitioning
-        elif PROBLEM == Problem.minimum_vertex_cover:
-            alg = greedy_minimum_vertex_cover
-        elif PROBLEM == Problem.maximum_independent_set:
-            alg = greedy_maximum_independent_set
+        elif PROBLEM == Problem.MVC:
+            alg = greedy_MVC
+        elif PROBLEM == Problem.MIS:
+            alg = greedy_MIS
         elif PROBLEM == Problem.set_cover:
             alg = greedy_set_cover
         elif PROBLEM == Problem.graph_coloring:

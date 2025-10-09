@@ -67,7 +67,7 @@ def cover_all_edges(solution: List[int], graph: nx.Graph):
     return cover_all
 
 
-def obj_minimum_vertex_cover(solution: Union[Tensor, List[int], np.array], graph: nx.Graph,
+def obj_MVC(solution: Union[Tensor, List[int], np.array], graph: nx.Graph,
                              need_check_cover_all_edges=True):
     num_nodes = len(solution)
     obj = 0
@@ -81,7 +81,7 @@ def obj_minimum_vertex_cover(solution: Union[Tensor, List[int], np.array], graph
 
 
 # make sure solution[i] = 0 or 1
-def obj_maximum_independent_set(solution: Union[Tensor, List[int], np.array], graph: nx.Graph):
+def obj_MIS(solution: Union[Tensor, List[int], np.array], graph: nx.Graph):
     sol = set(solution)
     # if len(solution) > 0:
     #     assert len(sol) == 2
@@ -102,7 +102,7 @@ def obj_maximum_independent_set(solution: Union[Tensor, List[int], np.array], gr
 
 
 # the returned score, the higher, the better
-def obj_maximum_independent_set_SA(node: int, solution: Union[Tensor, List[int], np.array], graph: nx.Graph):
+def obj_MIS_SA(node: int, solution: Union[Tensor, List[int], np.array], graph: nx.Graph):
     def adjacent_to_selected_nodes(node: int, solution: Union[Tensor, List[int], np.array]):
         for i in range(len(solution)):
             if solution[i] == 1:

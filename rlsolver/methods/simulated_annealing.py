@@ -20,21 +20,21 @@ from rlsolver.methods.util_result import (write_graph_result,
                                           write_result_set_cover
                                           )
 from rlsolver.methods.util_obj import (
-                  obj_maxcut,
-                  obj_graph_partitioning,
-                    cover_all_edges,
-                  obj_minimum_vertex_cover,
-                  obj_maximum_independent_set,
-                  obj_set_cover,
-                  obj_graph_coloring,
+    obj_maxcut,
+    obj_graph_partitioning,
+    cover_all_edges,
+    obj_MVC,
+    obj_MIS,
+    obj_set_cover,
+    obj_graph_coloring,
                       )
 from rlsolver.methods.greedy import (greedy_maxcut,
-                    greedy_graph_partitioning,
-                    greedy_minimum_vertex_cover,
-                    greedy_maximum_independent_set,
-                    greedy_set_cover,
-                    greedy_graph_coloring,
-                    )
+                                     greedy_graph_partitioning,
+                                     greedy_MVC,
+                                     greedy_MIS,
+                                     greedy_set_cover,
+                                     greedy_graph_coloring,
+                                     )
 # from util import run_simulated_annealing_over_multiple_files
 from rlsolver.methods.config import *
 
@@ -117,13 +117,13 @@ def simulated_annealing(init_temperature: int, num_steps: Optional[int], graph: 
     elif PROBLEM == Problem.graph_partitioning:
         num_steps = num_nodes
         gr_score, gr_solution, gr_scores = greedy_graph_partitioning(num_steps, graph)
-    elif PROBLEM == Problem.minimum_vertex_cover:
+    elif PROBLEM == Problem.MVC:
         num_steps = num_nodes
-        gr_score, gr_solution, gr_scores = greedy_minimum_vertex_cover(None, graph)
+        gr_score, gr_solution, gr_scores = greedy_MVC(None, graph)
         assert cover_all_edges(gr_solution, graph)
-    elif PROBLEM == Problem.maximum_independent_set:
+    elif PROBLEM == Problem.MIS:
         num_steps = 100 * num_nodes
-        gr_score, gr_solution, gr_scores = greedy_maximum_independent_set(num_steps, graph)
+        gr_score, gr_solution, gr_scores = greedy_MIS(num_steps, graph)
     elif PROBLEM == Problem.graph_coloring:
         num_steps = None
         gr_score, gr_solution, gr_scores = greedy_graph_coloring(num_steps, graph)
@@ -133,8 +133,6 @@ def simulated_annealing(init_temperature: int, num_steps: Optional[int], graph: 
     init_score = gr_score
     curr_solution = copy.deepcopy(gr_solution)
     curr_score = gr_score
-    # if PROBLEM == Problem.maximum_independent_set:
-    #     curr_score = gr_score / graph.number_of_edges()
     scores = []
     scores.append(init_score)
 
@@ -157,7 +155,7 @@ def simulated_annealing(init_temperature: int, num_steps: Optional[int], graph: 
             new_solution[idx] = new_solution[node2]
             new_solution[node2] = tmp
             new_score = obj_graph_partitioning(new_solution, graph)
-        elif PROBLEM == Problem.minimum_vertex_cover:
+        elif PROBLEM == Problem.MVC:
             iter = 0
             index = None
             while True:
@@ -176,8 +174,8 @@ def simulated_annealing(init_temperature: int, num_steps: Optional[int], graph: 
                     break
             if index is not None:
                 new_solution[index] = 0
-            new_score = obj_minimum_vertex_cover(new_solution, graph, False)
-        elif PROBLEM == Problem.maximum_independent_set:
+            new_score = obj_MVC(new_solution, graph, False)
+        elif PROBLEM == Problem.MIS:
             selected_indices = []
             unselected_indices = []
             for i in range(len(new_solution)):
@@ -204,7 +202,7 @@ def simulated_annealing(init_temperature: int, num_steps: Optional[int], graph: 
                 node_in2 = unselected_indices[node2]
                 new_solution[node_in1] = (new_solution[node_in1] + 1) % 2
                 new_solution[node_in2] = (new_solution[node_in2] + 1) % 2
-            new_score = obj_maximum_independent_set(new_solution, graph)
+            new_score = obj_MIS(new_solution, graph)
         elif PROBLEM == Problem.graph_coloring:
             while True:
                 node1, node2 = np.random.randint(0, num_nodes, 2)
@@ -228,12 +226,6 @@ def simulated_annealing(init_temperature: int, num_steps: Optional[int], graph: 
                 store = True
         if store:
             scores.append(new_score)
-            # if PROBLEM == Problem.maximum_independent_set:
-            #     tmp_new_score = obj_maximum_independent_set(new_solution, graph)
-            #     print(f"init_score: {init_score}, tmp_new_score: {tmp_new_score}")
-            #     scores.append(tmp_new_score)
-            # else:
-            #     scores.append(new_score)
     print("init_score, final score of simulated_annealing", init_score, curr_score)
     print("scores: ", scores)
     print("solution: ", curr_solution)
