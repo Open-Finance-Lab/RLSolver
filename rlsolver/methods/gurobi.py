@@ -2,6 +2,8 @@ import sys
 import os
 import numpy as np
 
+from rlsolver.methods.util_obj import obj_MIS
+
 cur_path = os.path.dirname(os.path.abspath(__file__))
 rlsolver_path = os.path.join(cur_path, '../../rlsolver')
 sys.path.append(os.path.dirname(rlsolver_path))
@@ -134,11 +136,11 @@ def mycallback_write(model, where):
 # the file has been open
 def write_statistics(model, new_file, add_slash=False):
     prefix = '// ' if add_slash else ''
-    if PROBLEM == Problem.maximum_independent_set:
-        from util import obj_maximum_independent_set
+    if PROBLEM == Problem.MIS:
+        from util import obj_MIS
         solution = model._attribute['solution']
         graph = model._attribute['graph']
-        obj = obj_maximum_independent_set(solution, graph)
+        obj = obj_MIS(solution, graph)
         new_file.write(f"{prefix}obj: {obj}\n")
     else:
         new_file.write(f"{prefix}obj: {model.objVal}\n")
@@ -231,7 +233,7 @@ def write_result_gurobi(model, filename: str = './result/result', running_durati
         if 'num_nodes' in model._attribute:
             new_file.write(f"// num_nodes: {model._attribute['num_nodes']}\n")
         for i in range(len(nodes)):
-            if GUROBI_VAR_CONTINUOUS or PROBLEM == Problem.minimum_vertex_cover:
+            if GUROBI_VAR_CONTINUOUS or PROBLEM == Problem.MVC:
                 new_file.write(f"{nodes[i] + 1} {values[i]}\n")
             else:
                 new_file.write(f"{nodes[i] + 1} {values[i] + 1}\n")
@@ -336,7 +338,7 @@ def run_using_gurobi(filename: str, init_x=None, time_limit: int = None, plot_fi
                     quicksum(adjacency_matrix[(i, j)] * (0.5 - 2 * (x[i] - 0.5) * (x[j] - 0.5)) for i in range(0, j))
                     for j in nodes),
                 GRB.MINIMIZE)
-    elif PROBLEM == Problem.minimum_vertex_cover:
+    elif PROBLEM == Problem.MVC:
         if GUROBI_MILP_QUBO == 0:
             x = model.addVars(num_nodes, vtype=GRB.BINARY, name="x")
             model.setObjective(quicksum(x[j] for j in nodes),
@@ -348,7 +350,7 @@ def run_using_gurobi(filename: str, init_x=None, time_limit: int = None, plot_fi
                 quicksum(adjacency_matrix[(i, j)] * (1 - x[i]) * (1 - x[j]) for i in range(0, j)) for j in nodes)
                                + quicksum(x[j] for j in nodes),
                                GRB.MINIMIZE)
-    elif PROBLEM == Problem.maximum_independent_set:
+    elif PROBLEM == Problem.MIS:
         if GUROBI_MILP_QUBO == 0:
             x = model.addVars(num_nodes, vtype=GRB.BINARY, name="x")
             model.setObjective(quicksum(x[j] for j in nodes),
@@ -447,11 +449,11 @@ def run_using_gurobi(filename: str, init_x=None, time_limit: int = None, plot_fi
                     model.addConstr(y[(i, j)] >= x[i] - x[j], name='C0c_' + str(i) + '_' + str(j))
                     model.addConstr(y[(i, j)] >= -x[i] + x[j], name='C0d_' + str(i) + '_' + str(j))
             model.addConstr(quicksum(x[j] for j in nodes) == num_nodes / 2, name='C1')
-        elif PROBLEM == Problem.minimum_vertex_cover:
+        elif PROBLEM == Problem.MVC:
             for i in range(len(edges)):
                 node1, node2 = edges[i]
                 model.addConstr(x[node1] + x[node2] >= 1, name=f'C0_{node1}_{node2}')
-        elif PROBLEM == Problem.maximum_independent_set:
+        elif PROBLEM == Problem.MIS:
             for i in range(len(edges)):
                 node1, node2 = edges[i]
                 model.addConstr(x[node1] + x[node2] <= 1, name=f'C0_{node1}_{node2}')
@@ -538,7 +540,7 @@ def run_using_gurobi(filename: str, init_x=None, time_limit: int = None, plot_fi
 
     elif model.getAttr('SolCount') >= 1:  # get the SolCount:
         # result_filename = '../result/result'
-        if PROBLEM in [Problem.maxcut, Problem.minimum_vertex_cover, Problem.maximum_independent_set,
+        if PROBLEM in [Problem.maxcut, Problem.MVC, Problem.MIS,
                        Problem.graph_partitioning]:
             x_values = [x[i].x for i in range(num_nodes) if i in x]
         elif PROBLEM == Problem.tsp:
