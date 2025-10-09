@@ -1,0 +1,3 @@
+Epoch 0: Eval Reward = 4.0370, LR = 0.000195, Gap = 1.0466x [BEST]
+Epoch 1: Eval Reward = 3.9145, LR = 0.000181, Gap = 1.0146x [BEST]
+Epoch 2: Eval Reward = 3.8932, LR = 0.000159, Gap = 1.0091x [BEST]

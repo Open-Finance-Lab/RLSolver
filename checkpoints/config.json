@@ -1,0 +1,23 @@
+{
+    "model_config": {
+        "embedding_size": 128,
+        "hidden_size": 128,
+        "seq_len": 20,
+        "n_head": 8,
+        "C": 15.0
+    },
+    "training_config": {
+        "algorithm": "POMO with zero-copy optimizations + torch.compile",
+        "pomo_size": 20,
+        "num_train_envs": 20,
+        "lr": 0.0002,
+        "lr_min": 2.0000000000000003e-06,
+        "num_epochs": 10,
+        "grad_clip": 1.5,
+        "batch_size": 256,
+        "effective_batch_size": 12,
+        "compile_mode": "reduce-overhead",
+        "optimizations": "zero-copy memory operations"
+    },
+    "timestamp": "2025-10-09T17:33:55.767581"
+}

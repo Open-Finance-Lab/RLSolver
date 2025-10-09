@@ -1,10 +1,14 @@
 # train.py
 
 import os
+import sys
 import torch
 import torch.multiprocessing as mp
 import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel as DDP
+from pathlib import Path
+project_root = Path(__file__).resolve().parent.parent.parent.parent.parent
+sys.path.insert(0, str(project_root))
 
 from models import TSPActor
 from dataset import create_distributed_data_loaders
@@ -109,7 +113,7 @@ def train_single_gpu():
     
     # Set random seeds
     torch.manual_seed(SEED)
-    if 'cuda' in device:
+    if device.type == 'cuda':
         torch.cuda.manual_seed(SEED)
         torch.cuda.set_device(TRAIN_GPU_ID)
     
