@@ -1,62 +1,91 @@
-# env.py
-"""TSP Environment for non-autoregressive rollout with vmap optimizations."""
-
 import torch
-import torch.nn.functional as F
-from functools import partial
+from rlsolver.envs._env_base import EnvBase
 
-
-class TSPEnv:
-    """TSP environment for managing state and transitions."""
+class TSPEnv(EnvBase):
     
     def __init__(self, nodes, device='cuda'):
-        """
-        Args:
-            nodes: FloatTensor [batch_size, seq_len, 2] or [seq_len, 2]
-        """
+        
         if nodes.dim() == 2:
             nodes = nodes.unsqueeze(0)
         
-        self.batch_size = nodes.size(0)
-        self.seq_len = nodes.size(1)
-        self.device = device
+        batch_size = nodes.size(0)
+        seq_len = nodes.size(1)
         
-        # Static data
-        self.nodes = nodes  # [batch_size, seq_len, 2]
+        super().__init__(
+            num_envs=batch_size,
+            state_dim=seq_len * 2,
+            action_dim=seq_len,
+            if_discrete=True,
+            device=device
+        )
         
-        # Cached encoder output (for efficiency during evaluation)
-        self.encoded = None  # [batch_size, seq_len, embedding_size]
+        self.batch_size = batch_size
+        self.seq_len = seq_len
+        self.nodes = nodes
+        self.encoded = None
         
-        # Dynamic state
-        self.current_node = None  # [batch_size]
-        self.first_node = None  # [batch_size]
-        self.visited_mask = None  # [batch_size, seq_len]
-        self.tour = []  # List of selected nodes
+        self.current_node = None
+        self.first_node = None
+        self.visited_mask = None
+        self.tour = []
         self.step_count = 0
+    
+    @staticmethod
+    def _compute_single_tour_length(nodes, tour_indices):
+        """Compute tour length for a single instance.
+        
+        Args:
+            nodes: [seq_len, 2]
+            tour_indices: [seq_len]
+        Returns:
+            tour_length: scalar
+        """
+        tour_nodes = nodes[tour_indices]
+        diffs = tour_nodes[1:] - tour_nodes[:-1]
+        distances = torch.norm(diffs, dim=1)
+        last_to_first = torch.norm(tour_nodes[-1] - tour_nodes[0])
+        return distances.sum() + last_to_first
     
     def reset(self):
         """Reset environment to initial state."""
         self.current_node = None
         self.first_node = None
-        self.visited_mask = torch.zeros(self.batch_size, self.seq_len,
-                                       dtype=torch.bool, device=self.device)
+        self.visited_mask = torch.zeros(
+            self.batch_size, self.seq_len,
+            dtype=torch.bool, device=self.device
+        )
         self.tour = []
         self.step_count = 0
-        self.encoded = None  # Reset cached encoder output
+        self.encoded = None
         return self.get_observation()
     
-    def get_observation(self):
-        """Get current observation for the network.
+    def step(self, action):
         
-        Returns:
-            dict with:
-                - nodes: all node coordinates [batch_size, seq_len, 2]
-                - current_node: current node index [batch_size] or None
-                - first_node: first node index [batch_size] or None
-                - action_mask: available actions [batch_size, seq_len]
-                - encoded: cached encoder output [batch_size, seq_len, embedding_size] or None
-        """
-        # Action mask: True for available (unvisited) nodes
+        self.current_node = action
+        if self.first_node is None:
+            self.first_node = action.clone()
+        
+        self.visited_mask.scatter_(1, action.unsqueeze(1), True)
+        self.tour.append(action)
+        self.step_count += 1
+        
+        done = torch.full(
+            (self.batch_size,),
+            self.step_count >= self.seq_len,
+            dtype=torch.bool,
+            device=self.device
+        )
+        
+    
+        if done.all():
+            reward_val = self.reward()
+        else:
+            reward_val = torch.zeros(self.batch_size, device=self.device)
+        
+        return self.get_observation(), reward_val, done
+    
+    def get_observation(self):
+        """Get current observation."""
         action_mask = ~self.visited_mask
         
         obs = {
@@ -66,125 +95,159 @@ class TSPEnv:
             'action_mask': action_mask
         }
         
-        # Include cached encoder output if available
         if self.encoded is not None:
             obs['encoded'] = self.encoded
-            
+        
         return obs
     
-    def step(self, action):
-        """Take a step in the environment.
+    def reward(self):
         
-        Args:
-            action: Selected node indices [batch_size]
-            
-        Returns:
-            observation: Next observation
-            done: Whether episode is finished
-        """
-        # Update state
-        self.current_node = action
-        
-        if self.first_node is None:
-            self.first_node = action.clone()
-        
-        # Mark as visited
-        self.visited_mask.scatter_(1, action.unsqueeze(1), True)
-        self.tour.append(action)
-        self.step_count += 1
-        
-        # Check if done
-        done = (self.step_count >= self.seq_len)
-        
-        return self.get_observation(), done
+        tour_tensor = torch.stack(self.tour, dim=1)
+        tour_lengths = torch.vmap(self._compute_single_tour_length)(
+            self.nodes, tour_tensor
+        )
+        return -tour_lengths
     
-    def get_tour_length(self):
-        """Calculate total tour length after completion using vmap.
+    def reward_parallel(self, tours):
         
-        Returns:
-            lengths: FloatTensor [batch_size]
-        """
-        if len(self.tour) != self.seq_len:
-            raise ValueError("Tour not complete")
+        batch_size, num_tours, seq_len = tours.shape
         
-        # Stack tour indices
-        tour_indices = torch.stack(self.tour, dim=1)  # [batch_size, seq_len]
+        nodes_expanded = self.nodes.unsqueeze(1).expand(
+            batch_size, num_tours, seq_len, 2
+        ).reshape(batch_size * num_tours, seq_len, 2)
+        tours_flat = tours.reshape(batch_size * num_tours, seq_len)
         
-        # Use vmap for efficient tour length calculation
-        def compute_single_tour_length(nodes, indices):
-            """Compute tour length for a single instance."""
-            # Gather nodes in tour order
-            tour_nodes = nodes[indices]  # [seq_len, 2]
-            
-            # Calculate distances between consecutive nodes
-            diffs = tour_nodes[1:] - tour_nodes[:-1]
-            distances = torch.norm(diffs, dim=1)
-            
-            # Add distance from last to first
-            last_to_first = torch.norm(tour_nodes[-1] - tour_nodes[0])
-            
-            return distances.sum() + last_to_first
+        tour_lengths = torch.vmap(self._compute_single_tour_length)(
+            nodes_expanded, tours_flat
+        )
         
-        # Apply vmap across batch dimension
-        total_lengths = torch.vmap(compute_single_tour_length)(self.nodes, tour_indices)
-        
-        return total_lengths
-
-
-class VectorizedTSPEnv:
-    """Fully vectorized TSP environment for parallel rollouts."""
+        tour_lengths = tour_lengths.view(batch_size, num_tours)
+        return -tour_lengths
     
-    def __init__(self, nodes, device='cuda'):
-        """
-        Args:
-            nodes: FloatTensor [batch_size, seq_len, 2]
-        """
-        self.batch_size = nodes.size(0)
-        self.seq_len = nodes.size(1)
-        self.device = device
-        self.nodes = nodes
+    def _setup_parallel_rollout(self, model, num_rollouts):
+        """Setup parallel rollout for POMO or greedy evaluation."""
+        embedded = model.network.embedding(self.nodes)
+        encoded = model.network.encoder(embedded)
         
-    def compute_all_tours(self, all_actions):
-        """Compute tour lengths for complete action sequences using vmap.
+        encoded_expanded = encoded.unsqueeze(1).expand(
+            self.batch_size, num_rollouts, self.seq_len, -1
+        )
+        nodes_expanded = self.nodes.unsqueeze(1).expand(
+            self.batch_size, num_rollouts, self.seq_len, 2
+        )
         
-        Args:
-            all_actions: [batch_size, seq_len] - complete tour indices
-            
-        Returns:
-            tour_lengths: [batch_size]
-        """
-        def compute_tour_length(nodes, actions):
-            """Compute length for single tour."""
-            tour_nodes = nodes[actions]
-            
-            # Distances between consecutive nodes
-            diffs = tour_nodes[1:] - tour_nodes[:-1]
-            distances = torch.norm(diffs, dim=1)
-            
-            # Distance from last to first
-            last_to_first = torch.norm(tour_nodes[-1] - tour_nodes[0])
-            
-            return distances.sum() + last_to_first
+        encoded_flat = encoded_expanded.contiguous().view(
+            self.batch_size * num_rollouts, self.seq_len, -1
+        )
+        nodes_flat = nodes_expanded.contiguous().view(
+            self.batch_size * num_rollouts, self.seq_len, 2
+        )
         
-        # Vectorize across batch
-        tour_lengths = torch.vmap(compute_tour_length)(self.nodes, all_actions)
-        return tour_lengths
+        visited_mask = torch.zeros(
+            self.batch_size * num_rollouts, self.seq_len,
+            dtype=torch.bool, device=self.device
+        )
+        
+        flat_indices = torch.arange(
+            self.batch_size * num_rollouts, device=self.device
+        )
+        pomo_indices = torch.arange(
+            num_rollouts, device=self.device
+        ).repeat(self.batch_size) % self.seq_len
+        
+        first_node = pomo_indices
+        current_node = pomo_indices
+        visited_mask[flat_indices, current_node] = True
+        
+        actions_tensor = torch.empty(
+            self.batch_size * num_rollouts, self.seq_len,
+            dtype=torch.long, device=self.device
+        )
+        actions_tensor[:, 0] = current_node
+        
+        return (encoded_flat, nodes_flat, visited_mask, flat_indices, 
+                first_node, current_node, actions_tensor)
     
-    def batch_step(self, visited_mask, actions):
-        """Vectorized step function for multiple environments.
+    def rollout_pomo(self, model, pomo_size=None):
+        """Parallel POMO rollout using reward_parallel."""
+        if pomo_size is None:
+            pomo_size = self.seq_len
         
-        Args:
-            visited_mask: [batch_size, seq_len] - current visited states
-            actions: [batch_size] - selected actions
+        (encoded_flat, nodes_flat, visited_mask, flat_indices, 
+         first_node, current_node, actions_tensor) = self._setup_parallel_rollout(
+            model, pomo_size
+        )
+        
+        log_probs_tensor = torch.empty(
+            self.batch_size * pomo_size, self.seq_len - 1,
+            device=self.device
+        )
+        
+        for step in range(1, self.seq_len):
+            obs = {
+                'nodes': nodes_flat,
+                'current_node': current_node,
+                'first_node': first_node,
+                'action_mask': ~visited_mask,
+                'encoded': encoded_flat
+            }
             
-        Returns:
-            new_visited_mask: [batch_size, seq_len]
-        """
-        # Create new mask with vmap
-        def update_mask(mask, action):
-            new_mask = mask.clone()
-            new_mask[action] = True
-            return new_mask
+            action, log_prob = model.get_action(obs, deterministic=False)
+            current_node = action
+            visited_mask[flat_indices, action] = True
+            
+            log_probs_tensor[:, step - 1] = log_prob
+            actions_tensor[:, step] = action
         
-        new_visited_mask = torch.vmap(update_mask)(visited_mask, actions)
-        return new_visited_mask
+        actions_reshaped = actions_tensor.view(
+            self.batch_size, pomo_size, self.seq_len
+        )
+        rewards = self.reward_parallel(actions_reshaped)
+        tour_lengths = -rewards
+        
+        log_probs = log_probs_tensor.view(
+            self.batch_size, pomo_size, self.seq_len - 1
+        )
+        
+        return tour_lengths, log_probs, actions_reshaped
+    
+    def rollout_greedy(self, model, num_rollouts=None):
+        """Parallel greedy rollout using reward_parallel."""
+        if num_rollouts is None:
+            num_rollouts = self.seq_len
+        
+        (encoded_flat, nodes_flat, visited_mask, flat_indices, 
+         first_node, current_node, actions_tensor) = self._setup_parallel_rollout(
+            model, num_rollouts
+        )
+        
+        for step in range(1, self.seq_len):
+            obs = {
+                'nodes': nodes_flat,
+                'current_node': current_node,
+                'first_node': first_node,
+                'action_mask': ~visited_mask,
+                'encoded': encoded_flat
+            }
+            
+            logits = model.network(obs)
+            action = logits.argmax(dim=-1)
+            current_node = action
+            visited_mask[flat_indices, action] = True
+            actions_tensor[:, step] = action
+        
+        actions_reshaped = actions_tensor.view(
+            self.batch_size, num_rollouts, self.seq_len
+        )
+        rewards = self.reward_parallel(actions_reshaped)
+        tour_lengths = -rewards
+        
+        best_indices = tour_lengths.argmin(dim=1)
+        best_lengths = tour_lengths.gather(
+            1, best_indices.unsqueeze(1)
+        ).squeeze(1)
+        best_tours = actions_reshaped.gather(
+            1, best_indices.unsqueeze(1).unsqueeze(2).expand(-1, -1, self.seq_len)
+        ).squeeze(1)
+        
+        return best_tours, best_lengths
