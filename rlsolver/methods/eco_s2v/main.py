@@ -15,8 +15,8 @@ if TRAIN_INFERENCE == 0:
         from rlsolver.methods.eco_s2v.train_and_inference.train_s2v import run
     elif ALG == Alg.eco_torch:
         from rlsolver.methods.eco_s2v.train_and_inference.train_eco_torch import run
-    elif ALG == Alg.eeco:
-        from rlsolver.methods.eco_s2v.train_and_inference.train_eeco import run
+    elif ALG == Alg.peco:
+        from rlsolver.methods.eco_s2v.train_and_inference.train_peco import run
     elif ALG == Alg.jumanji:
         from rlsolver.methods.eco_s2v.jumanji.train_and_inference.train import run
     elif ALG == Alg.rl4co:
@@ -26,8 +26,8 @@ if TRAIN_INFERENCE == 0:
     run(save_loc=NEURAL_NETWORK_DIR)
 
 if TRAIN_INFERENCE == 1:
-    if ALG == Alg.eeco:
-        from rlsolver.methods.eco_s2v.train_and_inference.inference_eeco import run
+    if ALG == Alg.peco:
+        from rlsolver.methods.eco_s2v.train_and_inference.inference_peco import run
 
         run(graph_folder=DATA_DIR,
             n_sims=NUM_INFERENCE_ENVS,

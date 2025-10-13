@@ -21,7 +21,7 @@ from rlsolver.methods.eco_s2v.src.envs.util_envs import (SingleGraphGenerator, S
 # TESTING ON GRAPHS
 ####################################################
 
-def eeco_test_network(network, test_env, local_search_frequency):
+def peco_test_network(network, test_env, local_search_frequency):
     result = {}
     obj_vs_time = {}
     test_scores = test_env.get_best_cut()

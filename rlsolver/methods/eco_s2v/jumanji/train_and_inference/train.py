@@ -12,13 +12,13 @@ import tqdm
 from rlsolver.methods.eco_s2v.config import *
 from rlsolver.methods.eco_s2v.jumanji.train.config import Config
 from rlsolver.methods.eco_s2v.jumanji.agents.AgentPPO import AgentA2C
-from rlsolver.methods.eco_s2v.src.envs.spinsystem_eeco import SpinSystemFactory
+from rlsolver.methods.eco_s2v.src.envs.spinsystem_peco import SpinSystemFactory
 
 from rlsolver.methods.eco_s2v.src.envs.util_envs import (EdgeType, RewardSignal, ExtraAction,
                                                          OptimisationTarget, SpinBasis,
                                                          DEFAULT_OBSERVABLES)
 
-from rlsolver.methods.eco_s2v.src.envs.util_envs_eeco import (RandomBarabasiAlbertGraphGenerator,
+from rlsolver.methods.eco_s2v.src.envs.util_envs_peco import (RandomBarabasiAlbertGraphGenerator,
                                                               RandomErdosRenyiGraphGenerator, ValidationGraphGenerator,
                                                               )
 from rlsolver.methods.eco_s2v.util import cal_txt_name
