@@ -347,82 +347,41 @@ if __name__ == '__main__':
     # run alg
     alg_name = 'GR'
 
-    run_one_file = False
-    if run_one_file:
-        # maxcut
-        if PROBLEM == Problem.maxcut:
-            num_steps = None
-            gr_score, gr_solution, gr_scores = greedy_maxcut(num_steps, graph, filename)
 
-        # graph_partitioning
-        elif PROBLEM == Problem.graph_partitioning:
-            num_steps = None
-            gr_score, gr_solution, gr_scores = greedy_graph_partitioning(num_steps, graph)
 
-        elif PROBLEM == Problem.MVC:
-            num_steps = None
-            gr_score, gr_solution, gr_scores = greedy_MVC(num_steps, graph)
-            obj = obj_MVC(gr_solution, graph)
-            print('obj: ', obj)
+    if PROBLEM == Problem.maxcut:
+        alg = greedy_maxcut
+    elif PROBLEM == Problem.graph_partitioning:
+        alg = greedy_graph_partitioning
+    elif PROBLEM == Problem.MVC:
+        alg = greedy_MVC
+    elif PROBLEM == Problem.MIS:
+        alg = greedy_MIS
+    elif PROBLEM == Problem.set_cover:
+        alg = greedy_set_cover
+    elif PROBLEM == Problem.graph_coloring:
+        alg = greedy_graph_coloring
 
-        elif PROBLEM == Problem.MIS:
-            num_steps = None
-            gr_score, gr_solution, gr_scores = greedy_MIS(num_steps, graph)
-            obj = obj_MIS(gr_solution, graph)
-            print('obj: ', obj)
+    alg_name = "greedy"
+    num_steps = None
+    directory_data = '../data/syn_BA'
+    # directory_data = '../data/syn_ER'
+    prefixes = ['BA_100_']
+    # prefixes = ['ER_100_']
 
-        elif PROBLEM == Problem.set_cover:
-            from util import read_set_cover_data
-            filename = '../data/set_cover/frb30-15-1.msc'
-            num_items, num_sets, item_matrix = read_set_cover_data(filename)
-            print(f'num_items: {num_items}, num_sets: {num_sets}, item_matrix: {item_matrix}')
-            solution1 = [1] * num_sets
-            obj1_ratio = obj_set_cover_ratio(solution1, num_items, item_matrix)
-            print(f'obj1_ratio: {obj1_ratio}')
-            curr_score, curr_solution, scores = greedy_set_cover(num_items, num_sets, item_matrix)
-            print(f'curr_score: {curr_score}, curr_solution:{curr_solution}, scores:{scores}')
+    if_run_set_cover = False
+    if if_run_set_cover:
+        directory_data = '../data/set_cover'
+        prefixes = ['frb30-15-1']
 
-        elif PROBLEM == Problem.graph_coloring:
-            num_steps = None
-            gr_score, gr_solution, gr_scores = greedy_graph_coloring(num_steps, graph)
-            fig_filename = '../result/fig.png'
-            plot_nxgraph(graph, fig_filename)
+    scoress = run_greedy_over_multiple_files(alg, alg_name, num_steps, directory_data, prefixes)
+    print(f"scoress: {scoress}")
 
-    run_multi_files = True
-    if run_multi_files:
-        if PROBLEM == Problem.maxcut:
-            alg = greedy_maxcut
-        elif PROBLEM == Problem.graph_partitioning:
-            alg = greedy_graph_partitioning
-        elif PROBLEM == Problem.MVC:
-            alg = greedy_MVC
-        elif PROBLEM == Problem.MIS:
-            alg = greedy_MIS
-        elif PROBLEM == Problem.set_cover:
-            alg = greedy_set_cover
-        elif PROBLEM == Problem.graph_coloring:
-            alg = greedy_graph_coloring
-
-        alg_name = "greedy"
-        num_steps = None
-        directory_data = '../data/syn_BA'
-        # directory_data = '../data/syn_ER'
-        prefixes = ['BA_100_']
-        # prefixes = ['ER_100_']
-
-        if_run_set_cover = False
-        if if_run_set_cover:
-            directory_data = '../data/set_cover'
-            prefixes = ['frb30-15-1']
-
-        scoress = run_greedy_over_multiple_files(alg, alg_name, num_steps, directory_data, prefixes)
-        print(f"scoress: {scoress}")
-
-        # plot fig
-        plot_fig_ = False
-        if plot_fig_:
-            for scores in scoress:
-                plot_fig(scores, alg_name)
+    # plot fig
+    plot_fig_ = False
+    if plot_fig_:
+        for scores in scoress:
+            plot_fig(scores, alg_name)
 
 
 

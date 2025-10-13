@@ -605,74 +605,44 @@ def run_gurobi_over_multiple_files(prefixes: List[str], time_limits: List[int], 
 
 
 if __name__ == '__main__':
-    run_one_file = False
-    if run_one_file:
-        filename = '../data/syn_BA/BA_100_ID0.txt'
-        time_limits = GUROBI_TIME_LIMITS
+    run_syndistr = True
+    # time_limits = GUROBI_TIME_LIMITS
+    # time_limits = [10 * 60, 20 * 60, 30 * 60, 40 * 60, 50 * 60, 60 * 60]
+    if run_syndistr:
+        directory_data = '../data/syn_BA'
+        prefixes = ['BA_100_']
 
-        from rlsolver.methods.util_evaluator import EncoderBase64
-        from rlsolver.envs.env_mcpg_maxcut import SimulatorMaxcut, load_graph_list
-        from util_evaluator import X_G14
-        # from L2A.evaluator import *
+    if PROBLEM == Problem.tsp:
+        directory_data = '../data/tsplib'
+        # prefixes = ['g', 'k', 'l', 'p', 'r', 's', 't', 'u']
+        # prefixes = ['a', 'b', 'c', 'd', 'e', 'f']
 
-        graph_name = 'gset_14'
+        # prefixes = ['a', 'b', 'c']
+        # prefixes = ['d']
+        # prefixes = ['e']
 
-        graph = load_graph_list(graph_name=graph_name)
-        simulator = SimulatorMaxcut(sim_name=graph_name, graph_list=graph)
+        # prefixes = ['g', 'k']
+        # prefixes = ['l']
+        # prefixes = ['k']
+        # prefixes = ['l']
+        # prefixes = ['p']
+        # prefixes = ['r']
+        # prefixes = ['s', 't', 'u']
+        prefixes = ['a5']
 
-        x_str = X_G14
-        num_nodes = simulator.num_nodes
-        encoder = EncoderBase64(encode_len=num_nodes)
+    run_gurobi_over_multiple_files(prefixes, GUROBI_TIME_LIMITS, directory_data)
 
-        x = encoder.str_to_bool(x_str)
-        vs = simulator.obj(xs=x[None, :])
-        print(f"objective value  {vs[0].item():8.2f}  solution {x_str}")
+    directory_result = '../result'
+    avg_std = calc_avg_std_of_objs(directory_result, prefixes, GUROBI_TIME_LIMITS)
 
-        run_using_gurobi(filename, x, time_limit=time_limits[0], plot_fig_=True)
-        directory = '../result'
-        prefixes = ['syn_BA_']
-        avg_std = calc_avg_std_of_objs(directory, prefixes, time_limits)
+    run_knapsack = False
+    if run_knapsack:
+        directory_data = '../data/knapsack'
+        prefixes = ['kp_']
 
-    run_multi_files = True
-    if run_multi_files:
-        run_syndistr = True
-        # time_limits = GUROBI_TIME_LIMITS
-        # time_limits = [10 * 60, 20 * 60, 30 * 60, 40 * 60, 50 * 60, 60 * 60]
-        if run_syndistr:
-            directory_data = '../data/syn_BA'
-            prefixes = ['BA_100_']
-
-        if PROBLEM == Problem.tsp:
-            directory_data = '../data/tsplib'
-            # prefixes = ['g', 'k', 'l', 'p', 'r', 's', 't', 'u']
-            # prefixes = ['a', 'b', 'c', 'd', 'e', 'f']
-
-            # prefixes = ['a', 'b', 'c']
-            # prefixes = ['d']
-            # prefixes = ['e']
-
-            # prefixes = ['g', 'k']
-            # prefixes = ['l']
-            # prefixes = ['k']
-            # prefixes = ['l']
-            # prefixes = ['p']
-            # prefixes = ['r']
-            # prefixes = ['s', 't', 'u']
-            prefixes = ['a5']
-
-        run_gurobi_over_multiple_files(prefixes, GUROBI_TIME_LIMITS, directory_data)
-
-        directory_result = '../result'
-        avg_std = calc_avg_std_of_objs(directory_result, prefixes, GUROBI_TIME_LIMITS)
-
-        run_knapsack = False
-        if run_knapsack:
-            directory_data = '../data/knapsack'
-            prefixes = ['kp_']
-
-        run_set_cover = False
-        if run_set_cover:
-            directory_data = '../data/set_cover'
-            prefixes = ['set_cover_']
+    run_set_cover = False
+    if run_set_cover:
+        directory_data = '../data/set_cover'
+        prefixes = ['set_cover_']
 
     pass

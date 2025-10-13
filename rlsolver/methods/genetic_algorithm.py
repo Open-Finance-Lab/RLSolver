@@ -229,20 +229,12 @@ if __name__ == '__main__':
     num_parents = 5
     c_itMax = 5
 
-    if_run_one_case = False
-    if if_run_one_case:
-        # read data
-        filename = '../data/syn_BA/BA_100_ID0.txt'
-        graph = read_nxgraph(filename)
-        print("Genetic Search Start")
-        genetic_maxcut(graph, filename)
 
-    else:
-        directory_data = '../data/syn_BA'
-        # directory_data = '../data/syn_ER'
-        # directory_data = '../data/syn'
-        prefixes = ['BA_100_']
-        run_genetic_over_multiple_files(directory_data, prefixes)
+    directory_data = '../data/syn_BA'
+    # directory_data = '../data/syn_ER'
+    # directory_data = '../data/syn'
+    prefixes = ['BA_100_']
+    run_genetic_over_multiple_files(directory_data, prefixes)
 
     # Cut checker
     # vector = [1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1]

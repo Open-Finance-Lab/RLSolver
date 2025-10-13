@@ -1,12 +1,10 @@
 from abc import ABC,abstractmethod
 import gymnasium as gym
+import torch
 
-
-class _EnvBase(ABC, gym.Wrapper):
-    def __init__(self, num_envs: int, state_dim: int, action_dim: int):
+class _EnvBase(ABC):
+    def __init__(self, num_envs: int):
         self.num_envs = num_envs
-        self.state_dim = state_dim
-        self.action_dim = action_dim
 
     @abstractmethod
     def reset(self):
@@ -21,11 +19,11 @@ class _EnvBase(ABC, gym.Wrapper):
         pass
 
     def reset_parallel(self):
-        pass
+        return torch.vmap(lambda _: self.reset())()
 
     def reward_parallel(self):
-        pass
+        return torch.vmap(self.step)()
 
     def step_parallel(self):
-        pass
+        return torch.vmap(self.reward)()
 

@@ -262,53 +262,17 @@ def run_simulated_annealing_over_multiple_files(alg, alg_name, init_temperature,
 
 if __name__ == '__main__':
     print(f'problem: {PROBLEM}')
-
-    # run alg
-    # init_solution = list(np.random.randint(0, 2, graph.number_of_nodes()))
-
-    run_one_file = False
-    if run_one_file:
-        if_run_graph_based_problems = True
-        if if_run_graph_based_problems:
-            # read data
-            start_time = time.time()
-            filename = '../data/syn_BA/BA_100_ID0.txt'
-            graph = read_nxgraph(filename)
-            num_nodes = graph.number_of_nodes
-            alg_name = "SA"
-            init_temperature = 4
-            num_steps = None
-            sa_score, sa_solution, sa_scores = simulated_annealing(init_temperature, num_steps, graph, filename)
-            # write result
-            running_duration = time.time() - start_time
-            write_graph_result(sa_score, running_duration, num_nodes, alg_name, sa_solution, filename)
-            # write_result(sa_solution, '../result/result.txt')
-            # plot fig
-            alg_name = 'SA'
-            plot_fig(sa_scores, alg_name)
-
-        if_run_set_cover = False
-        if if_run_set_cover:
-            filename = '../data/set_cover/frb30-15-1.msc'
-            num_items, num_sets, item_matrix = read_set_cover_data(filename)
-            print(f'num_items: {num_items}, num_sets: {num_sets}, item_matrix: {item_matrix}')
-            init_temperature = 4
-            num_steps = int(100 * num_sets)
-            curr_score, curr_solution, scores = simulated_annealing_set_cover(init_temperature, num_steps, num_items, num_sets, item_matrix)
-
-    run_multi_files = True
-    if run_multi_files:
-        alg = simulated_annealing
-        alg_name = 'simulated_annealing'
-        if_run_graph_based_problems = True
-        if if_run_graph_based_problems:
-            init_temperature = 0.2
-            num_steps = None
-            directory_data = '../data/syn_BA'
-            prefixes = ['barabasi_albert_100_']
-        else:
-            init_temperature = 4
-            num_steps = None
-            directory_data = '../data/set_cover'
-            prefixes = ['frb30-15-1.msc']
-        run_simulated_annealing_over_multiple_files(alg, alg_name, init_temperature, num_steps, directory_data, prefixes)
+    alg = simulated_annealing
+    alg_name = 'simulated_annealing'
+    if_run_graph_based_problems = True
+    if if_run_graph_based_problems:
+        init_temperature = 0.2
+        num_steps = None
+        directory_data = '../data/syn_BA'
+        prefixes = ['barabasi_albert_100_']
+    else:
+        init_temperature = 4
+        num_steps = None
+        directory_data = '../data/set_cover'
+        prefixes = ['frb30-15-1.msc']
+    run_simulated_annealing_over_multiple_files(alg, alg_name, init_temperature, num_steps, directory_data, prefixes)
