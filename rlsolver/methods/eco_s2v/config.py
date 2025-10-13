@@ -3,7 +3,7 @@ from enum import Enum
 
 cur_path = os.path.dirname(os.path.abspath(__file__))
 rlsolver_path = os.path.join(cur_path, '../../')
-from rlsolver.methods.config import GraphType
+from rlsolver.methods.config import GraphType, Problem, PROBLEM
 from rlsolver.methods.util import calc_device
 
 
@@ -15,11 +15,12 @@ class Alg(Enum):
     jumanji = 'jumanji'
     rl4co = 'rl4co'
 
+PROBLEM = Problem.maxcut
 
-TRAIN_INFERENCE = 0  # 0: train, 1: inference
+TRAIN_INFERENCE = 1  # 0: train, 1: inference
 assert TRAIN_INFERENCE in [0, 1]
 
-ALG = Alg.eeco  # Alg
+ALG = Alg.s2v  # Alg
 GRAPH_TYPE = GraphType.BA
 
 # training
@@ -50,12 +51,12 @@ NUM_INFERENCE_ENVS = 50
 MINI_INFERENCE_ENVS = int(0.5 * NUM_INFERENCE_ENVS)  # 如果NUM_INFERENCE_ENVS太大导致GPU内存爆掉，分拆成MINI_INFERENCE_ENVS个环境，跑多次凑够NUM_INFERENCE_ENVS
 USE_LOCAL_SEARCH = True if ALG == Alg.eeco else False
 LOCAL_SEARCH_FREQUENCY = 10
-NEURAL_NETWORK_SAVE_PATH = rlsolver_path + "/methods/eco_s2v/pretrained_agent/" + ALG.value + "_" + GRAPH_TYPE.value + "_" + str(NUM_TRAINED_NODES_IN_INFERENCE) + "spin_best.pth"
-DATA_DIR = rlsolver_path + "/data/syn_" + GRAPH_TYPE.value
-NEURAL_NETWORK_DIR = rlsolver_path + "/methods/eco_s2v/pretrained_agent/tmp"
-NEURAL_NETWORK_SUBFOLDER = ALG.value + "_" + GRAPH_TYPE.value + "_" + str(NUM_TRAINED_NODES_IN_INFERENCE) + "spins"
-NEURAL_NETWORK_FOLDER = rlsolver_path + "/methods/eco_s2v/pretrained_agent/tmp/" + NEURAL_NETWORK_SUBFOLDER
-NEURAL_NETWORK_PREFIX = ALG.value + "_" + GRAPH_TYPE.value + "_" + str(NUM_TRAIN_NODES) + "spin"
+NEURAL_NETWORK_SAVE_PATH = rlsolver_path + "trained_agent/" + ALG.value + "_" + PROBLEM.value + "_" + GRAPH_TYPE.value + "_" + str(NUM_TRAINED_NODES_IN_INFERENCE) + ".pth"
+DATA_DIR = rlsolver_path + "data/syn_" + GRAPH_TYPE.value
+NEURAL_NETWORK_DIR = rlsolver_path + "trained_agent/tmp"
+NEURAL_NETWORK_SUBFOLDER = ALG.value + "_" + PROBLEM.value + "_" + GRAPH_TYPE.value + "_" + str(NUM_TRAINED_NODES_IN_INFERENCE)
+NEURAL_NETWORK_FOLDER = rlsolver_path + "trained_agent/tmp/" + NEURAL_NETWORK_SUBFOLDER
+NEURAL_NETWORK_PREFIX = ALG.value + "_" + PROBLEM.value + "_" + GRAPH_TYPE.value + "_" + str(NUM_TRAIN_NODES)
 
 UPDATE_FREQUENCY = 32
 
@@ -115,5 +116,5 @@ HERIZON_LENGTH = int(NUM_TRAIN_NODES / 2)
 JUMANJI_TEST_OBJ_FREQUENCY = 10  # 每次test的时间间隔
 
 # rl4co
-RL4CO_GRAPH_DIR = rlsolver_path + "/data/syn_BA/BA_100_ID0.txt"
-RL4CO_CHECKOUT_DIR = rlsolver_path + "/methods/eco_s2v/pretrained_agent/tmp/rl4co_BA_20spin/rl4co_BA_20spin_step=000250.ckpt"
+RL4CO_GRAPH_DIR = rlsolver_path + "data/syn_BA/BA_100_ID0.txt"
+RL4CO_CHECKOUT_DIR = rlsolver_path + "trained_agent/tmp/rl4co_BA_20spin/rl4co_BA_20spin_step=000250.ckpt"

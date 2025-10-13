@@ -81,7 +81,7 @@ Through repeated trial and reward, it gradually learns a general strategy that c
 
       python rlsolver/methods/eco_s2v/main.py 
 
-   This will generate a folder:  rlsolver/methods/eco_s2v/pretrained_agent/tmp/s2v_BA_20spin_b/
+   This will generate a folder:  rlsolver/trained_agent/tmp/s2v_BA_20spin_b/
 
    Inside this folder, multiple `.pth` model snapshots will be saved over time.
 
@@ -117,7 +117,7 @@ Through repeated trial and reward, it gradually learns a general strategy that c
 
 2.4. **Rename and move the best model**:
 
-      s2v_BA_20spin_best.pth  →  rlsolver/methods/eco_s2v/pretrained_agent/
+      s2v_BA_20spin_best.pth  →  rlsolver/trained_agent/
 
    .. image:: /_static/move.png
 
