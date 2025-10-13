@@ -14,7 +14,7 @@ from rlsolver.methods.eco_s2v.rl4co.models import S2VModel
 from rlsolver.methods.eco_s2v.config import *
 
 
-def run(graph_dir=DATA_DIR, n_sims=NUM_INFERENCE_ENVS):
+def run(graph_dir=DATA_DIR, num_envs=NUM_INFERENCE_ENVS):
     torch.set_grad_enabled(False)
     device = INFERENCE_DEVICE
 
@@ -24,7 +24,7 @@ def run(graph_dir=DATA_DIR, n_sims=NUM_INFERENCE_ENVS):
     policy_new = new_model_checkpoint.policy.to(device)
     generator = MaxCutGenerator(file=graph_dir, device=device)
     env = MaxCutEnv(generator).to(device)
-    td_init = env.reset(batch_size=[n_sims]).to(device)
+    td_init = env.reset(batch_size=[num_envs]).to(device)
 
     out = policy_new(td_init.clone(), env, phase="test", decode_type="greedy")
     out['reward'] = out['reward'] * generator.n_spins

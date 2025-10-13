@@ -325,16 +325,16 @@ class SingleGraphGenerator(GraphGenerator):
 
 
 class ValidationGraphGenerator(GraphGenerator):
-    def __init__(self, n_spins=20, graph_type=GraphType.BA, edge_type=EdgeType.DISCRETE, n_sims=2 ** 3, seed=None):
+    def __init__(self, n_spins=20, graph_type=GraphType.BA, edge_type=EdgeType.DISCRETE, num_envs=2 ** 3, seed=None):
         super().__init__(n_spins, edge_type, False)
-        self.n_sims = n_sims
+        self.num_envs = num_envs
         self.seed = seed
         self.graph_type = graph_type
         self.n_spins = n_spins
 
     def get(self):
         adj = []
-        for i in range(self.n_sims):
+        for i in range(self.num_envs):
             if self.seed is not None:
                 if self.graph_type == GraphType.BA:
                     g = nx.barabasi_albert_graph(self.n_spins, 4, seed=self.seed)

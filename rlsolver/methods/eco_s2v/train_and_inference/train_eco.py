@@ -66,7 +66,7 @@ def run(save_loc):
 
     validation_graph_generator = ValidationGraphGenerator(n_spins=n_spins_train, graph_type=GRAPH_TYPE,
                                                           edge_type=EdgeType.DISCRETE,
-                                                          n_sims=NUM_VALIDATION_ENVS, seed=VALIDATION_SEED)
+                                                          num_envs=NUM_VALIDATION_ENVS, seed=VALIDATION_SEED)
 
     ####
     # Pre-generated test graphs

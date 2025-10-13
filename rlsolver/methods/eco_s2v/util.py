@@ -39,8 +39,7 @@ def peco_test_network(network, test_env, local_search_frequency):
             actions = qs.argmax(-1, True)
         return actions
 
-    done = torch.zeros((test_env.n_sims), dtype=torch.bool, device=test_env.device)
-    # obs = torch.cat((test_env.state, test_env.matrix_obs.unsqueeze(0).expand(test_env.n_sims,-1,-1)), dim=-2)
+    done = torch.zeros((test_env.num_envs), dtype=torch.bool, device=test_env.device)
     state = test_env.get_observation()
     if USE_TENSOR_CORE_IN_INFERENCE:
         actions = predict(network, state.to(torch.float16)).squeeze(-1)
@@ -578,11 +577,11 @@ def mk_dir(export_dir, quite=False):
         print('dir already exists: ', export_dir)
 
 
-def write_sampling_speed(sampling_speed_save_path, sampling_speed, n_train_sims=None):
+def write_sampling_speed(sampling_speed_save_path, sampling_speed, num_envs=None):
     with open(sampling_speed_save_path, 'a') as f:
         f.write(f"\n//ALG:{ALG.value} //GRAPH:{GRAPH_TYPE.value}_{NUM_TRAIN_NODES} //sampling speed:")
-        if n_train_sims is not None:
-            f.write(f"n_sims:{n_train_sims}\n")
+        if num_envs is not None:
+            f.write(f"num_envs:{num_envs}\n")
         f.write(f"{str(sampling_speed)}samples/s\n")
 
 

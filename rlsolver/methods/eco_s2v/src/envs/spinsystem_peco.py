@@ -38,7 +38,7 @@ class SpinSystemFactory(object):
             init_snap=None,
             seed=None,
             device=None,
-            n_sims=None):
+            num_envs=None):
 
         if graph_generator.biased:
             return SpinSystemBiased(graph_generator, max_steps,
@@ -51,7 +51,7 @@ class SpinSystemFactory(object):
                                       observables, reward_signal, extra_action, optimisation_target, spin_basis,
                                       norm_rewards, memory_length, horizon_length, stag_punishment, basin_reward,
                                       reversible_spins,
-                                      init_snap, seed, device, n_sims)
+                                      init_snap, seed, device, num_envs)
 
 
 class SpinSystemBase(ABC):
@@ -95,7 +95,7 @@ class SpinSystemBase(ABC):
                  init_snap=None,
                  seed=None,
                  device=None,
-                 n_sims=None):
+                 num_envs=None):
         '''
         Init method.
 
@@ -115,7 +115,7 @@ class SpinSystemBase(ABC):
         # Ensure first observable is the spin state.
         # This allows us to access the spins as self.state[0,:self.n_spins.]
         assert observables[0] == Observable.SPIN_STATE, "First observable must be Observation.SPIN_STATE."
-        self.n_sims = n_sims
+        self.num_envs = num_envs
         self.observables = list(enumerate(observables))
         self.device = device
         self.extra_action = extra_action
@@ -177,7 +177,7 @@ class SpinSystemBase(ABC):
             self.matrix = self.gg.get()
         self.matrix = self.matrix.to(self.device)
         self._reset_graph_observables()
-        spinsOne = torch.ones(self.n_sims, self.n_spins, device=self.device)
+        spinsOne = torch.ones(self.num_envs, self.n_spins, device=self.device)
         local_rewards_available = self._get_immeditate_cuts_avaialable(spinsOne, self.matrix)
         if torch.any(torch.eq(torch.sum(torch.abs(local_rewards_available), dim=-1), 0)):
             # We've generated an empty graph, this is pointless, try again.
@@ -199,16 +199,16 @@ class SpinSystemBase(ABC):
         self.best_obs_spins = self.state[:, 0, :self.n_spins].clone()
 
         if self.memory_length is not None:
-            self.score_memory = torch.full((self.n_sims, self.memory_length,), self.best_score,
+            self.score_memory = torch.full((self.num_envs, self.memory_length,), self.best_score,
                                            device=self.device)
-            self.spins_memory = torch.full((self.n_sims, self.memory_length, self.best_spins.shape[0]),
+            self.spins_memory = torch.full((self.num_envs, self.memory_length, self.best_spins.shape[0]),
                                            self.best_spins, device=self.device)
             self.idx_memory = 1
 
         self._reset_graph_observables()
 
         if self.stag_punishment is not None or self.basin_reward is not None:
-            self.history_buffer = HistoryBuffer(n_sims=self.n_sims, device=self.device)
+            self.history_buffer = HistoryBuffer(num_envs=self.num_envs, device=self.device)
 
         return self.get_observation()
 
@@ -230,13 +230,13 @@ class SpinSystemBase(ABC):
                 self.bias_obs = self.bias
 
     def _reset_state(self, spins=None):
-        state = torch.zeros(self.n_sims, self.observation_space.shape[1], self.n_actions,
+        state = torch.zeros(self.num_envs, self.observation_space.shape[1], self.n_actions,
                             device=self.device)
 
         if spins is None:
             if self.reversible_spins:
                 # For reversible spins, initialise randomly to {+1,-1}.
-                state[:, 0, :self.n_spins] = 2 * torch.randint(0, 2, (self.n_sims, self.n_spins,),
+                state[:, 0, :self.n_spins] = 2 * torch.randint(0, 2, (self.num_envs, self.n_spins,),
                                                                device=self.device, dtype=torch.float) - 1
             else:
                 # For irreversible spins, initialise all to +1 (i.e. allowed to be flipped).
@@ -326,8 +326,8 @@ class SpinSystemBase(ABC):
         np.random.seed(seed)
 
     def step(self, action):
-        done = torch.zeros((self.n_sims), device=self.device, dtype=torch.bool)
-        rew = torch.zeros((self.n_sims), device=self.device, dtype=torch.float)  # Default reward to zero.
+        done = torch.zeros((self.num_envs), device=self.device, dtype=torch.bool)
+        rew = torch.zeros((self.num_envs), device=self.device, dtype=torch.float)  # Default reward to zero.
         randomised_spins = False
         self.current_step += 1
 
@@ -408,7 +408,7 @@ class SpinSystemBase(ABC):
 
         if self.stag_punishment is not None or self.basin_reward is not None:
             visiting_new_state = self.history_buffer.update(self.state[:, 0, :])
-            # visiting_new_state = torch.zeros((self.n_sims), device=self.device, dtype=torch.bool)
+            # visiting_new_state = torch.zeros((self.num_envs), device=self.device, dtype=torch.bool)
         if self.stag_punishment is not None:
             # 原先单环境逻辑： if not visiting_new_state: rew -= self.stag_punishment
             # 现在对二维环境：把 visiting_new_state 当作布尔掩码

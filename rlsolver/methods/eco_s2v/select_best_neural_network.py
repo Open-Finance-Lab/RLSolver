@@ -28,7 +28,7 @@ import json
 """
 
 
-def run(neural_network_folder, n_sims, mini_sims, num_generated_instances, alg, num_nodes, graph_type):
+def run(neural_network_folder, num_envs, mini_envs, num_generated_instances, alg, num_nodes, graph_type):
     print("\n----- Running {} -----\n".format(os.path.basename(__file__)))
     network_result_save_path = neural_network_folder + "/" + neural_network_folder.split("/")[-1] + ".json"
     networks = os.listdir(neural_network_folder)
@@ -68,12 +68,12 @@ def run(neural_network_folder, n_sims, mini_sims, num_generated_instances, alg, 
         from rlsolver.methods.eco_s2v.src.envs.util_envs_peco import ValidationGraphGenerator
         validation_graph_generator = ValidationGraphGenerator(n_spins=num_nodes, graph_type=graph_type,
                                                               edge_type=EdgeType.DISCRETE, device=INFERENCE_DEVICE,
-                                                              n_sims=num_generated_instances, seed=VALIDATION_SEED)
+                                                              num_envs=num_generated_instances, seed=VALIDATION_SEED)
     elif alg == Alg.s2v or alg == Alg.eco:
         from rlsolver.methods.eco_s2v.src.envs.util_envs import ValidationGraphGenerator
         validation_graph_generator = ValidationGraphGenerator(n_spins=num_nodes, graph_type=graph_type,
                                                               edge_type=EdgeType.DISCRETE, seed=VALIDATION_SEED,
-                                                              n_sims=num_generated_instances)
+                                                              num_envs=num_generated_instances)
 
     graphs = validation_graph_generator.get()
 
@@ -114,16 +114,16 @@ def run(neural_network_folder, n_sims, mini_sims, num_generated_instances, alg, 
                 for i, graph_tensor in enumerate(graphs):
                     best_obj = -1e10
                     test_graph_generator = SetGraphGenerator(graph_tensor, device=INFERENCE_DEVICE)
-                    num_batches = (n_sims + mini_sims - 1) // mini_sims  # 计算分批次数
+                    num_batches = (num_envs + mini_envs - 1) // mini_envs  # 计算分批次数
                     for batch in range(num_batches):
-                        current_mini_sims = min(mini_sims, n_sims - batch * mini_sims)  # 防止超出 n_sims
+                        current_mini_sims = min(mini_envs, num_envs - batch * mini_envs)  # 防止超出 num_envs
 
                         test_env = SpinSystemFactory.get(
                             test_graph_generator,
                             graph_tensor.shape[0] * step_factor,
                             **env_args, use_tensor_core=USE_TENSOR_CORE_IN_INFERENCE,
                             device=INFERENCE_DEVICE,
-                            n_sims=current_mini_sims,  # 只处理 mini_sims 个环境
+                            num_envs=current_mini_sims,  # 只处理 mini_sims 个环境
                         )
 
                         result, sol = peco_test_network(network, test_env, LOCAL_SEARCH_FREQUENCY)
@@ -145,7 +145,7 @@ def run(neural_network_folder, n_sims, mini_sims, num_generated_instances, alg, 
 
 if __name__ == "__main__":
     LOCAL_SEARCH_FREQUENCY = 10000000000
-    run(neural_network_folder=NEURAL_NETWORK_FOLDER, n_sims=NUM_INFERENCE_ENVS,
-        mini_sims=MINI_INFERENCE_ENVS, num_generated_instances=NUM_GENERATED_INSTANCES_IN_SELECT_BEST,
+    run(neural_network_folder=NEURAL_NETWORK_FOLDER, num_envs=NUM_INFERENCE_ENVS,
+        mini_envs=MINI_INFERENCE_ENVS, num_generated_instances=NUM_GENERATED_INSTANCES_IN_SELECT_BEST,
         alg=ALG, num_nodes=NUM_TRAINED_NODES_IN_INFERENCE,
         graph_type=GRAPH_TYPE)
