@@ -46,7 +46,7 @@ def plot_scatter(logger_save_path):
         plt.tight_layout()
 
         plot_save_path = os.path.splitext(logger_save_path)[0] + '.png'
-        plot_save_path = plot_save_path.replace('result/eeco', 'result/eeco/plot')
+        plot_save_path = plot_save_path.replace('result/peco', 'result/peco/plot')
         plot_dir = os.path.dirname(plot_save_path)
         if not os.path.exists(plot_dir):
             os.makedirs(plot_dir)
@@ -327,10 +327,10 @@ def plot_inference_obj_vs_time(folder_path, smooth=False, window_size=5, max_tim
 
 
 def run():
-    inference_obj_vs_time_folder = '/home/shixi/project/eeco_2_27/RLSolver-master/rlsolver/result/inference_obj_vs_time'
+    inference_obj_vs_time_folder = '/home/shixi/project/peco_2_27/RLSolver-master/rlsolver/result/inference_obj_vs_time'
     loss_folder = "RLSolver-master/rlsolver/result/loss_vs_time"
-    obj_vs_time_folder = "RLSolver-master/rlsolver/result/eeco_obj_vs_time_2"
-    sampling_speed_folder = "RLSolver-master/rlsolver/result/eeco_sampling_speed_2"
+    obj_vs_time_folder = "RLSolver-master/rlsolver/result/peco_obj_vs_time_2"
+    sampling_speed_folder = "RLSolver-master/rlsolver/result/peco_sampling_speed_2"
     # plot_obj_vs_time(obj_vs_time_folder,smooth = True, window_size=3,max_time=250)
     plot_sampling_speed(sampling_speed_folder, max_time=75, window_size=2, xticks_stride=10, smooth=True)
     plot_loss(loss_folder, smooth=True, window_size=3, max_time=2500)

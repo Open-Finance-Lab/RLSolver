@@ -10,8 +10,8 @@ import shutil
 import numpy as np
 
 from rlsolver.methods.eco_s2v.src.envs.inference_network_env import SpinSystemFactory
-from rlsolver.methods.eco_s2v.util import eeco_test_network
-from rlsolver.methods.eco_s2v.src.envs.util_envs_eeco import (SetGraphGenerator)
+from rlsolver.methods.eco_s2v.util import peco_test_network
+from rlsolver.methods.eco_s2v.src.envs.util_envs_peco import (SetGraphGenerator)
 from rlsolver.methods.eco_s2v.src.envs.util_envs import (EdgeType, Observable,
                                                          RewardSignal, ExtraAction,
                                                          OptimisationTarget, SpinBasis,
@@ -36,7 +36,7 @@ def run(neural_network_folder, n_sims, mini_sims, num_generated_instances, alg, 
     network_path = []
     obj_vs_time = {}
     data = {}
-    if alg == Alg.eco or alg == Alg.eeco:
+    if alg == Alg.eco or alg == Alg.peco:
         env_args = {
             'observables': DEFAULT_OBSERVABLES,
             'reward_signal': RewardSignal.BLS,
@@ -64,8 +64,8 @@ def run(neural_network_folder, n_sims, mini_sims, num_generated_instances, alg, 
                     'basin_reward': None,
                     'reversible_spins': False,
                     'if_greedy': False}
-    if alg == Alg.eeco:
-        from rlsolver.methods.eco_s2v.src.envs.util_envs_eeco import ValidationGraphGenerator
+    if alg == Alg.peco:
+        from rlsolver.methods.eco_s2v.src.envs.util_envs_peco import ValidationGraphGenerator
         validation_graph_generator = ValidationGraphGenerator(n_spins=num_nodes, graph_type=graph_type,
                                                               edge_type=EdgeType.DISCRETE, device=INFERENCE_DEVICE,
                                                               n_sims=num_generated_instances, seed=VALIDATION_SEED)
@@ -93,7 +93,7 @@ def run(neural_network_folder, n_sims, mini_sims, num_generated_instances, alg, 
                 'n_hid_readout': [],
                 'tied_weights': False
             }
-            if alg == Alg.eco or alg == Alg.eeco:
+            if alg == Alg.eco or alg == Alg.peco:
                 network = network_fn(n_obs_in=7, **network_args).to(INFERENCE_DEVICE)
             elif alg == Alg.s2v:
                 network = network_fn(n_obs_in=1, **network_args).to(INFERENCE_DEVICE)
@@ -110,7 +110,7 @@ def run(neural_network_folder, n_sims, mini_sims, num_generated_instances, alg, 
                                                                  batched=True, max_batch_size=None)
                     best_obj = results['cut'][0]
                     network_results.append(best_obj)
-            elif alg == Alg.eeco:
+            elif alg == Alg.peco:
                 for i, graph_tensor in enumerate(graphs):
                     best_obj = -1e10
                     test_graph_generator = SetGraphGenerator(graph_tensor, device=INFERENCE_DEVICE)
@@ -126,7 +126,7 @@ def run(neural_network_folder, n_sims, mini_sims, num_generated_instances, alg, 
                             n_sims=current_mini_sims,  # 只处理 mini_sims 个环境
                         )
 
-                        result, sol = eeco_test_network(network, test_env, LOCAL_SEARCH_FREQUENCY)
+                        result, sol = peco_test_network(network, test_env, LOCAL_SEARCH_FREQUENCY)
 
                         if result['obj'] > best_obj:  # 记录最佳结果
                             best_obj = result['obj']

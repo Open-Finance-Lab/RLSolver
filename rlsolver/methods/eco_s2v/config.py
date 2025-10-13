@@ -11,7 +11,7 @@ class Alg(Enum):
     eco = 'eco'
     s2v = 's2v'
     eco_torch = 'eco_torch'
-    eeco = 'eeco'
+    peco = 'peco'
     jumanji = 'jumanji'
     rl4co = 'rl4co'
 
@@ -44,12 +44,12 @@ INFERENCE_DEVICE = calc_device(INFERENCE_GPU_ID)
 NUM_GENERATED_INSTANCES_IN_SELECT_BEST = 10  # select_best_neural_network
 NUM_TRAINED_NODES_IN_INFERENCE = 20  # also used in select_best_neural_network
 NUM_INFERENCE_NODES = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 2000, 3000, 4000, 5000, 10000]
-USE_TENSOR_CORE_IN_INFERENCE = True if ALG == Alg.eeco else False
+USE_TENSOR_CORE_IN_INFERENCE = True if ALG == Alg.peco else False
 INFERENCE_PREFIXES = [GRAPH_TYPE.value + "_" + str(i) + "_" for i in NUM_INFERENCE_NODES]
 # PREFIXES = ["BA_100_", "BA_200_", "BA_300_", "BA_400_", "BA_500_""]  # Replace with your desired prefixes
 NUM_INFERENCE_ENVS = 50
 MINI_INFERENCE_ENVS = int(0.5 * NUM_INFERENCE_ENVS)  # 如果NUM_INFERENCE_ENVS太大导致GPU内存爆掉，分拆成MINI_INFERENCE_ENVS个环境，跑多次凑够NUM_INFERENCE_ENVS
-USE_LOCAL_SEARCH = True if ALG == Alg.eeco else False
+USE_LOCAL_SEARCH = True if ALG == Alg.peco else False
 LOCAL_SEARCH_FREQUENCY = 10
 NEURAL_NETWORK_SAVE_PATH = rlsolver_path + "trained_agent/" + ALG.value + "_" + PROBLEM.value + "_" + GRAPH_TYPE.value + "_" + str(NUM_TRAINED_NODES_IN_INFERENCE) + ".pth"
 DATA_DIR = rlsolver_path + "data/syn_" + GRAPH_TYPE.value

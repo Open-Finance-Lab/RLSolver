@@ -9,8 +9,8 @@ import time
 import torch
 import networkx as nx
 from rlsolver.methods.eco_s2v.src.envs.inference_network_env import SpinSystemFactory
-from rlsolver.methods.eco_s2v.util import eeco_test_network, load_graph_from_txt
-from rlsolver.methods.eco_s2v.src.envs.util_envs_eeco import (SetGraphGenerator,
+from rlsolver.methods.eco_s2v.util import peco_test_network, load_graph_from_txt
+from rlsolver.methods.eco_s2v.src.envs.util_envs_peco import (SetGraphGenerator,
                                                               )
 from rlsolver.methods.eco_s2v.src.envs.util_envs import (RewardSignal, ExtraAction,
                                                          OptimisationTarget, SpinBasis,
@@ -44,7 +44,7 @@ def run(graph_folder="../../data/syn_BA",
         param.requires_grad = False
     network.eval()
 
-    if ALG == Alg.eeco:
+    if ALG == Alg.peco:
         env_args = {
             'observables': DEFAULT_OBSERVABLES,
             'reward_signal': RewardSignal.BLS,
@@ -96,7 +96,7 @@ def run(graph_folder="../../data/syn_BA",
                     )
 
                     start_time = time.time()
-                    result, sol = eeco_test_network(network, test_env, LOCAL_SEARCH_FREQUENCY)
+                    result, sol = peco_test_network(network, test_env, LOCAL_SEARCH_FREQUENCY)
 
                     if result['obj'] > best_obj:  # 记录最佳结果
                         best_obj = result['obj']
