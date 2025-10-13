@@ -480,16 +480,9 @@ def mcpg_multifiles(directory_data: str, prefixes: List[str]):
 
 
 if __name__ == '__main__':
-    run_one_file = False
-    if run_one_file:
-        filename = DATA_FILENAME
-        mcpg(filename)
-
-    run_multifiles = True
-    if run_multifiles:
-        directory_data = DIRECTORY_DATA
-        prefixes = PREFIXES
-        mcpg_multifiles(directory_data, prefixes)
+    directory_data = DIRECTORY_DATA
+    prefixes = PREFIXES
+    mcpg_multifiles(directory_data, prefixes)
 
 
 

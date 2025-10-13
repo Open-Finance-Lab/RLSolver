@@ -92,17 +92,10 @@ if __name__ == '__main__':
     # # edges = [(0,1),(1,2),(2,3),(3,4)]#[(1,2),(2,3),(3,4),(4,5)]
     # graph.add_edges_from(edges)
 
-    # filename = '../data/gset/gset_14.txt'
-    run_single_file = False
-    if run_single_file:
-        filename = '../data/syn_BA/BA_100_ID0.txt'
-        sdp_maxcut(filename)
 
-    run_multi_files = True
-    if run_multi_files:
-        alg = sdp_maxcut
-        alg_name = 'sdp'
-        directory_data = '../data/syn_BA'
-        prefixes = ['barabasi_albert_100']
-        scores = run_sdp_over_multiple_files(alg, alg_name, directory_data, prefixes)
-        print(f"scores: {scores}")
+    alg = sdp_maxcut
+    alg_name = 'sdp'
+    directory_data = '../data/syn_BA'
+    prefixes = ['BA_100']
+    scores = run_sdp_over_multiple_files(alg, alg_name, directory_data, prefixes)
+    print(f"scores: {scores}")

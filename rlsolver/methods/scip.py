@@ -126,23 +126,12 @@ def run_scip_over_multiple_files(prefixes: List[str], time_limits: List[int], di
     directory = '../result'
     calc_avg_std_of_objs(directory, prefixes, time_limits)
 if __name__ == '__main__':
-    run_one_file = False
-    if run_one_file:
-        filename = '../data/syn_BA/BA_100_ID0.txt'
-        time_limits = [0.5 * 3600]
-        run_using_scip(filename, time_limit=time_limits[0], plot_fig_=True)
-        directory = '../result'
-        prefixes = ['barabasi_albert_']
-        avg_std = calc_avg_std_of_objs(directory, prefixes, time_limits)
-
-    run_multi_files = True
-    if run_multi_files:
-        directory_data = '../data/syn_BA'
-        prefixes = ['BA_100_']
-        # time_limits = [0.5 * 3600, 1 * 3600]
-        time_limits = [0.5 * 3600]
-        directory_result = '../result'
-        run_scip_over_multiple_files(prefixes, time_limits, directory_data, directory_result)
-        avg_std = calc_avg_std_of_objs(directory_result, prefixes, time_limits)
+    directory_data = '../data/syn_BA'
+    prefixes = ['BA_100_']
+    # time_limits = [0.5 * 3600, 1 * 3600]
+    time_limits = [0.5 * 3600]
+    directory_result = '../result'
+    run_scip_over_multiple_files(prefixes, time_limits, directory_data, directory_result)
+    avg_std = calc_avg_std_of_objs(directory_result, prefixes, time_limits)
     pass
 
