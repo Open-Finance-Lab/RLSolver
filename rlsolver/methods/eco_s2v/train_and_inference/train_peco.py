@@ -52,14 +52,14 @@ def run(save_loc):
 
     if GRAPH_TYPE == GraphType.ER:
         train_graph_generator = RandomErdosRenyiGraphGenerator(n_spins=n_spins_train, p_connection=0.15,
-                                                               edge_type=EdgeType.DISCRETE, n_sims=NUM_TRAIN_ENVS, device=TRAIN_DEVICE)
+                                                               edge_type=EdgeType.DISCRETE, num_envs=NUM_TRAIN_ENVS, device=TRAIN_DEVICE)
     if GRAPH_TYPE == GraphType.BA:
         train_graph_generator = RandomBarabasiAlbertGraphGenerator(n_spins=n_spins_train, m_insertion_edges=4,
-                                                                   edge_type=EdgeType.DISCRETE, n_sims=NUM_TRAIN_ENVS, device=TRAIN_DEVICE)
+                                                                   edge_type=EdgeType.DISCRETE, num_envs=NUM_TRAIN_ENVS, device=TRAIN_DEVICE)
 
     validation_graph_generator = ValidationGraphGenerator(n_spins=NUM_VALIDATION_NODES, graph_type=GRAPH_TYPE,
                                                           edge_type=EdgeType.DISCRETE, device=TRAIN_DEVICE,
-                                                          n_sims=NUM_VALIDATION_ENVS, seed=VALIDATION_SEED)
+                                                          num_envs=NUM_VALIDATION_ENVS, seed=VALIDATION_SEED)
 
     ####
     # Pre-generated test graphs
@@ -76,14 +76,14 @@ def run(save_loc):
                                 train_graph_generator,
                                 int(n_spins_train * step_fact),
                                 **env_args, device=device,
-                                n_sims=NUM_TRAIN_ENVS)
+                                num_envs=NUM_TRAIN_ENVS)
 
     n_spins_test = validation_graph_generator.get().shape[1]
     test_envs = ising_env.make("SpinSystem",
                                validation_graph_generator,
                                int(n_spins_test * step_fact),
                                **env_args, device=device,
-                               n_sims=n_validations)
+                               num_envs=n_validations)
 
     pre_fix = save_loc + "/" + NEURAL_NETWORK_PREFIX
     pre_fix = cal_txt_name(pre_fix)

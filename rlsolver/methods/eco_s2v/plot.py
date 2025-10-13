@@ -89,29 +89,29 @@ def plot_sampling_speed(folder_path, max_time, window_size=5, xticks_stride=5, s
             with open(file_path, 'r') as f:
                 data = json.load(f)
 
-            # 提取 n_sims 和 sampling_speed
-            n_sims = data.get('n_sims')
+            # 提取 num_envs 和 sampling_speed
+            num_envs = data.get('num_envs')
             sampling_speed = data.get('sampling_speed')
 
-            if n_sims is not None and sampling_speed is not None:
+            if num_envs is not None and sampling_speed is not None:
                 # 将采样速度数据按时间升序排列
                 times = sorted(sampling_speed.keys(), key=float)  # 时间按升序排列
                 speeds = [sampling_speed[t] for t in times]
 
-                # 将每个 n_sims 对应的时间和采样速度存入字典
-                if n_sims not in sampling_speeds:
-                    sampling_speeds[n_sims] = {'times': [], 'speeds': []}
+                # 将每个 num_envs 对应的时间和采样速度存入字典
+                if num_envs not in sampling_speeds:
+                    sampling_speeds[num_envs] = {'times': [], 'speeds': []}
 
-                sampling_speeds[n_sims]['times'].append(times)
-                sampling_speeds[n_sims]['speeds'].append(speeds)
+                sampling_speeds[num_envs]['times'].append(times)
+                sampling_speeds[num_envs]['speeds'].append(speeds)
 
-    # 按 n_sims 进行排序
-    sorted_sims = sorted(sampling_speeds.keys())  # 获取排序后的 n_sims
+    # 按 num_envs 进行排序
+    sorted_sims = sorted(sampling_speeds.keys())  # 获取排序后的 num_envs
 
     # 绘制图表
     plt.figure(figsize=(13, 6))
-    for n_sims in sorted_sims:  # 按照排序后的 n_sims 进行遍历
-        data = sampling_speeds[n_sims]
+    for num_envs in sorted_sims:  # 按照排序后的 num_envs 进行遍历
+        data = sampling_speeds[num_envs]
 
         # 获取时间和采样速度
         times = list(map(float, data['times'][0]))  # 将时间从字符串转换为浮动数值
@@ -120,16 +120,16 @@ def plot_sampling_speed(folder_path, max_time, window_size=5, xticks_stride=5, s
         # 如果需要平滑，应用平滑窗口
         if smooth:
             smoothed_speeds = smooth_data(avg_speeds, window_size)
-            label = f'cpu-env{n_sims}(ECO)' if n_sims == 1 else f'gpu-env{n_sims}(Ours)'
+            label = f'cpu-env{num_envs}(ECO)' if num_envs == 1 else f'gpu-env{num_envs}(Ours)'
             plt.plot(times[:len(smoothed_speeds)], smoothed_speeds, label=label)
         else:
-            label = f'cpu-env{n_sims}(ECO)' if n_sims == 1 else f'gpu-env{n_sims}(Ours)'
+            label = f'cpu-env{num_envs}(ECO)' if num_envs == 1 else f'gpu-env{num_envs}(Ours)'
             plt.plot(times, avg_speeds, label=label)
 
     # 设置图表的标签和标题
     plt.xlabel('Timestep', fontsize=14)
     plt.ylabel('Sampling Speed (samples/second)', fontsize=14)
-    # plt.title('Sampling Speed vs Time for Different n_sims')
+    # plt.title('Sampling Speed vs Time for Different num_envs')
 
     # 设置 x 轴刻度
     plt.xticks(np.arange(0, max_time, xticks_stride // 2))
@@ -138,7 +138,7 @@ def plot_sampling_speed(folder_path, max_time, window_size=5, xticks_stride=5, s
 
     plt.xlim(0, max_time)
 
-    # 显示图例（图例顺序按照 n_sims 排序）
+    # 显示图例（图例顺序按照 num_envs 排序）
     plt.legend(loc='upper left', bbox_to_anchor=(1, 1), fontsize=14)
 
     # 调整布局以适应图例
@@ -160,48 +160,48 @@ def plot_obj_vs_time(folder_path, smooth=False, window_size=5, max_time=100):
             with open(os.path.join(folder_path, filename), 'r') as f:
                 data = json.load(f)
 
-                # 提取环境数量 (n_sims)
-                n_sims = data.get("n_sims")
+                # 提取环境数量 (num_envs)
+                num_envs = data.get("num_envs")
 
                 # 提取 obj_vs_time 字典并将时间和 obj 对应起来
                 obj_vs_time = data.get("obj_vs_time", {})
 
-            if n_sims is not None and obj_vs_time is not None:
+            if num_envs is not None and obj_vs_time is not None:
 
                 # 对 obj_vs_time 按时间排序并提取 obj 值
                 times = sorted(obj_vs_time.keys(), key=float)
                 obj_values = [obj_vs_time[time][0] for time in times]
 
-                if n_sims not in envs_obj_vs_time:
-                    envs_obj_vs_time[n_sims] = {'times': [], 'obj': []}
+                if num_envs not in envs_obj_vs_time:
+                    envs_obj_vs_time[num_envs] = {'times': [], 'obj': []}
                     # 保存数据到字典中
-                envs_obj_vs_time[n_sims]['times'].append(times)
-                envs_obj_vs_time[n_sims]['obj'].append(obj_values)
+                envs_obj_vs_time[num_envs]['times'].append(times)
+                envs_obj_vs_time[num_envs]['obj'].append(obj_values)
     # 创建图形
     plt.figure(figsize=(25, 6))
 
     # 为每个环境数量绘制 obj 随时间变化的曲线
-    for n_sims, data in envs_obj_vs_time.items():
+    for num_envs, data in envs_obj_vs_time.items():
         times = list(map(float, data['times'][0]))
         objs = list(map(float, data['obj'][0]))
         if smooth:
             smoothed_objs = smooth_data(objs, window_size)
-            if n_sims == 1:
-                plt.plot(times[:len(smoothed_objs)], smoothed_objs, label=f'cpu-env{n_sims}(ECO)')
+            if num_envs == 1:
+                plt.plot(times[:len(smoothed_objs)], smoothed_objs, label=f'cpu-env{num_envs}(ECO)')
             else:
-                plt.plot(times[:len(smoothed_objs)], smoothed_objs, label=f'gpu-env{n_sims}(Ours)')
+                plt.plot(times[:len(smoothed_objs)], smoothed_objs, label=f'gpu-env{num_envs}(Ours)')
         else:
-            if n_sims == 1:
-                plt.plot(times, objs, label=f'cpu-env{n_sims}(ECO)')
+            if num_envs == 1:
+                plt.plot(times, objs, label=f'cpu-env{num_envs}(ECO)')
             else:
-                plt.plot(times, objs, label=f'gpu-env{n_sims}(Ours)')
+                plt.plot(times, objs, label=f'gpu-env{num_envs}(Ours)')
 
     # 添加图例
     plt.legend(loc='upper left', bbox_to_anchor=(1, 1), fontsize=14)
     plt.xlim(0, max_time)
 
     # 添加标题和标签
-    plt.title('Object vs Time for Different n_sims')
+    plt.title('Object vs Time for Different num_envs')
     plt.xlabel('Time(second)', fontsize=14)
     plt.ylabel('Objective Value', fontsize=14)
     plt.savefig(folder_path + "/obj_vs_time.png", dpi=300)
@@ -219,44 +219,44 @@ def plot_loss(folder_path, smooth=False, window_size=5, max_time=100):
             with open(os.path.join(folder_path, filename), 'r') as f:
                 data = json.load(f)
 
-                n_sims = data.get("n_sims")
+                num_envs = data.get("num_envs")
 
                 loss_vs_time = data.get("Loss", {})
 
-            if n_sims is not None and loss_vs_time is not None:
+            if num_envs is not None and loss_vs_time is not None:
 
                 times = sorted(loss_vs_time.keys(), key=float)
                 losses = [loss_vs_time[time][0] for time in times]
 
-                if n_sims not in envs_loss_vs_time:
-                    envs_loss_vs_time[n_sims] = {'times': [], 'losses': []}
-                envs_loss_vs_time[n_sims]['times'].append(times)
-                envs_loss_vs_time[n_sims]['losses'].append(losses)
+                if num_envs not in envs_loss_vs_time:
+                    envs_loss_vs_time[num_envs] = {'times': [], 'losses': []}
+                envs_loss_vs_time[num_envs]['times'].append(times)
+                envs_loss_vs_time[num_envs]['losses'].append(losses)
     # 创建图形
     plt.figure(figsize=(25, 6))
 
     # 为每个环境数量绘制 obj 随时间变化的曲线
-    for n_sims, data in envs_loss_vs_time.items():
+    for num_envs, data in envs_loss_vs_time.items():
         times = list(map(float, data['times'][0]))
         objs = list(map(float, data['losses'][0]))
         if smooth:
             smoothed_objs = smooth_data(objs, window_size)
-            if n_sims == 1:
-                plt.plot(times[:len(smoothed_objs)], smoothed_objs, label=f'cpu-env{n_sims}(ECO)')
+            if num_envs == 1:
+                plt.plot(times[:len(smoothed_objs)], smoothed_objs, label=f'cpu-env{num_envs}(ECO)')
             else:
-                plt.plot(times[:len(smoothed_objs)], smoothed_objs, label=f'gpu-env{n_sims}(Ours)')
+                plt.plot(times[:len(smoothed_objs)], smoothed_objs, label=f'gpu-env{num_envs}(Ours)')
         else:
-            if n_sims == 1:
-                plt.plot(times, objs, label=f'cpu-env{n_sims}(ECO)')
+            if num_envs == 1:
+                plt.plot(times, objs, label=f'cpu-env{num_envs}(ECO)')
             else:
-                plt.plot(times, objs, label=f'gpu-env{n_sims}(Ours)')
+                plt.plot(times, objs, label=f'gpu-env{num_envs}(Ours)')
 
     # 添加图例
     plt.legend(loc='upper left', bbox_to_anchor=(1, 1), fontsize=14)
     plt.xlim(0, max_time)
 
     # 添加标题和标签
-    plt.title('Loss vs Time for Different n_sims')
+    plt.title('Loss vs Time for Different num_envs')
     plt.xlabel('Time(second)', fontsize=14)
     plt.ylabel('Loss', fontsize=14)
     plt.savefig(folder_path + "/loss_vs_time.png", dpi=300)
@@ -274,13 +274,13 @@ def plot_inference_obj_vs_time(folder_path, smooth=False, window_size=5, max_tim
             with open(os.path.join(folder_path, filename), 'r') as f:
                 data = json.load(f)
 
-                # 提取环境数量 (n_sims)
-                n_sims = data.get("n_sims")
+                # 提取环境数量 (num_envs)
+                num_envs = data.get("num_envs")
 
                 # 提取 obj_vs_time 字典并将时间和 obj 对应起来
                 obj_vs_time = data.get("obj_vs_time", {})
 
-            if n_sims is not None and obj_vs_time is not None:
+            if num_envs is not None and obj_vs_time is not None:
 
                 # 对 obj_vs_time 按时间排序并提取 obj 值
                 for graph_name, obj_vs_time in obj_vs_time.items():
@@ -288,38 +288,38 @@ def plot_inference_obj_vs_time(folder_path, smooth=False, window_size=5, max_tim
                     obj_values = [obj_vs_time[time] for time in times]
                     if graph_name not in envs_obj_vs_time:
                         envs_obj_vs_time[graph_name] = {}
-                    if n_sims not in envs_obj_vs_time[graph_name]:
-                        envs_obj_vs_time[graph_name][n_sims] = {'times': [], 'obj': []}
+                    if num_envs not in envs_obj_vs_time[graph_name]:
+                        envs_obj_vs_time[graph_name][num_envs] = {'times': [], 'obj': []}
                         # 保存数据到字典中
-                    envs_obj_vs_time[graph_name][n_sims]['times'].append(times)
-                    envs_obj_vs_time[graph_name][n_sims]['obj'].append(obj_values)
+                    envs_obj_vs_time[graph_name][num_envs]['times'].append(times)
+                    envs_obj_vs_time[graph_name][num_envs]['obj'].append(obj_values)
 
     for graph, graph_obj_vs_time in envs_obj_vs_time.items():
         # 创建图形
         plt.figure(figsize=(13, 6))
 
         # 为每个环境数量绘制 obj 随时间变化的曲线
-        for n_sims, data in graph_obj_vs_time.items():
+        for num_envs, data in graph_obj_vs_time.items():
             times = list(map(float, data['times'][0]))
             objs = list(map(float, data['obj'][0]))
             if smooth:
                 smoothed_objs = smooth_data(objs, window_size)
-                if n_sims == 1:
-                    plt.plot(times[:len(smoothed_objs)], smoothed_objs, label=f'cpu-env{n_sims}(ECO)')
+                if num_envs == 1:
+                    plt.plot(times[:len(smoothed_objs)], smoothed_objs, label=f'cpu-env{num_envs}(ECO)')
                 else:
-                    plt.plot(times[:len(smoothed_objs)], smoothed_objs, label=f'gpu-env{n_sims}(Ours)')
+                    plt.plot(times[:len(smoothed_objs)], smoothed_objs, label=f'gpu-env{num_envs}(Ours)')
             else:
-                if n_sims == 1:
-                    plt.plot(times, objs, label=f'cpu-env{n_sims}(ECO)')
+                if num_envs == 1:
+                    plt.plot(times, objs, label=f'cpu-env{num_envs}(ECO)')
                 else:
-                    plt.plot(times, objs, label=f'gpu-env{n_sims}(Ours)')
+                    plt.plot(times, objs, label=f'gpu-env{num_envs}(Ours)')
 
         # 添加图例
         plt.legend(loc='upper left', bbox_to_anchor=(1, 1), fontsize=14)
         plt.xlim(0, max_time)
 
         # 添加标题和标签
-        plt.title(f'{graph.split(".")[0]} Object vs Time for Different n_sims')
+        plt.title(f'{graph.split(".")[0]} Object vs Time for Different num_envs')
         plt.xlabel('Time(second)', fontsize=14)
         plt.ylabel('Object Value', fontsize=14)
         plt.tight_layout()

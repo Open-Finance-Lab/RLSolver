@@ -38,7 +38,7 @@ class SpinSystemFactory(object):
             init_snap=None,
             seed=None,
             device=None,
-            n_sims=None,
+            num_envs=None,
             if_greedy=False,
             use_tensor_core=False):
 
@@ -53,7 +53,7 @@ class SpinSystemFactory(object):
                                       observables, reward_signal, extra_action, optimisation_target, spin_basis,
                                       norm_rewards, memory_length, horizon_length, stag_punishment, basin_reward,
                                       reversible_spins,
-                                      init_snap, seed, device, n_sims, use_tensor_core)
+                                      init_snap, seed, device, num_envs, use_tensor_core)
 
 
 class SpinSystemBase(ABC):
@@ -97,7 +97,7 @@ class SpinSystemBase(ABC):
                  init_snap=None,
                  seed=None,
                  device=None,
-                 n_sims=None,
+                 num_envs=None,
                  use_tensor_core=False):
         '''
         Init method.
@@ -118,7 +118,7 @@ class SpinSystemBase(ABC):
         # Ensure first observable is the spin state.
         # This allows us to access the spins as self.state[0,:self.n_spins.]
         assert observables[0] == Observable.SPIN_STATE, "First observable must be Observation.SPIN_STATE."
-        self.n_sims = n_sims
+        self.num_envs = num_envs
         self.observables = list(enumerate(observables))
         self.device = device
         self.extra_action = extra_action
@@ -165,7 +165,7 @@ class SpinSystemBase(ABC):
             self.init_score = self.score
 
         self.best_score, best_score_index = torch.max(self.score, dim=0)
-        self.best_spins = self.state[best_score_index, 0, :].expand(self.n_sims, -1)
+        self.best_spins = self.state[best_score_index, 0, :].expand(self.num_envs, -1)
 
         if init_snap != None:
             self.load_snapshot(init_snap)
@@ -186,9 +186,9 @@ class SpinSystemBase(ABC):
                 self.matrix = self.gg.get()
         self._reset_graph_observables()
         if self.use_tensor_core:
-            spinsOne = torch.ones(self.n_sims, self.n_spins, device=self.device, dtype=torch.float16)
+            spinsOne = torch.ones(self.num_envs, self.n_spins, device=self.device, dtype=torch.float16)
         else:
-            spinsOne = torch.ones(self.n_sims, self.n_spins, device=self.device)
+            spinsOne = torch.ones(self.num_envs, self.n_spins, device=self.device)
         local_rewards_available = self._get_immeditate_cuts_avaialable(spinsOne, self.matrix)
         if torch.any(torch.eq(torch.sum(torch.abs(local_rewards_available), dim=-1), 0)):
             # We've generated an empty graph, this is pointless, try again.
@@ -206,13 +206,13 @@ class SpinSystemBase(ABC):
 
         self.best_score, best_score_index = torch.max(self.score, dim=0)
         self.best_obs_score = self.score.clone()
-        self.best_spins = self.state[best_score_index, 0, :self.n_spins].expand(self.n_sims, -1)
+        self.best_spins = self.state[best_score_index, 0, :self.n_spins].expand(self.num_envs, -1)
         self.best_obs_spins = self.state[:, 0, :self.n_spins].clone()
 
         if self.memory_length is not None:
-            self.score_memory = torch.full((self.n_sims, self.memory_length,), self.best_score,
+            self.score_memory = torch.full((self.num_envs, self.memory_length,), self.best_score,
                                            device=self.device)
-            self.spins_memory = torch.full((self.n_sims, self.memory_length, self.best_spins.shape[0]),
+            self.spins_memory = torch.full((self.num_envs, self.memory_length, self.best_spins.shape[0]),
                                            self.best_spins, device=self.device)
             self.idx_memory = 1
 
@@ -239,20 +239,20 @@ class SpinSystemBase(ABC):
 
     def _reset_state(self, spins=None):
         if self.use_tensor_core:
-            state = torch.zeros(self.n_sims, self.observation_space.shape[1], self.n_actions,
+            state = torch.zeros(self.num_envs, self.observation_space.shape[1], self.n_actions,
                                 device=self.device, dtype=torch.float16)
         else:
-            state = torch.zeros(self.n_sims, self.observation_space.shape[1], self.n_actions,
+            state = torch.zeros(self.num_envs, self.observation_space.shape[1], self.n_actions,
                                 device=self.device)
 
         if spins is None:
             if self.reversible_spins:
                 # For reversible spins, initialise randomly to {+1,-1}.
                 if self.use_tensor_core:
-                    state[:, 0, :self.n_spins] = 2 * torch.randint(0, 2, (self.n_sims, self.n_spins,),
+                    state[:, 0, :self.n_spins] = 2 * torch.randint(0, 2, (self.num_envs, self.n_spins,),
                                                                    device=self.device, dtype=torch.float16) - 1
                 else:
-                    state[:, 0, :self.n_spins] = 2 * torch.randint(0, 2, (self.n_sims, self.n_spins,),
+                    state[:, 0, :self.n_spins] = 2 * torch.randint(0, 2, (self.num_envs, self.n_spins,),
                                                                    device=self.device, dtype=torch.float) - 1
             else:
                 # For irreversible spins, initialise all to +1 (i.e. allowed to be flipped).
@@ -299,7 +299,7 @@ class SpinSystemBase(ABC):
         np.random.seed(seed)
 
     def step(self, action):
-        done = torch.zeros((self.n_sims), device=self.device, dtype=torch.bool)
+        done = torch.zeros((self.num_envs), device=self.device, dtype=torch.bool)
         randomised_spins = False
         self.current_step += 1
 

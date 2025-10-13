@@ -54,26 +54,26 @@ def run(save_loc, graph_save_loc):
 
     if GRAPH_TYPE == GraphType.ER:
         train_graph_generator = RandomErdosRenyiGraphGenerator(n_spins=n_spins_train, p_connection=0.15,
-                                                               edge_type=EdgeType.DISCRETE, n_sims=NUM_TRAIN_ENVS)
+                                                               edge_type=EdgeType.DISCRETE, num_envs=NUM_TRAIN_ENVS)
     if GRAPH_TYPE == GraphType.BA:
         train_graph_generator = RandomBarabasiAlbertGraphGenerator(n_spins=n_spins_train, m_insertion_edges=4,
-                                                                   edge_type=EdgeType.DISCRETE, n_sims=NUM_TRAIN_ENVS, device=TRAIN_DEVICE)
+                                                                   edge_type=EdgeType.DISCRETE, num_envs=NUM_TRAIN_ENVS, device=TRAIN_DEVICE)
 
     validation_graph_generator = ValidationGraphGenerator(n_spins=NUM_VALIDATION_NODES, graph_type=GRAPH_TYPE,
                                                           edge_type=EdgeType.DISCRETE, device=TRAIN_DEVICE,
-                                                          n_sims=NUM_VALIDATION_ENVS, seed=VALIDATION_SEED)
+                                                          num_envs=NUM_VALIDATION_ENVS, seed=VALIDATION_SEED)
     graphs_validation = validation_graph_generator.get()
     n_validations = graphs_validation.shape[0]
 
     train_envs = SpinSystemFactory.get(train_graph_generator,
                                        int(n_spins_train * step_fact),
                                        **env_args, device=TRAIN_DEVICE,
-                                       n_sims=NUM_TRAIN_ENVS)
+                                       num_envs=NUM_TRAIN_ENVS)
     n_spins_test = validation_graph_generator.get().shape[1]
     test_envs = SpinSystemFactory.get(validation_graph_generator,
                                       int(n_spins_test * step_fact),
                                       **env_args, device=TRAIN_DEVICE,
-                                      n_sims=n_validations)
+                                      num_envs=n_validations)
     env_args_ = {
         'env_name': 'maxcut',
         'num_envs': NUM_TRAIN_ENVS,
@@ -120,7 +120,7 @@ def run(save_loc, graph_save_loc):
 
         result_dict = {}
         result_dict['alg'] = "jumanji"
-        result_dict['n_sims'] = NUM_TRAIN_ENVS
+        result_dict['num_envs'] = NUM_TRAIN_ENVS
     if TEST_SAMPLING_SPEED:
         result_dict['sampling_speed'] = sampling_speed_vs_timestep
         with open(sampling_speed_save_path, 'w') as json_file:

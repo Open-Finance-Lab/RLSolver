@@ -22,7 +22,7 @@ from rlsolver.methods.util_result import write_graph_result
 from rlsolver.methods.eco_s2v.jumanji.train.config import Config
 
 
-def run(graph_folder, n_sims, mini_sims):
+def run(graph_folder, num_envs, mini_envs):
     print("\n----- Running {} -----\n".format(os.path.basename(__file__)))
     network_save_path = NEURAL_NETWORK_SAVE_PATH
 
@@ -39,7 +39,7 @@ def run(graph_folder, n_sims, mini_sims):
     args.gpu_id = INFERENCE_GPU_ID
     agent = args.agent_class(args.net_dims, args.state_dim, args.action_dim, gpu_id=args.gpu_id, args=args)
 
-    # agent = AgentA2C(device=TRAIN_DEVICE, n_sims=NUM_TRAIN_SIMS,)
+    # agent = AgentA2C(device=TRAIN_DEVICE, num_envs=NUM_TRAIN_ENVS,)
     agent.act.load_state_dict(torch.load(network_save_path, map_location=INFERENCE_DEVICE))
     for param in agent.act.parameters():
         param.requires_grad = False
@@ -78,16 +78,16 @@ def run(graph_folder, n_sims, mini_sims):
                 best_obj = float('-inf')
                 best_sol = None
 
-                num_batches = (n_sims + mini_sims - 1) // mini_sims  # 计算分批次数
+                num_batches = (num_envs + mini_envs - 1) // mini_envs  # 计算分批次数
                 for batch in range(num_batches):
-                    current_mini_sims = min(mini_sims, n_sims - batch * mini_sims)  # 防止超出 n_sims
+                    current_mini_sims = min(mini_envs, num_envs - batch * mini_envs)  # 防止超出 num_envs
 
                     test_env = SpinSystemFactory.get(
                         test_graph_generator,
                         graph_tensor.shape[0] * step_factor,
                         **env_args,
                         device=INFERENCE_DEVICE,
-                        n_sims=current_mini_sims,  # 只处理 mini_sims 个环境
+                        num_envs=current_mini_sims,  # 只处理 mini_sims 个环境
                     )
                     agent.num_envs = current_mini_sims
                     agent.n_spins = graph_tensor.shape[0]

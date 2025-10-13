@@ -23,7 +23,7 @@ from rlsolver.methods.eco_s2v.config import *
 
 def run(graph_folder="../../data/syn_BA",
         if_greedy=False,
-        n_sims=1,
+        num_envs=1,
         mini_sims=10,
         network_save_path=NEURAL_NETWORK_SAVE_PATH):  # 设置 mini_sims 以减少显存占用
     print("\n----- Running {} -----\n".format(os.path.basename(__file__)))
@@ -83,16 +83,16 @@ def run(graph_folder="../../data/syn_BA",
                 best_obj = float('-inf')
                 best_sol = None
 
-                num_batches = (n_sims + mini_sims - 1) // mini_sims  # 计算分批次数
+                num_batches = (num_envs + mini_sims - 1) // mini_sims  # 计算分批次数
                 for batch in range(num_batches):
-                    current_mini_sims = min(mini_sims, n_sims - batch * mini_sims)  # 防止超出 n_sims
+                    current_mini_sims = min(mini_sims, num_envs - batch * mini_sims)  # 防止超出 num_envs
 
                     test_env = SpinSystemFactory.get(
                         test_graph_generator,
                         graph_tensor.shape[0] * step_factor,
                         **env_args,
                         device=INFERENCE_DEVICE,
-                        n_sims=current_mini_sims,  # 只处理 mini_sims 个环境
+                        num_envs=current_mini_sims,  # 只处理 mini_sims 个环境
                     )
 
                     start_time = time.time()
@@ -109,5 +109,5 @@ def run(graph_folder="../../data/syn_BA",
 if __name__ == "__main__":
     run(graph_folder='../../../rlsolver/data/syn_BA',
         if_greedy=False,
-        n_sims=NUM_INFERENCE_ENVS,
+        num_envs=NUM_INFERENCE_ENVS,
         mini_sims=MINI_INFERENCE_ENVS)
