@@ -161,7 +161,7 @@ def greedy_MVC(num_steps: int, graph: nx.Graph) -> (int, Union[List[int], np.arr
     print('running_duration: ', running_duration)
     return curr_score, curr_solution, scores
 
-def greedy_MIS(num_steps: Optional[int], graph: nx.Graph) -> (int, Union[List[int], np.array], List[int]):
+def greedy_MIS(num_steps: Optional[int], graph: nx.Graph, filename) -> (int, Union[List[int], np.array], List[int]):
     def calc_candidate_nodes(unselected_nodes: List[int], selected_nodes: List[int], graph: nx.Graph):
         candidate_nodes = []
         remove_nodes = set()
@@ -221,6 +221,8 @@ def greedy_MIS(num_steps: Optional[int], graph: nx.Graph) -> (int, Union[List[in
     print("solution: ", curr_solution)
     running_duration = time.time() - start_time
     print('running_duration: ', running_duration)
+    alg_name = "greedy"
+    write_graph_result(curr_score, running_duration, num_nodes, alg_name, curr_solution, filename)
     return curr_score, curr_solution, scores
 
 def greedy_set_cover(num_items: int, num_sets: int, item_matrix: List[List[int]]) -> (int, Union[List[int], np.array], List[int]):
@@ -348,40 +350,81 @@ if __name__ == '__main__':
     alg_name = 'GR'
 
 
+    run_one_file = False
+    if run_one_file:
+        # maxcut
+        if PROBLEM == Problem.maxcut:
+            num_steps = None
+            gr_score, gr_solution, gr_scores = greedy_maxcut(num_steps, graph, filename)
 
-    if PROBLEM == Problem.maxcut:
-        alg = greedy_maxcut
-    elif PROBLEM == Problem.graph_partitioning:
-        alg = greedy_graph_partitioning
-    elif PROBLEM == Problem.MVC:
-        alg = greedy_MVC
-    elif PROBLEM == Problem.MIS:
-        alg = greedy_MIS
-    elif PROBLEM == Problem.set_cover:
-        alg = greedy_set_cover
-    elif PROBLEM == Problem.graph_coloring:
-        alg = greedy_graph_coloring
+        # graph_partitioning
+        elif PROBLEM == Problem.graph_partitioning:
+            num_steps = None
+            gr_score, gr_solution, gr_scores = greedy_graph_partitioning(num_steps, graph)
 
-    alg_name = "greedy"
-    num_steps = None
-    directory_data = '../data/syn_BA'
-    # directory_data = '../data/syn_ER'
-    prefixes = ['BA_100_']
-    # prefixes = ['ER_100_']
+        elif PROBLEM == Problem.MVC:
+            num_steps = None
+            gr_score, gr_solution, gr_scores = greedy_MVC(num_steps, graph)
+            obj = obj_MVC(gr_solution, graph)
+            print('obj: ', obj)
 
-    if_run_set_cover = False
-    if if_run_set_cover:
-        directory_data = '../data/set_cover'
-        prefixes = ['frb30-15-1']
+        elif PROBLEM == Problem.MIS:
+            num_steps = None
+            gr_score, gr_solution, gr_scores = greedy_MIS(num_steps, graph)
+            obj = obj_MIS(gr_solution, graph)
+            print('obj: ', obj)
 
-    scoress = run_greedy_over_multiple_files(alg, alg_name, num_steps, directory_data, prefixes)
-    print(f"scoress: {scoress}")
+        elif PROBLEM == Problem.set_cover:
+            from util import read_set_cover_data
+            filename = '../data/set_cover/frb30-15-1.msc'
+            num_items, num_sets, item_matrix = read_set_cover_data(filename)
+            print(f'num_items: {num_items}, num_sets: {num_sets}, item_matrix: {item_matrix}')
+            solution1 = [1] * num_sets
+            obj1_ratio = obj_set_cover_ratio(solution1, num_items, item_matrix)
+            print(f'obj1_ratio: {obj1_ratio}')
+            curr_score, curr_solution, scores = greedy_set_cover(num_items, num_sets, item_matrix)
+            print(f'curr_score: {curr_score}, curr_solution:{curr_solution}, scores:{scores}')
 
-    # plot fig
-    plot_fig_ = False
-    if plot_fig_:
-        for scores in scoress:
-            plot_fig(scores, alg_name)
+        elif PROBLEM == Problem.graph_coloring:
+            num_steps = None
+            gr_score, gr_solution, gr_scores = greedy_graph_coloring(num_steps, graph)
+            fig_filename = '../result/fig.png'
+            plot_nxgraph(graph, fig_filename)
+    run_multi_files = True
+    if run_multi_files:
+        if PROBLEM == Problem.maxcut:
+            alg = greedy_maxcut
+        elif PROBLEM == Problem.graph_partitioning:
+            alg = greedy_graph_partitioning
+        elif PROBLEM == Problem.MVC:
+            alg = greedy_MVC
+        elif PROBLEM == Problem.MIS:
+            alg = greedy_MIS
+        elif PROBLEM == Problem.set_cover:
+            alg = greedy_set_cover
+        elif PROBLEM == Problem.graph_coloring:
+            alg = greedy_graph_coloring
+
+        alg_name = "greedy"
+        num_steps = None
+        directory_data = '../data/syn_BA'
+        # directory_data = '../data/syn_ER'
+        prefixes = ['BA_100_']
+        # prefixes = ['ER_100_']
+
+        if_run_set_cover = False
+        if if_run_set_cover:
+            directory_data = '../data/set_cover'
+            prefixes = ['frb30-15-1']
+
+        scoress = run_greedy_over_multiple_files(alg, alg_name, num_steps, directory_data, prefixes)
+        print(f"scoress: {scoress}")
+
+        # plot fig
+        plot_fig_ = False
+        if plot_fig_:
+            for scores in scoress:
+                plot_fig(scores, alg_name)
 
 
 

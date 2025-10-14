@@ -28,13 +28,13 @@ class Problem(Enum):
     TNCO = "TNCO"
     VRP = "VRP"
     TSP = "TSP"
-PROBLEM = Problem.maxcut
+PROBLEM = Problem.MIS
 
 GPU_ID: int = 0  # -1: cpu, >=0: gpu
 
-DATA_FILENAME = "../data/syn_BA/BA_100_ID0.txt"  # one instance
-DIRECTORY_DATA = "../data/syn_BA"  # used in multi instances
-PREFIXES = ["BA_100_ID0"]  # used in multi instances
+DATA_FILENAME = "../data/MIS/Synthetic/syn_BA_MIS/BA_MIS_N500_M2_ID0.txt" 
+DIRECTORY_DATA = "../data/MIS/Synthetic/syn_BA_MIS"  # used in multi instances
+PREFIXES = ["BA_MIS_N500_M2_"]  # used in multi instances - 匹配所有N500 M2的图
 
 DEVICE: th.device = calc_device(GPU_ID)
 
