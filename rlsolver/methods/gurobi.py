@@ -137,7 +137,7 @@ def mycallback_write(model, where):
 def write_statistics(model, new_file, add_slash=False):
     prefix = '// ' if add_slash else ''
     if PROBLEM == Problem.MIS:
-        from util import obj_MIS
+        from rlsolver.methods.util_obj import obj_MIS 
         solution = model._attribute['solution']
         graph = model._attribute['graph']
         obj = obj_MIS(solution, graph)
