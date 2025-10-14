@@ -73,8 +73,7 @@ def greedy_maxcut(num_steps: Optional[int], graph: nx.Graph, filename) -> (int, 
     print("solution: ", curr_solution)
     running_duration = time.time() - start_time
     print('running_duration: ', running_duration)
-    alg_name = "greedy"
-    write_graph_result(score, running_duration, num_nodes, alg_name, curr_solution, filename)
+    # 注意：write_graph_result 在 run_greedy_over_multiple_files 中统一调用
     return curr_score, curr_solution, scores
 
 def greedy_graph_partitioning(num_steps:Optional[int], graph: nx.Graph) -> (int, Union[List[int], np.array], List[int]):
@@ -172,7 +171,7 @@ def greedy_MIS(num_steps: Optional[int], graph: nx.Graph, filename) -> (int, Uni
     
     时间复杂度：O(V × d)，其中 d 是平均度数
     """
-    print('greedy_MIS (optimized)')
+    print('greedy_MIS')
     start_time = time.time()
     
     num_nodes = graph.number_of_nodes()
@@ -181,13 +180,13 @@ def greedy_MIS(num_steps: Optional[int], graph: nx.Graph, filename) -> (int, Uni
     
     # 初始化 - 使用集合提高查找效率
     solution = [0] * num_nodes
-    selected_nodes = set()  # ✓ 集合：O(1) 查找
-    unselected_nodes = set(range(num_nodes))  # ✓ 集合
+    selected_nodes = set()  # 集合：O(1) 查找
+    unselected_nodes = set(range(num_nodes))  # 集合
     
-    # ✓ 预计算每个节点的邻居（只做一次）
+    # ✓ 预计算每个节点的邻居
     neighbors = {node: set(graph.neighbors(node)) for node in graph.nodes()}
     
-    # ✓ 维护被排除的节点集合（增量更新）
+    # ✓ 维护被排除的节点集合
     excluded_nodes = set()
     
     scores = []
@@ -196,7 +195,7 @@ def greedy_MIS(num_steps: Optional[int], graph: nx.Graph, filename) -> (int, Uni
     while unselected_nodes and step < num_steps:
         step += 1
         
-        # ✓ 快速计算候选节点（O(1) 集合差集操作）
+        # ✓ 快速计算候选节点
         candidate_nodes = unselected_nodes - excluded_nodes
         
         if not candidate_nodes:
@@ -207,7 +206,7 @@ def greedy_MIS(num_steps: Optional[int], graph: nx.Graph, filename) -> (int, Uni
         selected_node = None
         
         for node in candidate_nodes:
-            # ✓ 只计算在未选择节点中的有效邻居数
+            # 只计算在未选择节点中的有效邻居数
             valid_neighbors = neighbors[node] & unselected_nodes
             degree = len(valid_neighbors)
             
@@ -223,7 +222,7 @@ def greedy_MIS(num_steps: Optional[int], graph: nx.Graph, filename) -> (int, Uni
         unselected_nodes.remove(selected_node)
         solution[selected_node] = 1
         
-        # ✓ 增量更新：只处理新选中节点的邻居
+        # 增量更新：只处理新选中节点的邻居
         for neighbor in neighbors[selected_node]:
             if neighbor in unselected_nodes:
                 excluded_nodes.add(neighbor)
@@ -241,9 +240,7 @@ def greedy_MIS(num_steps: Optional[int], graph: nx.Graph, filename) -> (int, Uni
     print(f"init_score: 0, final score of greedy: {curr_score}")
     print(f"running_duration: {running_duration:.6f}s")
     
-    alg_name = "greedy"
-    write_graph_result(curr_score, running_duration, num_nodes, alg_name, solution, filename)
-    
+    # 注意：write_graph_result 在 run_greedy_over_multiple_files 中统一调用
     return curr_score, solution, scores
 
 def greedy_set_cover(num_items: int, num_sets: int, item_matrix: List[List[int]]) -> (int, Union[List[int], np.array], List[int]):
@@ -358,7 +355,9 @@ def run_greedy_over_multiple_files(alg, alg_name, num_steps, directory_data: str
             score, solution, scores = alg(num_steps, graph, filename)
             scoress.append(scores)
             running_duration = time.time() - start_time
-            write_graph_result(score, running_duration, graph.number_of_nodes(), alg_name, solution, filename)
+            # 添加问题类型信息
+            info_dict = {'problem': PROBLEM.value}
+            write_graph_result(score, running_duration, graph.number_of_nodes(), alg_name, solution, filename, info_dict=info_dict)
     return scoress
 
 if __name__ == '__main__':
