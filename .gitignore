@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual Environment
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+
+# 忽略某些大型或临时结果文件，但保留 gset 目录
+rlsolver/result/*.txt
+rlsolver/result/*.csv
+rlsolver/result/*.xlsx
+!rlsolver/result/gset/
+
