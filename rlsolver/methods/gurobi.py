@@ -150,6 +150,9 @@ def write_statistics(model, new_file, add_slash=False):
     # new_file.write(f"time_limit: {time_limit}\n")
     time_limit = model.getParamInfo("TIME_LIMIT")
     new_file.write(f"{prefix}time_limit: {time_limit}\n")
+    # 添加问题类型标识
+    new_file.write(f"{prefix}problem: {PROBLEM.value}\n")
+    new_file.write(f"{prefix}alg_name: gurobi\n")
 
 
 def write_statistics_in_mycallback(model, new_file, add_slash=False):
@@ -186,6 +189,9 @@ def write_statistics_in_mycallback(model, new_file, add_slash=False):
     time_limit = model.getParamInfo("TIME_LIMIT")
     # time_limit2 = model.params['TimeLimit']
     new_file.write(f"{prefix}time_limit: {time_limit}\n")
+    # 添加问题类型标识
+    new_file.write(f"{prefix}problem: {PROBLEM.value}\n")
+    new_file.write(f"{prefix}alg_name: gurobi\n")
 
 
 # if filename = '../result/BA_100_ID0.txt', running_duration = 100,
