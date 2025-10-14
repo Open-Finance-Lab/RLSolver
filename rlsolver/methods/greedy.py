@@ -407,9 +407,11 @@ if __name__ == '__main__':
 
         alg_name = "greedy"
         num_steps = None
-        directory_data = '../data/syn_BA'
+        directory_data = DIRECTORY_DATA  # 使用 config.py 中的配置
+        prefixes = PREFIXES  # 使用 config.py 中的配置
+        # directory_data = '../data/syn_BA'
         # directory_data = '../data/syn_ER'
-        prefixes = ['BA_100_']
+        # prefixes = ['BA_100_']
         # prefixes = ['ER_100_']
 
         if_run_set_cover = False
