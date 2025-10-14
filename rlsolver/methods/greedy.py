@@ -73,8 +73,9 @@ def greedy_maxcut(num_steps: Optional[int], graph: nx.Graph, filename) -> (int, 
     print("solution: ", curr_solution)
     running_duration = time.time() - start_time
     print('running_duration: ', running_duration)
-    alg_name = "greedy"
-    write_graph_result(score, running_duration, num_nodes, alg_name, curr_solution, filename)
+    # alg_name = "greedy"
+    # write_graph_result(score, running_duration, num_nodes, alg_name, curr_solution, filename)
+    # 修复“重复写入”的问题，原来greedy_maxcut函数内部会写一次结果，外层函数run_greedy_over_multiple_files又会写一次，导致生成两个结果一样名称不一样的文件，这里注释掉，改为在run_greedy_over_multiple_files中统一写入结果
     return curr_score, curr_solution, scores
 
 def greedy_graph_partitioning(num_steps:Optional[int], graph: nx.Graph) -> (int, Union[List[int], np.array], List[int]):
@@ -161,19 +162,15 @@ def greedy_MVC(num_steps: int, graph: nx.Graph) -> (int, Union[List[int], np.arr
     print('running_duration: ', running_duration)
     return curr_score, curr_solution, scores
 
-def greedy_MIS(num_steps: Optional[int], graph: nx.Graph) -> (int, Union[List[int], np.array], List[int]):
-    def calc_candidate_nodes(unselected_nodes: List[int], selected_nodes: List[int], graph: nx.Graph):
-        candidate_nodes = []
-        remove_nodes = set()
-        for node1, node2 in graph.edges():
-            if node1 in selected_nodes:
-                remove_nodes.add(node2)
-            elif node2 in selected_nodes:
-                remove_nodes.add(node1)
-        for node in unselected_nodes:
-            if node not in remove_nodes:
-                candidate_nodes.append(node)
+def greedy_MIS(num_steps: Optional[int], graph: nx.Graph, filename) -> (int, Union[List[int], np.array], List[int]):
+    def calc_candidate_nodes(unselected_nodes: set, selected_nodes: set, neighbors: dict):
+        # 优化：使用预计算的邻居和集合，避免遍历所有边
+        excluded_nodes = set()
+        for sel_node in selected_nodes:
+            excluded_nodes.update(neighbors[sel_node])
+        candidate_nodes = unselected_nodes - excluded_nodes
         return candidate_nodes
+    
     print('greedy')
     num_nodes = int(graph.number_of_nodes())
     nodes = list(range(num_nodes))
@@ -185,32 +182,31 @@ def greedy_MIS(num_steps: Optional[int], graph: nx.Graph) -> (int, Union[List[in
     curr_score: int = obj_MIS(curr_solution, graph)
     init_score = curr_score
     scores = []
-    selected_nodes = []
-    unselected_nodes = copy.deepcopy(nodes)
-    candidate_graph = copy.deepcopy(graph)
-    # extend_candidate_graph = copy.deepcopy(graph)
+    selected_nodes = set()  # 优化：使用集合代替列表，O(1)查找
+    unselected_nodes = set(nodes)  # 优化：使用集合
+    neighbors = {node: set(graph.neighbors(node)) for node in graph.nodes()}  # 优化：预计算邻居
     step = 0
     while True:
         step += 1
-        candidate_nodes = calc_candidate_nodes(unselected_nodes, selected_nodes, graph)
+        candidate_nodes = calc_candidate_nodes(unselected_nodes, selected_nodes, neighbors)
         if len(candidate_nodes) == 0:
             break
         min_degree = num_nodes
         selected_node = None
         for node in candidate_nodes:
-            degree = candidate_graph.degree(node)
+            # 优化：动态计算有效度数
+            valid_neighbors = neighbors[node] & unselected_nodes
+            degree = len(valid_neighbors)
             if degree < min_degree:
                 min_degree = degree
                 selected_node = node
         if selected_node is None:
             break
         else:
-            selected_nodes.append(selected_node)
+            selected_nodes.add(selected_node)
             unselected_nodes.remove(selected_node)
-            candidate_graph.remove_node(selected_node)
             curr_solution[selected_node] = 1
             curr_score += 1
-            # assert curr_score == curr_score2
             scores.append(curr_score)
         if step > num_steps:
             break
@@ -221,6 +217,7 @@ def greedy_MIS(num_steps: Optional[int], graph: nx.Graph) -> (int, Union[List[in
     print("solution: ", curr_solution)
     running_duration = time.time() - start_time
     print('running_duration: ', running_duration)
+    # write_graph_result 在 run_greedy_over_multiple_files 中统一调用
     return curr_score, curr_solution, scores
 
 def greedy_set_cover(num_items: int, num_sets: int, item_matrix: List[List[int]]) -> (int, Union[List[int], np.array], List[int]):
@@ -335,7 +332,9 @@ def run_greedy_over_multiple_files(alg, alg_name, num_steps, directory_data: str
             score, solution, scores = alg(num_steps, graph, filename)
             scoress.append(scores)
             running_duration = time.time() - start_time
-            write_graph_result(score, running_duration, graph.number_of_nodes(), alg_name, solution, filename)
+            # 添加问题类型信息
+            info_dict = {'problem': PROBLEM.value}
+            write_graph_result(score, running_duration, graph.number_of_nodes(), alg_name, solution, filename, info_dict=info_dict)
     return scoress
 
 if __name__ == '__main__':
@@ -364,9 +363,11 @@ if __name__ == '__main__':
 
     alg_name = "greedy"
     num_steps = None
-    directory_data = '../data/syn_BA'
+    directory_data = DIRECTORY_DATA  # 使用 config.py 中的配置
+    prefixes = PREFIXES  # 使用 config.py 中的配置
+    # directory_data = '../data/syn_BA'
     # directory_data = '../data/syn_ER'
-    prefixes = ['BA_100_']
+    # prefixes = ['BA_100_']
     # prefixes = ['ER_100_']
 
     if_run_set_cover = False

@@ -28,13 +28,13 @@ class Problem(Enum):
     TNCO = "TNCO"
     VRP = "VRP"
     TSP = "TSP"
-PROBLEM = Problem.maxcut
+PROBLEM = Problem.MIS
 
-GPU_ID: int = 0  # -1: cpu, >=0: gpu
+GPU_ID: int = -1  # -1: cpu, >=0: gpu
 
-DATA_FILENAME = "../data/syn_BA/BA_100_ID0.txt"  # one instance
-DIRECTORY_DATA = "../data/syn_BA"  # used in multi instances
-PREFIXES = ["BA_100_ID0"]  # used in multi instances
+DATA_FILENAME = "../data/gset/BA_100_ID0.txt"  # one instance
+DIRECTORY_DATA = "../data/gset"  # used in multi instances
+PREFIXES = ["BA_"]  # used in multi instances - 匹配所有BA图(100到1000节点)
 
 DEVICE: th.device = calc_device(GPU_ID)
 
