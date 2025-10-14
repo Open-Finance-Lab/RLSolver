@@ -2,16 +2,15 @@ import sys
 import os
 import numpy as np
 
-from rlsolver.methods.util_obj import obj_MIS
-
 cur_path = os.path.dirname(os.path.abspath(__file__))
 rlsolver_path = os.path.join(cur_path, '../../rlsolver')
 sys.path.append(os.path.dirname(rlsolver_path))
 
+from rlsolver.methods.util_obj import obj_MIS
+
 from gurobipy import *
 import copy
 import networkx as nx
-import sys
 import matplotlib.pyplot as plt
 import time
 from rlsolver.methods.util_read_data import (read_nxgraph,
