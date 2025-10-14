@@ -32,9 +32,9 @@ PROBLEM = Problem.MIS
 
 GPU_ID: int = 0  # -1: cpu, >=0: gpu
 
-DATA_FILENAME = "../data/MIS/Synthetic/syn_BA_MIS/BA_MIS_N500_M2_ID0.txt" 
-DIRECTORY_DATA = "../data/MIS/Synthetic/syn_BA_MIS"  # used in multi instances
-PREFIXES = ["BA_MIS_N500_M2_"]  # used in multi instances - 匹配所有N500 M2的图
+DATA_FILENAME = "../data/gset/BA_100_ID0.txt" 
+DIRECTORY_DATA = "../data/gset"  # used in multi instances
+PREFIXES = ["BA_"]  # used in multi instances - 匹配所有BA图(100到1000节点)
 
 DEVICE: th.device = calc_device(GPU_ID)
 
