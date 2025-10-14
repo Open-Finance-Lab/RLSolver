@@ -162,68 +162,89 @@ def greedy_MVC(num_steps: int, graph: nx.Graph) -> (int, Union[List[int], np.arr
     return curr_score, curr_solution, scores
 
 def greedy_MIS(num_steps: Optional[int], graph: nx.Graph, filename) -> (int, Union[List[int], np.array], List[int]):
-    def calc_candidate_nodes(unselected_nodes: List[int], selected_nodes: List[int], graph: nx.Graph):
-        candidate_nodes = []
-        remove_nodes = set()
-        for node1, node2 in graph.edges():
-            if node1 in selected_nodes:
-                remove_nodes.add(node2)
-            elif node2 in selected_nodes:
-                remove_nodes.add(node1)
-        for node in unselected_nodes:
-            if node not in remove_nodes:
-                candidate_nodes.append(node)
-        return candidate_nodes
-    print('greedy')
-    num_nodes = int(graph.number_of_nodes())
-    nodes = list(range(num_nodes))
-    init_solution = [0] * num_nodes
+    """
+    优化版本的 Greedy MIS 算法
+    
+    主要优化：
+    1. 使用集合代替列表进行快速查找 O(1)
+    2. 预计算邻居信息，避免每次遍历所有边
+    3. 增量更新候选节点
+    
+    时间复杂度：O(V × d)，其中 d 是平均度数
+    """
+    print('greedy_MIS (optimized)')
+    start_time = time.time()
+    
+    num_nodes = graph.number_of_nodes()
     if num_steps is None:
         num_steps = num_nodes
-    start_time = time.time()
-    curr_solution = copy.deepcopy(init_solution)
-    curr_score: int = obj_MIS(curr_solution, graph)
-    init_score = curr_score
+    
+    # 初始化 - 使用集合提高查找效率
+    solution = [0] * num_nodes
+    selected_nodes = set()  # ✓ 集合：O(1) 查找
+    unselected_nodes = set(range(num_nodes))  # ✓ 集合
+    
+    # ✓ 预计算每个节点的邻居（只做一次）
+    neighbors = {node: set(graph.neighbors(node)) for node in graph.nodes()}
+    
+    # ✓ 维护被排除的节点集合（增量更新）
+    excluded_nodes = set()
+    
     scores = []
-    selected_nodes = []
-    unselected_nodes = copy.deepcopy(nodes)
-    candidate_graph = copy.deepcopy(graph)
-    # extend_candidate_graph = copy.deepcopy(graph)
     step = 0
-    while True:
+    
+    while unselected_nodes and step < num_steps:
         step += 1
-        candidate_nodes = calc_candidate_nodes(unselected_nodes, selected_nodes, graph)
-        if len(candidate_nodes) == 0:
+        
+        # ✓ 快速计算候选节点（O(1) 集合差集操作）
+        candidate_nodes = unselected_nodes - excluded_nodes
+        
+        if not candidate_nodes:
             break
-        min_degree = num_nodes
+        
+        # 在候选节点中选择度数最小的节点
+        min_degree = float('inf')
         selected_node = None
+        
         for node in candidate_nodes:
-            degree = candidate_graph.degree(node)
+            # ✓ 只计算在未选择节点中的有效邻居数
+            valid_neighbors = neighbors[node] & unselected_nodes
+            degree = len(valid_neighbors)
+            
             if degree < min_degree:
                 min_degree = degree
                 selected_node = node
+        
         if selected_node is None:
             break
-        else:
-            selected_nodes.append(selected_node)
-            unselected_nodes.remove(selected_node)
-            candidate_graph.remove_node(selected_node)
-            curr_solution[selected_node] = 1
-            curr_score += 1
-            # assert curr_score == curr_score2
-            scores.append(curr_score)
-        if step > num_steps:
-            break
-    curr_score2 = obj_MIS(curr_solution, graph)
-    assert curr_score == curr_score2
-    print("init_score, final score of greedy", init_score, curr_score, )
-    print("scores: ", scores)
-    print("solution: ", curr_solution)
+        
+        # 选中节点
+        selected_nodes.add(selected_node)
+        unselected_nodes.remove(selected_node)
+        solution[selected_node] = 1
+        
+        # ✓ 增量更新：只处理新选中节点的邻居
+        for neighbor in neighbors[selected_node]:
+            if neighbor in unselected_nodes:
+                excluded_nodes.add(neighbor)
+        
+        scores.append(len(selected_nodes))
+    
+    curr_score = len(selected_nodes)
+    
+    # 验证结果
+    curr_score_check = obj_MIS(solution, graph)
+    assert curr_score == curr_score_check, f"Score mismatch: {curr_score} vs {curr_score_check}"
+    
     running_duration = time.time() - start_time
-    print('running_duration: ', running_duration)
+    
+    print(f"init_score: 0, final score of greedy: {curr_score}")
+    print(f"running_duration: {running_duration:.6f}s")
+    
     alg_name = "greedy"
-    write_graph_result(curr_score, running_duration, num_nodes, alg_name, curr_solution, filename)
-    return curr_score, curr_solution, scores
+    write_graph_result(curr_score, running_duration, num_nodes, alg_name, solution, filename)
+    
+    return curr_score, solution, scores
 
 def greedy_set_cover(num_items: int, num_sets: int, item_matrix: List[List[int]]) -> (int, Union[List[int], np.array], List[int]):
     print('greedy')
