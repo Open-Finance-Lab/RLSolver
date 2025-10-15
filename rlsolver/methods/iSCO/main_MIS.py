@@ -7,8 +7,8 @@ sys.path.append(os.path.dirname(rlsolver_path))
 
 from absl import app
 from rlsolver.envs.env_isco_mis import iSCO
-from rlsolver.methods.iSCO.config.config_mis import *
-from rlsolver.methods.iSCO.util.maxcut_util import load_data
+from rlsolver.methods.iSCO.config_MIS import *
+from rlsolver.methods.iSCO.util_maxcut import load_data
 import torch
 import time
 import tqdm

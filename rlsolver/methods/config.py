@@ -30,7 +30,7 @@ class Problem(Enum):
     TSP = "TSP"
 PROBLEM = Problem.MIS
 
-GPU_ID: int = -1  # -1: cpu, >=0: gpu
+GPU_ID: int = 0  # -1: cpu, >=0: gpu
 
 DATA_FILENAME = "../data/gset/BA_100_ID0.txt"  # one instance
 DIRECTORY_DATA = "../data/gset"  # used in multi instances

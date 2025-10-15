@@ -1,7 +1,5 @@
-from rlsolver.methods.iSCO.config.config_tsp import *
-import os
+from rlsolver.methods.iSCO.config_TSP import *
 import torch
-import numpy as np
 
 
 def load_data(tsp_file_path):

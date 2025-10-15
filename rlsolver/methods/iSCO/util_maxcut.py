@@ -1,4 +1,4 @@
-from rlsolver.methods.iSCO.config.config_maxcut import *
+from rlsolver.methods.iSCO.config_maxcut import *
 import torch
 import networkx as nx
 import torch.nn.functional as F
