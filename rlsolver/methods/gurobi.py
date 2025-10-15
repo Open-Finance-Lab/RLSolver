@@ -2,16 +2,15 @@ import sys
 import os
 import numpy as np
 
-from rlsolver.methods.util_obj import obj_MIS
-
 cur_path = os.path.dirname(os.path.abspath(__file__))
 rlsolver_path = os.path.join(cur_path, '../../rlsolver')
 sys.path.append(os.path.dirname(rlsolver_path))
 
+from rlsolver.methods.util_obj import obj_MIS
+
 from gurobipy import *
 import copy
 import networkx as nx
-import sys
 import matplotlib.pyplot as plt
 import time
 from rlsolver.methods.util_read_data import (read_nxgraph,
@@ -137,7 +136,7 @@ def mycallback_write(model, where):
 def write_statistics(model, new_file, add_slash=False):
     prefix = '// ' if add_slash else ''
     if PROBLEM == Problem.MIS:
-        from util import obj_MIS
+        from rlsolver.methods.util_obj import obj_MIS 
         solution = model._attribute['solution']
         graph = model._attribute['graph']
         obj = obj_MIS(solution, graph)
@@ -151,6 +150,9 @@ def write_statistics(model, new_file, add_slash=False):
     # new_file.write(f"time_limit: {time_limit}\n")
     time_limit = model.getParamInfo("TIME_LIMIT")
     new_file.write(f"{prefix}time_limit: {time_limit}\n")
+    # 添加问题类型标识
+    new_file.write(f"{prefix}problem: {PROBLEM.value}\n")
+    new_file.write(f"{prefix}alg_name: gurobi\n")
 
 
 def write_statistics_in_mycallback(model, new_file, add_slash=False):
@@ -187,6 +189,9 @@ def write_statistics_in_mycallback(model, new_file, add_slash=False):
     time_limit = model.getParamInfo("TIME_LIMIT")
     # time_limit2 = model.params['TimeLimit']
     new_file.write(f"{prefix}time_limit: {time_limit}\n")
+    # 添加问题类型标识
+    new_file.write(f"{prefix}problem: {PROBLEM.value}\n")
+    new_file.write(f"{prefix}alg_name: gurobi\n")
 
 
 # if filename = '../result/BA_100_ID0.txt', running_duration = 100,
@@ -197,11 +202,24 @@ def write_result_gurobi(model, filename: str = './result/result', running_durati
     add_tail = '_' + str(int(running_duration)) if running_duration is not None else None
     new_filename = calc_result_file_name(filename, add_tail)
 
+    # 如果文件已存在，添加随机后缀，避免覆盖
+    import string
+    while os.path.exists(new_filename):
+        assert ('.txt' in new_filename)
+        parts = new_filename.split('.txt')
+        assert (len(parts) == 2)
+        lowercase_letters = string.ascii_lowercase
+        random_int = np.random.randint(0, len(lowercase_letters))
+        random_letter = lowercase_letters[random_int]
+        new_filename = parts[0] + random_letter + '.txt'
+
+    print("result filename: ", new_filename)
+    
     vars = model.getVars()
     nodes: List[int] = []
     values: List[int] = []
     tuples_and_values = {}
-    if PROBLEM == Problem.tsp:
+    if PROBLEM == Problem.TSP:
         tour = model._attribute['tour']
         with open(new_filename, 'w', encoding="UTF-8") as new_file:
             write_statistics(model, new_file, True)
@@ -260,7 +278,7 @@ def write_result_gurobi(model, filename: str = './result/result', running_durati
 def run_using_gurobi(filename: str, init_x=None, time_limit: int = None, plot_fig_: bool = False):
     model = Model("maxcut")
 
-    if PROBLEM == Problem.tsp:
+    if PROBLEM == Problem.TSP:
         assert GUROBI_MILP_QUBO == 0  # QUBO is not tested
         graph, points = read_tsp_file(filename)
         n = graph.number_of_nodes()
@@ -276,12 +294,14 @@ def run_using_gurobi(filename: str, init_x=None, time_limit: int = None, plot_fi
 
     if PROBLEM not in [Problem.knapsack, Problem.set_cover]:
         edges = list(graph.edges)
-        subax1 = plt.subplot(111)
-        nx.draw_networkx(graph, with_labels=True)
-        if plot_fig_:
-            plt.show()
-        adjacency_matrix = transfer_nxgraph_to_adjacencymatrix(graph)
         num_nodes = nx.number_of_nodes(graph)
+        # 只对小规模图（节点数 <= 100）进行绘图，避免大规模图绘图耗时过长
+        if num_nodes <= 100:
+            subax1 = plt.subplot(111)
+            nx.draw_networkx(graph, with_labels=True)
+            if plot_fig_:
+                plt.show()
+        adjacency_matrix = transfer_nxgraph_to_adjacencymatrix(graph)
         nodes = list(range(num_nodes))
 
     if PROBLEM == Problem.maxcut:
@@ -363,7 +383,7 @@ def run_using_gurobi(filename: str, init_x=None, time_limit: int = None, plot_fi
                 (2 - x[i] - x[j]) * (2 - x[i] - x[j]) for (i, j) in edges)
                                + coef_B2 * quicksum((1 - x[i] - x[j]) * (1 - x[i] - x[j]) for (i, j) in edges),
                                GRB.MINIMIZE)
-    elif PROBLEM == Problem.tsp:
+    elif PROBLEM == Problem.TSP:
         if GUROBI_MILP_QUBO == 0:
             use_gurobiexample = True
             if use_gurobiexample:
@@ -457,7 +477,7 @@ def run_using_gurobi(filename: str, init_x=None, time_limit: int = None, plot_fi
             for i in range(len(edges)):
                 node1, node2 = edges[i]
                 model.addConstr(x[node1] + x[node2] <= 1, name=f'C0_{node1}_{node2}')
-        elif PROBLEM == Problem.tsp:
+        elif PROBLEM == Problem.TSP:
             for i in range(num_nodes):
                 use_gurobiexample = True
                 if use_gurobiexample:
@@ -523,7 +543,7 @@ def run_using_gurobi(filename: str, init_x=None, time_limit: int = None, plot_fi
         return x_values
 
     if GUROBI_INTERVAL is None:
-        if PROBLEM == Problem.tsp:
+        if PROBLEM == Problem.TSP:
             model.optimize(subtourelim)
         else:
             model.optimize()
@@ -543,7 +563,7 @@ def run_using_gurobi(filename: str, init_x=None, time_limit: int = None, plot_fi
         if PROBLEM in [Problem.maxcut, Problem.MVC, Problem.MIS,
                        Problem.graph_partitioning]:
             x_values = [x[i].x for i in range(num_nodes) if i in x]
-        elif PROBLEM == Problem.tsp:
+        elif PROBLEM == Problem.TSP:
             x_values = [[x[i, j].x if (i, j) in x else 0 for j in range(num_nodes)] for i in range(num_nodes)]
             # varlist = [v for v in model.getVars() if 'x' in v.VarName]
             tour = subtour(model, x_values)
@@ -609,10 +629,10 @@ if __name__ == '__main__':
     # time_limits = GUROBI_TIME_LIMITS
     # time_limits = [10 * 60, 20 * 60, 30 * 60, 40 * 60, 50 * 60, 60 * 60]
     if run_syndistr:
-        directory_data = '../data/syn_BA'
-        prefixes = ['BA_100_']
+        directory_data = DIRECTORY_DATA  # 使用 config.py 中的配置
+        prefixes = PREFIXES  # 使用 config.py 中的配置
 
-    if PROBLEM == Problem.tsp:
+    if PROBLEM == Problem.TSP:
         directory_data = '../data/tsplib'
         # prefixes = ['g', 'k', 'l', 'p', 'r', 's', 't', 'u']
         # prefixes = ['a', 'b', 'c', 'd', 'e', 'f']
