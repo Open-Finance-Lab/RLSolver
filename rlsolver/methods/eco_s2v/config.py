@@ -15,9 +15,9 @@ class Alg(Enum):
     jumanji = 'jumanji'
     rl4co = 'rl4co'
 
-PROBLEM = Problem.maxcut
+PROBLEM = Problem.MIS
 
-TRAIN_INFERENCE = 1  # 0: train, 1: inference
+TRAIN_INFERENCE = 1  # 0: train, 1: inference（推理模式）
 assert TRAIN_INFERENCE in [0, 1]
 
 ALG = Alg.s2v  # Alg
@@ -42,8 +42,9 @@ TEST_SAMPLING_SPEED = False  # False by default
 INFERENCE_GPU_ID = 0
 INFERENCE_DEVICE = calc_device(INFERENCE_GPU_ID)
 NUM_GENERATED_INSTANCES_IN_SELECT_BEST = 10  # select_best_neural_network
-NUM_TRAINED_NODES_IN_INFERENCE = 20  # also used in select_best_neural_network
-NUM_INFERENCE_NODES = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 2000, 3000, 4000, 5000, 10000]
+NUM_TRAINED_NODES_IN_INFERENCE = 20  # 使用20节点模型进行推理
+#NUM_INFERENCE_NODES = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 2000, 3000, 4000, 5000, 10000]
+NUM_INFERENCE_NODES = [100]  # 只对100节点进行推理
 USE_TENSOR_CORE_IN_INFERENCE = True if ALG == Alg.peco else False
 INFERENCE_PREFIXES = [GRAPH_TYPE.value + "_" + str(i) + "_" for i in NUM_INFERENCE_NODES]
 # PREFIXES = ["BA_100_", "BA_200_", "BA_300_", "BA_400_", "BA_500_""]  # Replace with your desired prefixes
@@ -52,7 +53,8 @@ MINI_INFERENCE_ENVS = int(0.5 * NUM_INFERENCE_ENVS)  # 如果NUM_INFERENCE_ENVS�
 USE_LOCAL_SEARCH = True if ALG == Alg.peco else False
 LOCAL_SEARCH_FREQUENCY = 10
 NEURAL_NETWORK_SAVE_PATH = rlsolver_path + "trained_agent/" + ALG.value + "_" + PROBLEM.value + "_" + GRAPH_TYPE.value + "_" + str(NUM_TRAINED_NODES_IN_INFERENCE) + ".pth"
-DATA_DIR = rlsolver_path + "data/syn_" + GRAPH_TYPE.value
+#DATA_DIR = rlsolver_path + "data/syn_" + GRAPH_TYPE.value
+DATA_DIR = rlsolver_path + "data/gset"  # 使用gset数据集
 NEURAL_NETWORK_DIR = rlsolver_path + "trained_agent/tmp"
 NEURAL_NETWORK_SUBFOLDER = ALG.value + "_" + PROBLEM.value + "_" + GRAPH_TYPE.value + "_" + str(NUM_TRAINED_NODES_IN_INFERENCE)
 NEURAL_NETWORK_FOLDER = rlsolver_path + "trained_agent/tmp/" + NEURAL_NETWORK_SUBFOLDER

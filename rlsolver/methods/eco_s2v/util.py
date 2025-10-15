@@ -14,7 +14,7 @@ import tqdm
 import rlsolver.methods.eco_s2v.src.envs.core as ising_env
 from rlsolver.methods.eco_s2v.config import *
 from rlsolver.methods.eco_s2v.src.agents.solver import Network, Greedy
-from rlsolver.methods.eco_s2v.src.envs.util_envs import (SingleGraphGenerator, SpinBasis)
+from rlsolver.methods.eco_s2v.src.envs.util_envs import (SingleGraphGenerator, SpinBasis, OptimisationTarget)
 
 
 ####################################################
@@ -24,7 +24,11 @@ from rlsolver.methods.eco_s2v.src.envs.util_envs import (SingleGraphGenerator, S
 def peco_test_network(network, test_env, local_search_frequency):
     result = {}
     obj_vs_time = {}
-    test_scores = test_env.get_best_cut()
+    # 根据优化目标选择正确的方法
+    if hasattr(test_env, 'optimisation_target') and test_env.optimisation_target.value == 3:  # MIS
+        test_scores = test_env.get_best_mis()
+    else:
+        test_scores = test_env.get_best_cut()
     obj_vs_time["0"] = test_scores
 
     if USE_TENSOR_CORE_IN_INFERENCE:
@@ -57,7 +61,11 @@ def peco_test_network(network, test_env, local_search_frequency):
             actions = predict(network, state.to(torch.float16)).squeeze(-1)
         else:
             actions = predict(network, state).squeeze(-1)
-    test_scores = test_env.get_best_cut()
+    # 根据优化目标选择正确的方法
+    if hasattr(test_env, 'optimisation_target') and test_env.optimisation_target.value == 3:  # MIS
+        test_scores = test_env.get_best_mis()
+    else:
+        test_scores = test_env.get_best_cut()
     obj, obj_indices = torch.max(test_scores, dim=0)
     sol = test_env.best_spins[obj_indices]
     result["obj"] = obj.item()
@@ -160,7 +168,14 @@ def __test_network_batched(network, env_args, graphs_test, device=None, step_fac
             greedy_agent = Greedy(greedy_env)
             greedy_agent.solve()
 
-            greedy_single_cut = greedy_env.get_best_cut()
+            # 根据优化目标选择正确的方法
+            if hasattr(greedy_env, 'optimisation_target') and greedy_env.optimisation_target.value == 3:  # MIS
+                greedy_single_cut = greedy_env.get_best_mis()
+            elif hasattr(greedy_env, 'optimisation_target') and greedy_env.optimisation_target.value == 1:  # CUT
+                greedy_single_cut = greedy_env.get_best_cut()
+            else:
+                # 默认使用 get_best_cut() 保持向后兼容
+                greedy_single_cut = greedy_env.get_best_cut()
             greedy_single_spins = greedy_env.best_spins
 
         print("done.")
@@ -234,7 +249,14 @@ def __test_network_batched(network, env_args, graphs_test, device=None, step_fac
                         if not done:
                             obs_batch.append(obs)
                         else:
-                            best_cuts_batch[i] = env.get_best_cut()
+                            # 根据优化目标选择正确的方法
+                            if hasattr(env, 'optimisation_target') and env.optimisation_target.value == 3:  # MIS
+                                best_cuts_batch[i] = env.get_best_mis()
+                            elif hasattr(env, 'optimisation_target') and env.optimisation_target.value == 1:  # CUT
+                                best_cuts_batch[i] = env.get_best_cut()
+                            else:
+                                # 默认使用 get_best_cut() 保持向后兼容
+                                best_cuts_batch[i] = env.get_best_cut()
                             best_spins_batch[i] = env.best_spins
                             i_comp_batch += 1
                             i_comp += 1
@@ -258,7 +280,14 @@ def __test_network_batched(network, env_args, graphs_test, device=None, step_fac
                     print("Running greedy solver with {} random initialisations of spins for batch {}...".format(batch_size, i_batch), end="...")
                     for env in greedy_envs:
                         Greedy(env).solve()
-                        cut = env.get_best_cut()
+                        # 根据优化目标选择正确的方法
+                        if hasattr(env, 'optimisation_target') and env.optimisation_target.value == 3:  # MIS
+                            cut = env.get_best_mis()
+                        elif hasattr(env, 'optimisation_target') and env.optimisation_target.value == 1:  # CUT
+                            cut = env.get_best_cut()
+                        else:
+                            # 默认使用 get_best_cut() 保持向后兼容
+                            cut = env.get_best_cut()
                         greedy_cuts_batch.append(cut)
                         greedy_spins_batch.append(env.best_spins)
                     print("done.")
@@ -392,7 +421,11 @@ def __test_network_sequential(network, env_args, graphs_test, step_factor=1,
 
         greedy_agent.solve()
 
-        greedy_single_cut = greedy_env.get_best_cut()
+        # 根据优化目标选择正确的方法
+        if hasattr(greedy_env, 'optimisation_target') and greedy_env.optimisation_target == OptimisationTarget.MIS:
+            greedy_single_cut = greedy_env.get_best_mis()
+        else:
+            greedy_single_cut = greedy_env.get_best_cut()
         greedy_single_spins = greedy_env.best_spins
 
         for k in range(n_attempts):
@@ -405,14 +438,28 @@ def __test_network_sequential(network, env_args, graphs_test, step_factor=1,
             net_agent.solve()
             times.append(time.time() - start_time2)
 
-            cut = test_env.get_best_cut()
+            # 根据优化目标选择正确的方法
+            if hasattr(test_env, 'optimisation_target') and test_env.optimisation_target.value == 3:  # MIS
+                cut = test_env.get_best_mis()
+            elif hasattr(test_env, 'optimisation_target') and test_env.optimisation_target.value == 1:  # CUT
+                cut = test_env.get_best_cut()
+            else:
+                # 默认使用 get_best_cut() 保持向后兼容
+                cut = test_env.get_best_cut()
             if cut > best_cut:
                 best_cut = cut
                 best_spins = test_env.best_spins
 
             greedy_agent.solve()
 
-            greedy_cut = greedy_env.get_best_cut()
+            # 根据优化目标选择正确的方法
+            if hasattr(greedy_env, 'optimisation_target') and greedy_env.optimisation_target.value == 3:  # MIS
+                greedy_cut = greedy_env.get_best_mis()
+            elif hasattr(greedy_env, 'optimisation_target') and greedy_env.optimisation_target.value == 1:  # CUT
+                greedy_cut = greedy_env.get_best_cut()
+            else:
+                # 默认使用 get_best_cut() 保持向后兼容
+                greedy_cut = greedy_env.get_best_cut()
             if greedy_cut > greedy_random_cut:
                 greedy_random_cut = greedy_cut
                 greedy_random_spins = greedy_env.best_spins

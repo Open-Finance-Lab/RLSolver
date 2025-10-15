@@ -374,7 +374,7 @@ class DQN:
                 test_score = self.evaluate_agent()
                 start_time = time.time()
                 print('\nTest score: {:.2f}\n'.format(test_score))
-                if self.test_metric in [TestMetric.FINAL_CUT, TestMetric.MAX_CUT, TestMetric.CUMULATIVE_REWARD]:
+                if self.test_metric in [TestMetric.FINAL_CUT, TestMetric.MAX_CUT, TestMetric.CUMULATIVE_REWARD, TestMetric.MAX_INDEPENDENT_SET]:
                     best_network = all([test_score > score for t, score in test_scores])
                 elif self.test_metric in [TestMetric.ENERGY_ERROR, TestMetric.BEST_ENERGY]:
                     best_network = all([test_score < score for t, score in test_scores])
@@ -548,6 +548,8 @@ class DQN:
                     test_scores = test_env.get_best_cut()
                 elif self.test_metric == TestMetric.FINAL_CUT:
                     test_scores = test_env.calculate_cut()
+                elif self.test_metric == TestMetric.MAX_INDEPENDENT_SET:
+                    test_scores = test_env.get_best_mis()
 
         if self.test_metric == TestMetric.ENERGY_ERROR:
             print("\n{}/{} graphs solved optimally".format(np.count_nonzero(np.array(test_scores) == 0),

@@ -1,3 +1,10 @@
+import os
+import sys
+# 添加项目根目录到 Python 路径
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../../'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
 import rlsolver.methods.eco_s2v.src.envs.core as ising_env
 from rlsolver.methods.eco_s2v.config import *
 if USE_TWO_DEVICES_IN_ECO_S2V:
@@ -34,10 +41,18 @@ def run(save_loc):
     gamma = 1
     step_fact = 1
 
+    # 根据 PROBLEM 选择优化目标
+    if PROBLEM == Problem.maxcut:
+        opt_target = OptimisationTarget.CUT
+    elif PROBLEM == Problem.MIS:
+        opt_target = OptimisationTarget.MIS
+    else:
+        opt_target = OptimisationTarget.ENERGY
+    
     env_args = {'observables': [Observable.SPIN_STATE],
                 'reward_signal': RewardSignal.DENSE,
                 'extra_action': ExtraAction.NONE,
-                'optimisation_target': OptimisationTarget.CUT,
+                'optimisation_target': opt_target,
                 'spin_basis': SpinBasis.BINARY,
                 'norm_rewards': True,
                 'memory_length': None,
@@ -147,7 +162,7 @@ def run(save_loc):
         'sampling_speed_save_path': sampling_speed_save_path,
         'test_obj_frequency': TEST_OBJ_FREQUENCY,  # 10000
         'test_save_path': test_save_path,
-        'test_metric': TestMetric.MAX_CUT,
+        'test_metric': TestMetric.MAX_INDEPENDENT_SET if PROBLEM == Problem.MIS else TestMetric.MAX_CUT,  # 根据问题类型动态选择
         'seed': None,
         'test_sampling_speed': TEST_SAMPLING_SPEED,
     }
@@ -163,6 +178,11 @@ def run(save_loc):
     #############
     sampling_start_time = time.time()
     agent.learn(timesteps=NUM_STEPS, start_time=start_time, verbose=True)
+
+    # 训练结束后强制保存模型
+    print("Training completed, saving final model...")
+    agent.save(network_save_path)
+    print(f"Model saved to: {network_save_path}")
 
     print(time.time() - start_time)
 

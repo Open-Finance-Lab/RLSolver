@@ -30,6 +30,7 @@ class ExtraAction(Enum):
 class OptimisationTarget(Enum):
     CUT = 1
     ENERGY = 2
+    MIS = 3  # Maximum Independent Set
 
 
 class SpinBasis(Enum):

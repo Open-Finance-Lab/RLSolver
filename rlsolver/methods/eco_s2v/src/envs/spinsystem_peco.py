@@ -526,6 +526,8 @@ class SpinSystemBase(ABC):
             immediate_reward_function = lambda *args: -1 * self._get_immeditate_energies_avaialable_jit(*args)
         elif self.optimisation_target == OptimisationTarget.CUT:
             immediate_reward_function = self._get_immeditate_cuts_avaialable_jit
+        elif self.optimisation_target == OptimisationTarget.MIS:
+            immediate_reward_function = self._get_immeditate_mis_available_jit
         else:
             raise NotImplementedError("Optimisation target {} not recognised.".format(self.optimisation_ta))
 
@@ -554,6 +556,8 @@ class SpinSystemBase(ABC):
             score = self.calculate_cut(spins)
         elif self.optimisation_target == OptimisationTarget.ENERGY:
             score = -1. * self.calculate_energy(spins)
+        elif self.optimisation_target == OptimisationTarget.MIS:
+            score = self.calculate_mis(spins)
         else:
             raise NotImplementedError
         return score
@@ -563,6 +567,8 @@ class SpinSystemBase(ABC):
             delta_score = self._calculate_cut_change(new_spins, matrix, action)
         elif self.optimisation_target == OptimisationTarget.ENERGY:
             delta_score = -1. * self._calculate_energy_change(new_spins, matrix, action)
+        elif self.optimisation_target == OptimisationTarget.MIS:
+            delta_score = self._calculate_mis_change(new_spins, matrix, action)
         else:
             raise NotImplementedError
         return delta_score
@@ -633,6 +639,31 @@ class SpinSystemUnbiased(SpinSystemBase):
             return self.best_score
         else:
             raise NotImplementedError("Can't return best cut when optimisation target is set to energy.")
+    
+    def calculate_mis(self, spins=None):
+        """计算 Maximum Independent Set 的大小"""
+        if spins is None:
+            spins = self._get_spins()
+        
+        # 将 {-1,1} 转为 {0,1}
+        binary_spins = (spins + 1) / 2
+        
+        # 选中的节点数
+        num_selected = torch.sum(binary_spins, dim=-1)
+        
+        # 惩罚项：相邻节点同时选中
+        # matrix[i,j] != 0 表示有边，binary_spins[i]=1 且 binary_spins[j]=1 表示都选中
+        violations = torch.sum(binary_spins.unsqueeze(-1) * self.matrix * binary_spins.unsqueeze(-2), dim=(-1,-2)) / 2
+        
+        # 修复：使用更合理的惩罚权重
+        penalty_weight = max(1.0, self.n_spins * 0.1)  # 动态调整惩罚权重
+        return num_selected - penalty_weight * violations
+    
+    def get_best_mis(self):
+        if self.optimisation_target == OptimisationTarget.MIS:
+            return self.best_score
+        else:
+            raise NotImplementedError("Can't return best mis when optimisation target is not set to MIS.")
 
     def _calc_over_range(self, i0, iMax):
         list_spins = [2 * np.array([int(x) for x in list_string]) - 1
@@ -682,6 +713,25 @@ class SpinSystemUnbiased(SpinSystemBase):
     @staticmethod
     def _get_immeditate_cuts_avaialable(spins, matrix):
         return torch.matmul(matrix, spins.unsqueeze(-1)).squeeze(-1) * spins
+    
+    @staticmethod
+    def _calculate_mis_change(new_spins, matrix, action):
+        """计算 MIS 的增量变化 (PyTorch 版本)"""
+        # 将 {-1,1} 转为 {0,1}
+        binary_spins = (new_spins + 1) / 2
+        action_value = binary_spins.gather(-1, action.unsqueeze(-1)).squeeze(-1)
+        
+        # 收益变化：+1 或 -1
+        delta_selected = torch.where(action_value == 0, 1.0, -1.0)
+        
+        # 惩罚变化：检查邻居节点
+        neighbors_selected = torch.sum(binary_spins * matrix.gather(-1, action.unsqueeze(-1).unsqueeze(-1).expand(-1, -1, matrix.size(-1))).squeeze(-2), dim=-1)
+        delta_violations = torch.where(action_value == 0, neighbors_selected, -neighbors_selected)
+        
+        # 修复：使用更合理的惩罚权重
+        n_spins = binary_spins.size(-1)  # 从张量维度获取节点数
+        penalty_weight = max(1.0, n_spins * 0.1)  # 动态调整惩罚权重
+        return delta_selected - penalty_weight * delta_violations
 
 
 class SpinSystemBiased(SpinSystemBase):

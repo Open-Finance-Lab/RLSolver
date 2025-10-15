@@ -21,6 +21,7 @@ class TestMetric(Enum):
     ENERGY_ERROR = 3
     MAX_CUT = 4
     FINAL_CUT = 5
+    MAX_INDEPENDENT_SET = 6  # 添加 MIS 测试指标
 
 
 def set_global_seed(seed, env):
