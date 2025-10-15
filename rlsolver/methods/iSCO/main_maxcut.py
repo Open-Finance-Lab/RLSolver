@@ -7,17 +7,16 @@ sys.path.append(os.path.dirname(rlsolver_path))
 
 from absl import app
 from rlsolver.envs.env_isco_maxcut import iSCO
-from rlsolver.methods.iSCO.config.config_maxcut import *
-from rlsolver.methods.iSCO.util import maxcut_util
+from rlsolver.methods.iSCO.config_maxcut import *
 import torch
 import time
 import tqdm
 from rlsolver.methods.util_result import write_graph_result
-
+from util_maxcut import load_data
 
 # The results are written in this directory: 'rlsolver/result/maxcut_iSCO'
 def main(_):
-    params_dict = maxcut_util.load_data(DATAPATH)
+    params_dict = load_data(DATAPATH)
     sampler = iSCO(params_dict)
     sample = sampler.random_gen_init_sample(params_dict)
     mu = torch.ones(BATCH_SIZE, device=DEVICE, dtype=torch.float) * 10

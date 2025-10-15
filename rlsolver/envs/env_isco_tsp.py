@@ -1,7 +1,7 @@
 import torch
 
-from rlsolver.methods.iSCO.config.config_tsp import *
-from rlsolver.methods.iSCO.util import math_util
+from rlsolver.methods.iSCO.config_TSP import *
+from rlsolver.methods.iSCO.util import *
 
 
 class iSCO:
@@ -32,7 +32,7 @@ class iSCO:
     def proposal(self, sample, temperature):
         x = sample.clone()
         logits, log_prob, indices, ban_mask, delta_yx = self.get_local_dist(x, temperature)
-        selected_idx, ll_selected = math_util.multinomial(log_prob, torch.ones(BATCH_SIZE, dtype=torch.int64, device=self.device))
+        selected_idx, ll_selected = multinomial(log_prob, torch.ones(BATCH_SIZE, dtype=torch.int64, device=self.device))
         logits = logits * (1 - 2 * selected_idx['selected_mask'])
         swap_env_mask, swap_sample_mask = torch.where(((selected_idx['selected_mask'] == 1) & (~ban_mask)) == 1)
         x = self.switch(sample, swap_env_mask, swap_sample_mask, indices)
@@ -61,7 +61,7 @@ class iSCO:
         log_prob = torch.where(selected_mask.bool(), log_prob, torch.tensor(-1e18))
         backwd_ll = torch.gather(log_prob, dim=-1, index=backwd_idx)
         backwd_mask = torch.gather(selected_mask, dim=-1, index=backwd_idx)
-        ll_backwd = math_util.noreplacement_sampling_renormalize(backwd_ll)
+        ll_backwd = noreplacement_sampling_renormalize(backwd_ll)
         ll_y2x = torch.sum(torch.where(backwd_mask.bool(), ll_backwd, torch.tensor(0.0)), dim=-1)
 
         return ll_y2x
@@ -163,7 +163,6 @@ class iSCO:
                 )
             )
         )
-
         return -delta_yx / temperature, indices, combined_condition
 
     def switch(self, sample, swap_env_mask, swap_sample_mask, indices):
@@ -186,7 +185,7 @@ class iSCO:
         return sample
 
     def select_sample(self, log_acc, x, y):
-        y, accepted = math_util.mh_step(log_acc, x, y)
+        y, accepted = mh_step(log_acc, x, y)
         return y, accepted
 
     def apply_weight_function_logscale(self, logratio):

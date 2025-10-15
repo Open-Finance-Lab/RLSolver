@@ -1,9 +1,9 @@
 import torch
 from torch.func import vmap
 
-from rlsolver.methods.iSCO.config.config_maxcut import *
-from rlsolver.methods.iSCO.util import math_util
-
+from rlsolver.methods.iSCO.config_maxcut import *
+from rlsolver.methods.iSCO.util_maxcut import *
+from rlsolver.methods.iSCO.util import *
 
 class iSCO:
     def __init__(self, params_dict):
@@ -34,7 +34,7 @@ class iSCO:
 
     def proposal(self, x, path_length, temperature):
         ll_x, log_prob = self.get_local_dist(x, temperature)
-        selected_idx, ll_selected = math_util.multinomial(log_prob, path_length)
+        selected_idx, ll_selected = multinomial(log_prob, path_length)
         mask = selected_idx['selected_mask']
 
         new_val = 1 - x
@@ -69,7 +69,7 @@ class iSCO:
         log_prob = torch.where(selected_mask.bool(), log_prob, torch.tensor(-1e18))
         backwd_ll = torch.gather(log_prob, dim=-1, index=backwd_idx)
         backwd_mask = torch.gather(selected_mask, dim=-1, index=backwd_idx)
-        ll_backwd = math_util.noreplacement_sampling_renormalize(backwd_ll)
+        ll_backwd = noreplacement_sampling_renormalize(backwd_ll)
         ll_y2x = torch.sum(torch.where(backwd_mask.bool(), ll_backwd, torch.tensor(0.0)), dim=-1)
 
         return ll_y, ll_y2x
@@ -84,6 +84,6 @@ class iSCO:
         return energy
 
     def select_sample(self, log_acc, x, y):
-        y, acc = math_util.mh_step(log_acc, x, y)
+        y, acc = mh_step(log_acc, x, y)
 
         return y

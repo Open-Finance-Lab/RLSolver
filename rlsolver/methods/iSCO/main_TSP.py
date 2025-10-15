@@ -7,19 +7,17 @@ sys.path.append(os.path.dirname(rlsolver_path))
 
 from absl import app
 from rlsolver.envs.env_isco_tsp import iSCO
-from rlsolver.methods.iSCO.config.config_tsp import *
-from rlsolver.methods.iSCO.util import tsp_util
+from rlsolver.methods.iSCO.config_TSP import *
 import torch
 import time
 import tqdm
 from rlsolver.methods.util_result import write_graph_result
-import os
-import numpy
+from rlsolver.methods.iSCO.util_TSP import *
 
 
 # The results are written in this directory: 'rlsolver/result/tsp_iSCO'
 def main(_):
-    params_dict = tsp_util.load_data(DATAPATH)
+    params_dict = load_data(DATAPATH)
     sampler = iSCO(params_dict)
     sample = sampler.random_gen_init_sample(params_dict)
     mu = 10.0

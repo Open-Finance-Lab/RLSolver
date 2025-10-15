@@ -7,18 +7,17 @@ sys.path.append(os.path.dirname(rlsolver_path))
 
 from absl import app
 from rlsolver.envs.env_eisco_maxcut import iSCO
-from rlsolver.methods.iSCO.config.config_maxcut import *
-from rlsolver.methods.iSCO.util import maxcut_util
+from rlsolver.methods.iSCO.config_maxcut import *
 import torch
 import time
 import tqdm
 from rlsolver.methods.util_result import write_graph_result
 import torch.nn.functional as F
-
+from rlsolver.methods.iSCO.util_maxcut import *
 
 # The results are written in this directory: 'rlsolver/result/maxcut_iSCO'
 def main(_):
-    params_dict = maxcut_util.load_data(DATAPATH)
+    params_dict = load_data(DATAPATH)
     sampler = iSCO(params_dict)
     sample = sampler.random_gen_init_sample()
     pad_rows = ((sampler.max_num_nodes + 7) // 8 * 8) - sampler.max_num_nodes
@@ -33,7 +32,7 @@ def main(_):
                 sampler.init_temperature - sampler.final_temperature)
         sample, new_energy, acc = sampler.step(sample, path_length, temperature)
         mu = torch.clamp((mu + 0.01 * (acc - 0.574)), min=1.0, max=float(sampler.max_num_nodes))
-        best_energy, best_sample = maxcut_util.record(best_energy, best_sample, new_energy, sample)
+        best_energy, best_sample = record(best_energy, best_sample, new_energy, sample)
     obj = 0.5 * sampler.edge_from.shape[0] + best_energy
     end_time = time.time()
     obj = obj.item()
