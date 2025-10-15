@@ -629,8 +629,8 @@ if __name__ == '__main__':
     # time_limits = GUROBI_TIME_LIMITS
     # time_limits = [10 * 60, 20 * 60, 30 * 60, 40 * 60, 50 * 60, 60 * 60]
     if run_syndistr:
-        directory_data = DIRECTORY_DATA  # 使用 config.py 中的配置
-        prefixes = PREFIXES  # 使用 config.py 中的配置
+        directory_data = '../data/syn_BA'
+        prefixes = ['BA_100_']
 
     if PROBLEM == Problem.TSP:
         directory_data = '../data/tsplib'
