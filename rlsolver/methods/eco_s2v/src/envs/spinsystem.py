@@ -318,6 +318,10 @@ class SpinSystemBase(ABC):
                 res = best_cut, best_spins
             elif self.optimisation_target == OptimisationTarget.ENERGY:
                 pass
+            elif self.optimisation_target == OptimisationTarget.MIS:
+                best_energy, best_spins = res
+                best_mis = self.calculate_mis(best_spins)
+                res = best_mis, best_spins
             else:
                 raise NotImplementedError()
 
@@ -502,6 +506,8 @@ class SpinSystemBase(ABC):
             immediate_reward_function = lambda *args: -1 * self._get_immeditate_energies_avaialable_jit(*args)
         elif self.optimisation_target == OptimisationTarget.CUT:
             immediate_reward_function = self._get_immeditate_cuts_avaialable_jit
+        elif self.optimisation_target == OptimisationTarget.MIS:
+            immediate_reward_function = self._get_immeditate_mis_available_jit
         else:
             raise NotImplementedError("Optimisation target {} not recognised.".format(self.optimisation_ta))
 
@@ -533,6 +539,8 @@ class SpinSystemBase(ABC):
             score = self.calculate_cut(spins)
         elif self.optimisation_target == OptimisationTarget.ENERGY:
             score = -1. * self.calculate_energy(spins)
+        elif self.optimisation_target == OptimisationTarget.MIS:
+            score = self.calculate_mis(spins)
         else:
             raise NotImplementedError
         return score
@@ -542,6 +550,8 @@ class SpinSystemBase(ABC):
             delta_score = self._calculate_cut_change(new_spins, matrix, action)
         elif self.optimisation_target == OptimisationTarget.ENERGY:
             delta_score = -1. * self._calculate_energy_change(new_spins, matrix, action)
+        elif self.optimisation_target == OptimisationTarget.MIS:
+            delta_score = self._calculate_mis_change(new_spins, matrix, action)
         else:
             raise NotImplementedError
         return delta_score
@@ -611,6 +621,37 @@ class SpinSystemUnbiased(SpinSystemBase):
             return self.best_score
         else:
             raise NotImplementedError("Can't return best cut when optimisation target is set to energy.")
+    
+    def calculate_mis(self, spins=None):
+        """计算 Maximum Independent Set 的大小"""
+        if spins is None:
+            spins = self._get_spins()
+        else:
+            spins = self._format_spins_to_signed(spins)
+        
+        # 将 {-1,1} 转为 {0,1}
+        binary_spins = (spins + 1) / 2
+        
+        # 选中的节点数
+        num_selected = np.sum(binary_spins)
+        
+        # 惩罚项：相邻节点同时选中
+        violations = 0
+        for i in range(self.n_spins):
+            for j in range(i+1, self.n_spins):
+                if self.matrix[i, j] != 0:  # 有边连接
+                    if binary_spins[i] == 1 and binary_spins[j] == 1:  # 都选中
+                        violations += 1
+        
+        # MIS 目标：最大化节点数，同时惩罚违反约束的情况
+        penalty_weight = 100.0  # 大幅增加惩罚权重，确保约束生效
+        return num_selected - penalty_weight * violations
+    
+    def get_best_mis(self):
+        if self.optimisation_target == OptimisationTarget.MIS:
+            return self.best_score
+        else:
+            raise NotImplementedError("Can't return best mis when optimisation target is not set to MIS.")
 
     def _calc_over_range(self, i0, iMax):
         list_spins = [2 * np.array([int(x) for x in list_string]) - 1
@@ -629,6 +670,24 @@ class SpinSystemUnbiased(SpinSystemBase):
     # @jit(float64(float64[:], float64[:, :], int64), nopython=True)
     def _calculate_cut_change(new_spins, matrix, action):
         return -1 * new_spins[action] * matmul(new_spins.T, matrix[:, action])
+    
+    @staticmethod
+    def _calculate_mis_change(new_spins, matrix, action):
+        """计算 MIS 的增量变化"""
+        # 将 {-1,1} 转为 {0,1}
+        binary_spins = (new_spins + 1) / 2
+        action_value = binary_spins[action]
+        
+        # 如果翻转这个节点
+        # 收益变化：+1 或 -1
+        delta_selected = 1 if action_value == 0 else -1
+        
+        # 惩罚变化：检查邻居节点
+        neighbors_selected = binary_spins * matrix[action, :]
+        delta_violations = np.sum(neighbors_selected) if action_value == 0 else -np.sum(neighbors_selected)
+        
+        penalty_weight = 100.0  # 大幅增加惩罚权重，确保约束生效
+        return delta_selected - penalty_weight * delta_violations
 
     @staticmethod
     # @jit(float64(float64[:], float64[:, :]), nopython=True)
@@ -659,6 +718,28 @@ class SpinSystemUnbiased(SpinSystemBase):
     # @jit(float64[:](float64[:], float64[:, :]), nopython=True)
     def _get_immeditate_cuts_avaialable_jit(spins, matrix):
         return spins * matmul(matrix, spins)
+    
+    @staticmethod
+    def _get_immeditate_mis_available_jit(spins, matrix):
+        """计算每个节点翻转后的 MIS 分数变化"""
+        # 将 {-1,1} 转为 {0,1}
+        binary_spins = (spins + 1) / 2
+        
+        # 对每个节点，计算翻转后的分数变化
+        rewards = np.zeros_like(spins)
+        penalty_weight = 100.0  # 大幅增加惩罚权重，确保约束生效
+        
+        for i in range(len(spins)):
+            # 收益变化
+            delta_selected = 1 if binary_spins[i] == 0 else -1
+            
+            # 惩罚变化：邻居节点的影响
+            neighbors_selected = np.sum(binary_spins * matrix[i, :])
+            delta_violations = neighbors_selected if binary_spins[i] == 0 else -neighbors_selected
+            
+            rewards[i] = delta_selected - penalty_weight * delta_violations
+        
+        return rewards
 
 
 class SpinSystemBiased(SpinSystemBase):

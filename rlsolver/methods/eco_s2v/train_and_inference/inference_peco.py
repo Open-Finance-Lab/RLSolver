@@ -44,12 +44,20 @@ def run(graph_folder="../../data/syn_BA",
         param.requires_grad = False
     network.eval()
 
+    # 根据 config.py 中的 PROBLEM 动态选择优化目标
+    if PROBLEM == Problem.maxcut:
+        opt_target = OptimisationTarget.CUT
+    elif PROBLEM == Problem.MIS:
+        opt_target = OptimisationTarget.MIS
+    else:
+        opt_target = OptimisationTarget.ENERGY
+
     if ALG == Alg.peco:
         env_args = {
             'observables': DEFAULT_OBSERVABLES,
             'reward_signal': RewardSignal.BLS,
             'extra_action': ExtraAction.NONE,
-            'optimisation_target': OptimisationTarget.CUT,
+            'optimisation_target': opt_target,
             'spin_basis': SpinBasis.BINARY,
             'norm_rewards': True,
             'memory_length': None,

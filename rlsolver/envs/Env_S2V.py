@@ -831,12 +831,23 @@ class S2V_MIS:
         return ll_y, ll_y2x
 
     def model(self, sample, temperature):
-        delta_x = (sample * 2 - 1)
-        gather2src = torch.gather(delta_x, -1, self.edge_from)
-        gather2dst = torch.gather(delta_x, -1, self.edge_to)
-        is_cut = (1 - gather2src * gather2dst) / 2.0
-        energy = torch.sum(is_cut, dim=-1) / temperature
-
+        # MIS 目标函数：最大化独立集大小
+        # sample[i]=1 表示节点i在独立集中，sample[i]=0表示不在
+        
+        # 选中的节点数（收益）
+        num_selected = torch.sum(sample, dim=-1)
+        
+        # 惩罚项：相邻节点不能同时选中
+        gather2src = torch.gather(sample, -1, self.edge_from)
+        gather2dst = torch.gather(sample, -1, self.edge_to)
+        # 如果相邻节点都选中，penalty=1，否则=0
+        penalty = gather2src * gather2dst
+        num_violations = torch.sum(penalty, dim=-1)
+        
+        # Energy = 收益 - 惩罚（权重要足够大确保约束满足）
+        penalty_weight = 100.0
+        energy = (num_selected - penalty_weight * num_violations) / temperature
+        
         return energy
 
     def select_sample(self, log_acc, x, y):
