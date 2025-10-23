@@ -25,7 +25,7 @@ if fix_seed:
 pip install torch_geometric
 """
 
-GPU_ID = 1
+GPU_ID = 0
 
 TEN = th.Tensor
 ARY = np.ndarray
@@ -647,7 +647,7 @@ def run():
     num_ls = 6
     reset_epoch_num = 192
     total_mcmc_num = 2 ** 9
-    path = '../data/gset_14.txt'
+    path = '../data/gset/gset_14.txt'
     # path = 'data/gset_15.txt'
     # path = 'data/gset_49.txt'
     # path = 'data/gset_50.txt'

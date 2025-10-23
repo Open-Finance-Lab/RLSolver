@@ -24,7 +24,6 @@ pip install torch_geometric
 """
 from config import (GPU_ID, 
                     calc_device,
-                    DATA_FILENAME,
                     DIRECTORY_DATA,
                     PREFIXES)
 
