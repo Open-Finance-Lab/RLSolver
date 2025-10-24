@@ -1,5 +1,5 @@
 from model import RUN_CSP
-from csp_utils import CSP_Instance, Constraint_Language
+from util import CSP_Instance, Constraint_Language
 from train import train
 
 import data_utils
@@ -12,7 +12,7 @@ from tqdm import tqdm
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-e', '--epochs', type=int, default=20, help='Number of training epochs')
-    parser.add_argument('-t', '--t_max', type=int, default=25, help='Number of iterations t_max for which RUN-CSP runs on each instance')
+    parser.add_argument('-t', '--t_max', type=int, default=25, help='Number of iterations t_max for which RUNCSP runs on each instance')
     parser.add_argument('-b', '--batch_size', type=int, default=64, help='Batch size for training')
     parser.add_argument('-m', '--model_dir', type=str, help='Model directory in which the trained model is stored')
     parser.add_argument('-d', '--data_path', help='A path to a training set of graphs in the dimacs graph format.')

@@ -5,8 +5,8 @@ from torch import nn
 from torch.nn import functional as F
 from torch.utils.data import DataLoader
 
-from params import *
-from utils import (
+from config import *
+from util import (
     GraphDataset,
     Hamiltonian_MaxCut,
     Hamiltonian_MaxIndSet,

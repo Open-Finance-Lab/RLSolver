@@ -1,5 +1,5 @@
 from model import RUN_CSP
-from csp_utils import CSP_Instance
+from util import CSP_Instance
 
 import numpy as np
 import argparse
@@ -11,7 +11,7 @@ import csv
 
 def evaluate_boosted(network, eval_instances, t_max, attempts=64):
     """
-    Evaluate RUN-CSP Network with boosted predictions
+    Evaluate RUNCSP Network with boosted predictions
     :param network: A RUN_CSP network
     :param eval_instances: A list of CSP instances for evaluation
     :param t_max: Number of RUN_CSP iterations on each instance
@@ -39,7 +39,7 @@ def evaluate_boosted(network, eval_instances, t_max, attempts=64):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-m', '--model_dir', type=str, help='Path to the trained RUN-CSP instance')
+    parser.add_argument('-m', '--model_dir', type=str, help='Path to the trained RUNCSP instance')
     parser.add_argument('-v', '--n_variables', type=int, default=100, help='Number of variables in each training instance.')
     parser.add_argument('--c_min', type=int, default=100, help='Minimum number of clauses in each training instance.')
     parser.add_argument('--c_max', type=int, default=600, help='Maximum number of clauses in each training instance.')

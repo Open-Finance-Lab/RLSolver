@@ -51,7 +51,7 @@ def metropolis_hastings_sampling(probs: TEN, start_xs: TEN, num_repeats: int, nu
     return xs
 
 
-class MCMC_TNCO:
+class EnvTNCO:
     def __init__(self, num_sims: int, num_repeats: int, num_searches: int,
                  graph_type: str = 'graph', nodes_list: list = (), device=th.device('cpu')):
         self.num_sims = num_sims
@@ -94,7 +94,7 @@ class MCMC_TNCO:
         return good_xs, good_vs
 
 
-def valid_in_single_graph(args0: ConfigPolicy = None, nodes_list: list = None,):
+def valid_in_single_graph_TNCO(args0: ConfigPolicy = None, nodes_list: list = None, ):
     gpu_id = int(sys.argv[1]) if len(sys.argv) > 1 else 0
     device = th.device(f'cuda:{gpu_id}' if th.cuda.is_available() and gpu_id >= 0 else 'cpu')
 
@@ -133,8 +133,8 @@ def valid_in_single_graph(args0: ConfigPolicy = None, nodes_list: list = None,):
     show_gap = args0.show_gap
 
     '''iterator'''
-    iterator = MCMC_TNCO(num_sims=num_sims, num_repeats=num_repeats, num_searches=num_searches,
-                         graph_type=graph_type, nodes_list=nodes_list, device=device)
+    iterator = EnvTNCO(num_sims=num_sims, num_repeats=num_repeats, num_searches=num_searches,
+                       graph_type=graph_type, nodes_list=nodes_list, device=device)
     num_bits = iterator.num_bits  # todo add num_bits
     if_maximize = iterator.if_maximize
 
@@ -224,5 +224,5 @@ def valid_in_single_graph(args0: ConfigPolicy = None, nodes_list: list = None,):
 
 
 if __name__ == '__main__':
-    valid_in_single_graph()
+    valid_in_single_graph_TNCO()
     # check_searcher()

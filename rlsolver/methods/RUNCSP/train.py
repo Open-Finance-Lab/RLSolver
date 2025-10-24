@@ -1,5 +1,5 @@
 from model import RUN_CSP
-from csp_utils import Constraint_Language, CSP_Instance
+from util import Constraint_Language, CSP_Instance
 
 import argparse
 import numpy as np
@@ -8,7 +8,7 @@ from tqdm import tqdm
 
 def train(network, train_data, t_max, epochs):
     """
-    Trains a RUN-CSP Network on the given data
+    Trains a RUNCSP Network on the given data
     :param network: The RUN_CSP network
     :param train_data: A list of CSP instances that are used for training
     :param t_max: Number of RUN_CSP iterations on each instance
@@ -33,13 +33,13 @@ def train(network, train_data, t_max, epochs):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-l', '--language_config_path', type=str,  help='The path to a json file that specifies the constraint language')
-    parser.add_argument('-m', '--model_dir', type=str, help='Path to the model directory where the trained RUN-CSP instance will be stored')
+    parser.add_argument('-m', '--model_dir', type=str, help='Path to the model directory where the trained RUNCSP instance will be stored')
     parser.add_argument('-v', '--n_variables', type=int, default=100, help='Number of variables in each training instance.')
     parser.add_argument('--c_min', type=int, default=100, help='Minimum number of clauses in each training instance.')
     parser.add_argument('--c_max', type=int, default=600, help='Maximum number of clauses in each training instance.')
     parser.add_argument('-i', '--n_instances', type=int, default=4000, help='Number of instances for training.')
-    parser.add_argument('-t', '--t_max', type=int, default=30, help='Number of iterations t_max for which RUN-CSP runs on each instance')
-    parser.add_argument('-s', '--state_size', type=int, default=128, help='Size of the variable states in RUN-CSP')
+    parser.add_argument('-t', '--t_max', type=int, default=30, help='Number of iterations t_max for which RUNCSP runs on each instance')
+    parser.add_argument('-s', '--state_size', type=int, default=128, help='Size of the variable states in RUNCSP')
     parser.add_argument('-b', '--batch_size', type=int, default=10, help='Batch size used during training')
     parser.add_argument('-e', '--epochs', type=int, default=25, help='Number of training epochs')
     args = parser.parse_args()

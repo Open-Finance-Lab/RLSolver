@@ -1,6 +1,6 @@
 from model import RUN_CSP
 from evaluate import evaluate_and_save
-from csp_utils import CSP_Instance, mc_weighted_language
+from util import CSP_Instance, mc_weighted_language
 
 import data_utils
 import argparse
@@ -22,7 +22,7 @@ def compute_weighted_score(instance, assignment):
 
 def evaluate_boosted(network, eval_instances, t_max, attempts=64):
     """
-    Evaluate RUN-CSP Network with boosted predictions
+    Evaluate RUNCSP Network with boosted predictions
     :param network: A RUN_CSP network
     :param eval_instances: A list of CSP instances for evaluation
     :param t_max: Number of RUN_CSP iterations on each instance
@@ -51,7 +51,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-m', '--model_dir', type=str, help='The model directory of a trained network')
     parser.add_argument('-t', '--t_max', type=int, default=100,
-                        help='Number of iterations t_max for which RUN-CSP runs on each instance')
+                        help='Number of iterations t_max for which RUNCSP runs on each instance')
     parser.add_argument('-a', '--attempts', type=int, default=64, help='Attempts for each graph')
     parser.add_argument('-d', '--data_path', default=None,
                         help='A path to a training set of graphs in the NetworkX adj_list format. If left unspecified, random instances are used.')

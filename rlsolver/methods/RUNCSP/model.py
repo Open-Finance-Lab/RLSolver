@@ -4,7 +4,7 @@ import json
 import os
 from tqdm import tqdm
 
-from csp_utils import Constraint_Language, CSP_Instance, max_2sat_language, is_language
+from util import Constraint_Language, CSP_Instance, max_2sat_language, is_language
 
 
 class Message_Network:
@@ -102,7 +102,7 @@ def get_message_function(M):
 
 
 class RUN_CSP_Cell:
-    """ The RNN Cell used by RUN-CSP. Implements the cell of the network as specified for tf.keras.layers.RNN """
+    """ The RNN Cell used by RUNCSP. Implements the cell of the network as specified for tf.keras.layers.RNN """
 
     def __init__(self, network):
         """
@@ -195,7 +195,7 @@ class RUN_CSP_Cell:
 
 
 class RUN_CSP:
-    """ A Tensorflow implementation of RUN-CSP """
+    """ A Tensorflow implementation of RUNCSP """
 
     def __init__(self, model_dir, language, state_size=128):
         """
@@ -323,7 +323,7 @@ class RUN_CSP:
 
     def build_loss(self):
         """
-        Computes the loss for training RUN-CSP
+        Computes the loss for training RUNCSP
         :return: A 1 dimensional tensor that contains the loss of each iteration, weighted by a discount factor
         """
 
@@ -410,7 +410,7 @@ class RUN_CSP:
         """
         Performs one training epoch.
         :param instances: A list of CSP_Instance objects to perform training on.
-        :param iterations: The number of iterations that RUN-CSP performs on each instances.
+        :param iterations: The number of iterations that RUNCSP performs on each instances.
         :return: A dictionary that contains the mean ratio of conflicting edges across all instances.
         """
         self.session.run(self.rolling_variable_init)
@@ -430,7 +430,7 @@ class RUN_CSP:
         """
         Generates predictions for a given instance.
         :param instance: A CSP_Instance object.
-        :param iterations: The number of iterations that RUN-CSP performs on each instances.
+        :param iterations: The number of iterations that RUNCSP performs on each instances.
         :return: A dictionary that contains the final hard assignment as well as the number of conflicts.
         """
         self.session.run(self.rolling_variable_init)
@@ -451,7 +451,7 @@ class RUN_CSP:
         """
         Generate predictions with boosted performance by making multiple runs in paralleland using the best results.
         :param instance: A CSP_Instance object.
-        :param iterations: The number of iterations that RUN-CSP performs on each instances.
+        :param iterations: The number of iterations that RUNCSP performs on each instances.
         :param attempts: The number of parallel runs.
         :return: The predictions for the run with the least conflicts
         """
@@ -527,7 +527,7 @@ class RUN_CSP:
         """
         Loads a network from its model directory
         :param model_dir: The directory
-        :return: The loaded RUN-CSP Network
+        :return: The loaded RUNCSP Network
         """
         with open(os.path.join(model_dir, "parameters.json"), 'r') as f:
             parameters = json.load(f)
@@ -540,19 +540,19 @@ class RUN_CSP:
 
 
 class Coloring_Network(RUN_CSP):
-    """ A RUN-CSP instance that performs 3 coloring on graphs """
+    """ A RUNCSP instance that performs 3 coloring on graphs """
     def __init__(self, model_dir, colors=3, state_size=128):
         super().__init__(model_dir, Constraint_Language.get_coloring_language(colors), state_size=state_size)
 
 
 class Max_2SAT_Network(RUN_CSP):
-    """ A RUN-CSP instance for the Max2Sat problem """
+    """ A RUNCSP instance for the Max2Sat problem """
     def __init__(self, model_dir, state_size=128):
         super().__init__(model_dir, max_2sat_language, state_size=state_size)
 
 
 class Max_IS_Network(RUN_CSP):
-    """ A Modified RUN-CSP instance for the Max Independent Set Problem """
+    """ A Modified RUNCSP instance for the Max Independent Set Problem """
     def __init__(self, model_dir, kappa=1.0, state_size=128):
         self.kappa = kappa
         super().__init__(model_dir, is_language, state_size=state_size)
@@ -610,7 +610,7 @@ class Max_IS_Network(RUN_CSP):
         This method also computes the IS size after a simple post-processing step,
         where one end point of each conflicting edge is removed from the IS to enforce fully valid independent sets.
         :param instance: A CSP_Instance object.
-        :param iterations: The number of iterations that RUN-CSP performs on each instances.
+        :param iterations: The number of iterations that RUNCSP performs on each instances.
         :param attempts: The number of parallel runs.
         :return: The predictions for the run with the least conflicts
         """

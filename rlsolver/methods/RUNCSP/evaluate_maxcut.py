@@ -1,6 +1,6 @@
 from model import RUN_CSP
 from evaluate import evaluate_boosted
-from csp_utils import CSP_Instance, Constraint_Language
+from util import CSP_Instance, Constraint_Language
 
 import data_utils
 import argparse
@@ -8,8 +8,8 @@ import argparse
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-m', '--model_dir', type=str, help='Path to the trained RUN-CSP instance')
-    parser.add_argument('-t', '--t_max', type=int, default=100, help='Number of iterations t_max for which RUN-CSP runs on each instance')
+    parser.add_argument('-m', '--model_dir', type=str, help='Path to the trained RUNCSP instance')
+    parser.add_argument('-t', '--t_max', type=int, default=100, help='Number of iterations t_max for which RUNCSP runs on each instance')
     parser.add_argument('-a', '--attempts', type=int, default=64, help='Attempts for each graph')
     parser.add_argument('-d', '--data_path', default=None, help='Path to the evaluation data. Expects a directory with graphs in dimacs format.')
     args = parser.parse_args()
