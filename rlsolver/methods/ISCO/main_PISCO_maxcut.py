@@ -6,19 +6,19 @@ rlsolver_path = os.path.join(cur_path, '../../../rlsolver')
 sys.path.append(os.path.dirname(rlsolver_path))
 
 from absl import app
-from rlsolver.envs.env_eisco_maxcut import iSCO
-from rlsolver.methods.iSCO.config_maxcut import *
+from rlsolver.envs.env_ISCO import PISCO_maxcut
+from rlsolver.methods.ISCO.config_maxcut import *
 import torch
 import time
 import tqdm
 from rlsolver.methods.util_result import write_graph_result
 import torch.nn.functional as F
-from rlsolver.methods.iSCO.util_maxcut import *
+from rlsolver.methods.ISCO.util_maxcut import *
 
 # The results are written in this directory: 'rlsolver/result/maxcut_iSCO'
 def main(_):
     params_dict = load_data(DATAPATH)
-    sampler = iSCO(params_dict)
+    sampler = PISCO_maxcut(params_dict)
     sample = sampler.random_gen_init_sample()
     pad_rows = ((sampler.max_num_nodes + 7) // 8 * 8) - sampler.max_num_nodes
     sample = F.pad(sample, (0, pad_rows), mode='constant', value=0)
@@ -40,7 +40,7 @@ def main(_):
     result = best_sample.to(torch.int)
     running_duration = end_time - start_time
     print(running_duration)
-    alg_name = "iSCO"
+    alg_name = "ISCO"
     write_graph_result(obj, running_duration, params_dict["num_nodes"], alg_name, result, DATAPATH)
 
 

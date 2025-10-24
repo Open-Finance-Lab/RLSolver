@@ -1,12 +1,12 @@
-from rlsolver.methods.L2A.TNCO_simulator import *
-from rlsolver.methods.L2A.TNCO_local_search import *
+from TNCO_simulator import *
+from TNCO_local_search import *
 from rlsolver.methods.util import show_gpu_memory, reset_parameters_of_model
 from rlsolver.methods.config import ConfigPolicy
 from torch.nn.utils import clip_grad_norm_
 
 
-def metropolis_hastings_sampling_TNCO(probs: TEN, start_xs: TEN, num_repeats: int, num_iters: int = -1,
-                                      accept_rate: float = 0.25) -> TEN:
+def metropolis_hastings_sampling(probs: TEN, start_xs: TEN, num_repeats: int, num_iters: int = -1,
+                                 accept_rate: float = 0.25) -> TEN:
     """随机平稳采样 是 metropolis-hastings sampling is:
     - 在状态转移链上 using transition kernel in Markov Chain
     - 使用随机采样估计 Monte Carlo sampling
@@ -51,7 +51,7 @@ def metropolis_hastings_sampling_TNCO(probs: TEN, start_xs: TEN, num_repeats: in
     return xs
 
 
-class McMcIterator_TNCO:
+class MCMC_TNCO:
     def __init__(self, num_sims: int, num_repeats: int, num_searches: int,
                  graph_type: str = 'graph', nodes_list: list = (), device=th.device('cpu')):
         self.num_sims = num_sims
@@ -77,7 +77,7 @@ class McMcIterator_TNCO:
         return good_xs, good_vs
 
     def step(self, start_xs: TEN, probs: TEN) -> (TEN, TEN):
-        xs = metropolis_hastings_sampling_TNCO(probs=probs, start_xs=start_xs, num_repeats=self.num_repeats, num_iters=-1)
+        xs = metropolis_hastings_sampling(probs=probs, start_xs=start_xs, num_repeats=self.num_repeats, num_iters=-1)
         vs = self.searcher.reset(xs)
         for _ in range(self.num_searches):
             xs, vs, num_update = self.searcher.random_search(num_iters=2 ** 3, num_spin=8, noise_std=0.5)
@@ -94,10 +94,7 @@ class McMcIterator_TNCO:
         return good_xs, good_vs
 
 
-def valid_in_single_graph_TNCO(
-        args0: ConfigPolicy = None,
-        nodes_list: list = None,
-):
+def valid_in_single_graph(args0: ConfigPolicy = None, nodes_list: list = None,):
     gpu_id = int(sys.argv[1]) if len(sys.argv) > 1 else 0
     device = th.device(f'cuda:{gpu_id}' if th.cuda.is_available() and gpu_id >= 0 else 'cpu')
 
@@ -136,16 +133,17 @@ def valid_in_single_graph_TNCO(
     show_gap = args0.show_gap
 
     '''iterator'''
-    iterator = McMcIterator_TNCO(num_sims=num_sims, num_repeats=num_repeats, num_searches=num_searches,
-                                 graph_type=graph_type, nodes_list=nodes_list, device=device)
+    iterator = MCMC_TNCO(num_sims=num_sims, num_repeats=num_repeats, num_searches=num_searches,
+                         graph_type=graph_type, nodes_list=nodes_list, device=device)
     num_bits = iterator.num_bits  # todo add num_bits
     if_maximize = iterator.if_maximize
 
     '''model'''
     # from network import PolicyORG
     # policy_net = PolicyORG(num_bits=num_bits).to(device)
-    from rlsolver.methods.L2A.network import PolicyMLP
-    policy_net = PolicyMLP(num_bits=num_bits).to(device)
+    from network import PolicyMLP
+    mid_dim = 5
+    policy_net = PolicyMLP(num_bits=num_bits, mid_dim=mid_dim).to(device)
     policy_net = th.compile(policy_net) if th.__version__ < '2.0' else policy_net
 
     net_params = list(policy_net.parameters())
@@ -226,5 +224,5 @@ def valid_in_single_graph_TNCO(
 
 
 if __name__ == '__main__':
-    valid_in_single_graph_TNCO()
+    valid_in_single_graph()
     # check_searcher()
