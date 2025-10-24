@@ -5,7 +5,7 @@ from pathlib import Path
 from concurrent.futures import ProcessPoolExecutor
 
 import networkx as nx
-from rlsolver.methods_problem_specific.maxcut_BLS.BLS import BLSMaxCut
+from rlsolver.methods_problem_specific.maxcut.BLS import BLS_MaxCut
 from rlsolver.methods.util_read_data import read_nxgraph
 from rlsolver.methods.util_obj import obj_maxcut
 from rlsolver.methods.util_result import write_graph_result
@@ -31,7 +31,7 @@ def run_bls_trial(args):
     }
 
     start_time = time.time()
-    solver = BLSMaxCut(graph, params)
+    solver = BLS_MaxCut(graph, params)
     solution, best_val = solver.run(target=None, time_limit=120)
     running_duration = time.time() - start_time
 

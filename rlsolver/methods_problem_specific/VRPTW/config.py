@@ -80,7 +80,7 @@ class Config:
 
 # if not os.path.exists(Config.ROUTES_FILENAME):
 #     print("No other_routes generated for this instance and number of customers.")
-#     print("Run: 'python main.py' and input desired instance and" +\
+#     print("Run: 'python main_BLS.py' and input desired instance and" +\
 #             "number of customers.")
 #     print("Exit")
 #     exit(1)

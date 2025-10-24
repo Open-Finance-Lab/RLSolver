@@ -1,6 +1,6 @@
 # operator.py
 import random
-from .utils import BucketSort, TabuList, compute_cut_value
+from .util import BucketSort, TabuList, compute_cut_value
 
 def compute_gain(G, cut, v):
 

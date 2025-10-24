@@ -8,10 +8,10 @@ from pathlib import Path
 import networkx as nx
 from .operator import local_search_one_step, perturb_operator
 from .perturbation import choose_perturbation
-from .utils import BucketSort, TabuList, compute_cut_value, compute_gain
+from .util import BucketSort, TabuList, compute_cut_value, compute_gain
 
 
-class BLSMaxCut:
+class BLS_MaxCut:
     def __init__(self, G, params):
         self.G = G
         self.n = G.number_of_nodes()
