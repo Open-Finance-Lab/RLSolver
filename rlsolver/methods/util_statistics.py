@@ -229,7 +229,7 @@ class Config():
     total_result_folder = r'D:\cs\RLSolver_data_result\result_maxcut统计excel'  # 替换为要存放结果的路径
     include_time = True  # 设置是否统计时间
     comparison_method = "gurobiQUBO"  # 设置对比的方法名称
-    output_order = ["greedy", "SDP", "SA", "GA", "gurobiQUBO", "s2v", "iSCO", "MCPG"]  # 设置表格列的输出顺序
+    output_order = ["greedy", "SDP", "SA", "GA", "gurobiQUBO", "s2v", "ISCO", "MCPG"]  # 设置表格列的输出顺序
     maxProblem = True  # 若同一个数据集同一个方法有多个结果，是否保留最大值
 
 

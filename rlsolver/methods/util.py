@@ -1,5 +1,7 @@
 import sys
 import os
+import torch
+
 cur_path = os.path.dirname(os.path.abspath(__file__))
 rlsolver_path = os.path.join(cur_path, '../../rlsolver')
 sys.path.append(os.path.dirname(rlsolver_path))
@@ -13,7 +15,7 @@ import time
 import numpy as np
 from typing import Union, Tuple, List
 import networkx as nx
-from torch import Tensor
+from torch import Tensor, nn
 from rlsolver.methods.config import *
 try:
     import matplotlib as mpl
@@ -538,6 +540,28 @@ def mh_step(log_prob, current_sample, new_sample):
         use_new_sample,
     )
 
+def reset_parameters_of_model(model: nn.Module):
+    for layer in model.children():
+        if hasattr(layer, 'reset_parameters'):
+            layer.reset_parameters()
+
+
+def show_gpu_memory(device):
+    if not th.cuda.is_available():
+        return 'not th.cuda.is_available()'
+
+    all_memory = th.cuda.get_device_properties(device).total_memory / (1024 ** 3)  # GB
+    max_memory = th.cuda.max_memory_allocated(device) / (1024 ** 3)  # GB
+    now_memory = th.cuda.memory_allocated(device) / (1024 ** 3)  # GB
+
+    show_str = (
+        f"AllRAM {all_memory:.2f} GB, "
+        f"MaxRAM {max_memory:.2f} GB, "
+        f"NowRAM {now_memory:.2f} GB, "
+        f"Rate {(max_memory / all_memory) * 100:.2f}%"
+    )
+    return show_str
+
 if __name__ == '__main__':
     s = "// time_limit: ('TIME_LIMIT', <class 'float'>, 36.0, 0.0, inf, inf)"
     val = obtain_first_number(s)
@@ -561,11 +585,6 @@ if __name__ == '__main__':
     # from_extension = '.sov'
     # to_extension = '.txt'
     # transfer_write_solver_results(directory_result, prefixes, time_limits, from_extension, to_extension)
-
-
-
-
-
 
 
 

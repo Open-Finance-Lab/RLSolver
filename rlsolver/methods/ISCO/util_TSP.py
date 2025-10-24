@@ -1,4 +1,4 @@
-from rlsolver.methods.iSCO.config_TSP import *
+from rlsolver.methods.ISCO.config_TSP import *
 import torch
 
 

@@ -6,19 +6,19 @@ rlsolver_path = os.path.join(cur_path, '../../../rlsolver')
 sys.path.append(os.path.dirname(rlsolver_path))
 
 from absl import app
-from rlsolver.envs.env_isco_tsp import iSCO
-from rlsolver.methods.iSCO.config_TSP import *
+from rlsolver.envs.env_ISCO import ISCO_TSP
+from rlsolver.methods.ISCO.config_TSP import *
 import torch
 import time
 import tqdm
 from rlsolver.methods.util_result import write_graph_result
-from rlsolver.methods.iSCO.util_TSP import *
+from rlsolver.methods.ISCO.util_TSP import *
 
 
 # The results are written in this directory: 'rlsolver/result/tsp_iSCO'
 def main(_):
     params_dict = load_data(DATAPATH)
-    sampler = iSCO(params_dict)
+    sampler = ISCO_TSP(params_dict)
     sample = sampler.random_gen_init_sample(params_dict)
     mu = 10.0
     start_time = time.time()
@@ -40,7 +40,7 @@ def main(_):
     end_time = time.time()
     running_duration = end_time - start_time
 
-    write_graph_result(distance, running_duration, params_dict['num_nodes'], 'iSCO', result, DATAPATH, plus1=True)
+    write_graph_result(distance, running_duration, params_dict['num_nodes'], 'ISCO', result, DATAPATH, plus1=True)
 
 
 if __name__ == '__main__':
