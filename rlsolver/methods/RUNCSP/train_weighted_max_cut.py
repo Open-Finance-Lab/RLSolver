@@ -1,6 +1,6 @@
 from model import RUN_CSP
 from train import train
-from csp_utils import CSP_Instance, mc_weighted_language
+from util import CSP_Instance, mc_weighted_language
 
 import data_utils
 import argparse
@@ -27,7 +27,7 @@ def main():
     parser.add_argument('-e', '--epochs', type=int, default=20, help='Number of training epochs')
     parser.add_argument('-m', '--model_dir', type=str, help='The model directory of a trained network')
     parser.add_argument('-t', '--t_max', type=int, default=100,
-                        help='Number of iterations t_max for which RUN-CSP runs on each instance')
+                        help='Number of iterations t_max for which RUNCSP runs on each instance')
     parser.add_argument('-a', '--attempts', type=int, default=64, help='Attempts for each graph')
     parser.add_argument('-i', '--n_instances', type=int, default=400,
                         help='Number of instances for training.')

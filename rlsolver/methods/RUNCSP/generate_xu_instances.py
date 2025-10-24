@@ -1,6 +1,6 @@
 import numpy as np
 import itertools
-import csp_utils
+import util
 import random
 import networkx as nx
 

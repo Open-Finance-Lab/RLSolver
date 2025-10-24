@@ -1,5 +1,5 @@
 from model import Max_IS_Network
-from csp_utils import CSP_Instance, is_language
+from util import CSP_Instance, is_language
 
 import data_utils
 import argparse
@@ -8,7 +8,7 @@ import random
 
 def train(network, train_data, t_max, epochs):
     '''
-    Trains an Independent Set Network on the given data
+    Trains an MIS (Independent Set) Network on the given data
     :param network: The Max_IS_Network instance
     :param train_data: A list of CSP instances that are used for training
     :param t_max: Number of RUN_CSP iterations on each instance
@@ -36,10 +36,10 @@ def train(network, train_data, t_max, epochs):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-s', '--state_size', type=int, default=128, help='Size of the variable states in RUN-CSP')
+    parser.add_argument('-s', '--state_size', type=int, default=128, help='Size of the variable states in RUNCSP')
     parser.add_argument('-k', '--kappa', type=float, default=1.0, help='The parameter kappa for the loss function')
     parser.add_argument('-e', '--epochs', type=int, default=25, help='Number of training epochs')
-    parser.add_argument('-t', '--t_max', type=int, default=30, help='Number of iterations t_max for which RUN-CSP runs on each instance')
+    parser.add_argument('-t', '--t_max', type=int, default=30, help='Number of iterations t_max for which RUNCSP runs on each instance')
     parser.add_argument('-b', '--batch_size', type=int, default=10, help='Batch size for training')
     parser.add_argument('-m', '--model_dir', type=str, help='Model directory in which the trained model is stored')
     parser.add_argument('-d', '--data_path', help='A path to a training set of graphs in the dimacs format.')

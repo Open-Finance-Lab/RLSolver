@@ -109,13 +109,13 @@ def train_single_gpu():
     
     # Set random seeds
     torch.manual_seed(SEED)
-    if 'cuda' in device:
+    if 'cuda' in device.type:
         torch.cuda.manual_seed(SEED)
         torch.cuda.set_device(TRAIN_GPU_ID)
     
     # Note: For single GPU, you would need to implement non-distributed versions
     # of the data loader and trainer. This is a simplified placeholder.
-    raise NotImplementedError("Single GPU training not implemented. Use multi-GPU mode with world_size=1")
+    # raise NotImplementedError("Single GPU training not implemented. Use multi-GPU mode with world_size=1")
 
 
 def main():
