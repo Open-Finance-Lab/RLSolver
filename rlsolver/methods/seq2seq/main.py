@@ -13,12 +13,12 @@ torch.manual_seed(SEED)
 torch.cuda.manual_seed(SEED)
 torch.backends.cudnn.deterministic = True
 
-GPU_ID = 7
+from config import GPU_ID
 def calc_device(gpu_id: int):
     return torch.device(f'cuda:{gpu_id}' if torch.cuda.is_available() and gpu_id >= 0 else 'cpu')
 DEVICE = calc_device(GPU_ID)
 data_type = "torch"
-DATA_PATH = '../../data/gset/gset_22.txt'
+DATA_PATH = '../../data/syn_BA/BA_100_ID0.txt'
 BATCH_SIZE = 2**5
 data= load_data_from_txt(DATA_PATH)
 src = data['adj_matrix']

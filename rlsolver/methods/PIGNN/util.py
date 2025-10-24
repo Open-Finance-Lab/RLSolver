@@ -8,7 +8,9 @@ from rich import print
 from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
 
-DATA_DIR = "./data/raw"
+from rlsolver.methods.config import DATA_FILENAME, DIRECTORY_DATA, PREFIXES
+
+DATA_DIR = DIRECTORY_DATA
 
 
 def get_data_files():
