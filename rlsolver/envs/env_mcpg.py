@@ -509,7 +509,7 @@ def search_and_evaluate_local_search():
 # if __name__ == '__main__':
 #     search_and_evaluate_local_search()
 
-from rlsolver.envs.env_mcpg_maxcut import SimulatorMaxcut
+from rlsolver.envs.env_mcpg import SimulatorMaxcut
 from rlsolver.methods.util_read_data import read_graphlist
 
 

@@ -7,8 +7,8 @@ sys.path.append(os.path.dirname(rlsolver_path))
 
 import torch as th
 
-from rlsolver.envs.env_mcpg_maxcut import (SimulatorMaxcut,
-                                           update_xs_by_vs)
+from rlsolver.envs.env_mcpg import (SimulatorMaxcut,
+                                    update_xs_by_vs)
 
 TEN = th.Tensor
 

@@ -14,7 +14,7 @@ import random
 sys.path.append('..')
 from torch_geometric.data import Data
 from rlsolver.methods.util_evaluator import EncoderBase64
-from rlsolver.envs.env_mcpg_maxcut import SimulatorMaxcut
+from rlsolver.envs.env_mcpg import SimulatorMaxcut
 from rlsolver.methods.util import calc_txt_files_with_prefixes
 import time
 from rlsolver.envs.LocalSearch import LocalSearch
