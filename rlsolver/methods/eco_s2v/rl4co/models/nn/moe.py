@@ -104,7 +104,7 @@ class SparseDispatcher(object):
     def expert_to_gates(self):
         """Gate values corresponding to the examples in the per-expert `Tensor`s.
         Returns:
-            a list of `num_experts` one-dimensional `Tensor`s with type `tf.float32`
+            a list of `num_experts` one-dimensional `Tensor`s with type `float32`
                 and shapes `[expert_batch_size_i]`
         """
         # split nonzero gates for each expert
@@ -186,7 +186,7 @@ class MoE(nn.Module):
               normally distributed noise with standard deviation noise_stddev.
             noise_stddev: a `Tensor` of shape [batch, n], or None
             noisy_top_values: a `Tensor` of shape [batch, m].
-               "values" Output of tf.top_k(noisy_top_values, m).  m >= k+1
+               "values" Output of top_k(noisy_top_values, m).  m >= k+1
         Returns:
             a `Tensor` of shape [batch, n].
         """

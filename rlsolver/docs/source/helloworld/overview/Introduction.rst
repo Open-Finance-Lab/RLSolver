@@ -52,7 +52,7 @@ GPU-based massively parallel environments overcome these disadvantages: we can b
      Improving the Sampling Speed
    </div>
 
-.. figure:: /_static/sampling_efficiency_maxcut.png
+.. figure:: /_static/maxcutStepVsSamplingSpeed.png
    :alt: Sampling speed comparison between CPU and GPU environments
    :width: 90%
    :align: center

@@ -3,7 +3,8 @@ import numpy as np
 import json
 import os
 from tqdm import tqdm
-
+import torch.nn as nn
+import torch
 from util import Constraint_Language, CSP_Instance, max_2sat_language, is_language
 
 
