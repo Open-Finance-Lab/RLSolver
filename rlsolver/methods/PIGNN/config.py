@@ -1,13 +1,30 @@
-import numpy as np
+import torch as th
+from typing import List
+from enum import Enum, unique
+import os
+from rlsolver.methods.L2A.graph_utils import GraphList, obtain_num_nodes
 
-INPUT_DIM = lambda n: (np.round(np.sqrt(n) if n > 1e5 else n ** (1 / 3))).astype(int)
-HIDDEN_DIM = lambda n: INPUT_DIM(n) // 2
-OUTPUT_DIM = 1
 
-DEVICE = "cpu"  # 'cpu' or 'mps'
+@unique
+class MODEL_KEY_DICT(Enum):
+    GCN: str = "GCN" # 0
+    GAT: str = "GAT" # 1
+    GATv2: str = "GATv2" # 2
+    GraphConv: str = "GraphConv" # 3
 
-LEARNING_RATE = 1e-4
-NUM_EPOCH = int(1e5)
-TOLERANCE = 1e-4
-PATIENCE = int(1e3)
-NUM_EVAL = 10
+from rlsolver.methods.config import PROBLEM, Problem
+PROBLEM = Problem.maxcut
+assert PROBLEM in [Problem.maxcut, Problem.MIS]
+
+SEED: int = 42
+NUM_GRAPHS: int = 100
+NUM_NODES: int = 100
+NODE_DEGREE: int = 3
+BATCH_SIZE: int = 1
+LEARNING_RATE: float = 1e-4
+EPOCHS: int = int(1e5)
+NUM_WORKERS: int = 6
+GPU_NUM: int = 0
+GNN_MODEL = MODEL_KEY_DICT.GCN
+NUM_HEADS: int = 4 # Num of heads if you wish to use GAT Ansatz
+

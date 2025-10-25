@@ -1,99 +1,101 @@
+import os
+import random
+import argparse
 import torch
-import torch_geometric.nn as tgnn
-from rich import print
-from torch import nn
-from torch.nn import functional as F
-from torch.utils.data import DataLoader
+import numpy as np
+from tqdm import tqdm
+from time import time
+from torch_geometric.loader import DataLoader
+from lightning import Trainer
+from lightning.pytorch.callbacks.early_stopping import EarlyStopping
 
+from data import DRegDataset
+from model import PIGNN
+from util import eval_maxcut, eval_MIS
 from config import *
-from util import (
-    GraphDataset,
-    Hamiltonian_MaxCut,
-    Hamiltonian_MaxIndSet,
-    Hamiltonian_MinVerCover,
-    Logger,
-)
 
+def run(args):
+    # Seed
+    os.environ["PL_GLOBAL_SEED"] = str(SEED)
+    random.seed(SEED)
+    np.random.seed(SEED)
+    torch.manual_seed(SEED)
+    torch.cuda.manual_seed_all(SEED)
 
-class PUBOsolver(nn.Module):
-    def __init__(self, N) -> None:
-        super().__init__()
-        self.N = N
-        self.layer1 = tgnn.GCNConv(INPUT_DIM(N), HIDDEN_DIM(N))
-        self.layer2 = tgnn.GCNConv(HIDDEN_DIM(N), OUTPUT_DIM)
+    # Create datasets and loaders
+    #  in_dim = NUM_NODES ** 0.5 if aNUM_NODES >= 1e5 else NUM_NODES ** (1/3) # In the example code provided by the authors they don't use the cubic root, even though it is stated in the paper
+    in_dim = NUM_NODES ** 0.5
+    in_dim = round(in_dim)
+    dataset = DRegDataset(NODE_DEGREE, NUM_GRAPHS, NUM_NODES, in_dim, SEED)
+    print('dataset len:', len(dataset))
+    dataloader = DataLoader(dataset.data, batch_size=BATCH_SIZE,
+                             shuffle=False, num_workers=NUM_WORKERS)
+    print('dataloader ready...')
 
-    def __init_embedding(self):
-        return torch.randn(self.N, INPUT_DIM(self.N))
-
-    def forward(self, edge_index, edge_attr):
-        x = self.__init_embedding()
-        x = F.relu(self.layer1(x, edge_index, edge_attr), inplace=True)
-        x = torch.sigmoid(self.layer2(x, edge_index, edge_attr))
-        return x.flatten()
-
-
-def RelaxedHamiltonian(hamiltonian, solution):
-    return solution @ hamiltonian @ solution
-
-
-if __name__ == "__main__":
-    dataset = DataLoader(
-        GraphDataset(transform=Hamiltonian_MaxCut), batch_size=1, shuffle=True
+    # Build model
+    hidden_dim = round(in_dim/2)
+    model = PIGNN(
+        in_dim, 
+        hidden_dim, 
+        PROBLEM,
+        lr=LEARNING_RATE,
+        out_dim=1, 
+        num_heads=NUM_HEADS,
+        layer_type=GNN_MODEL
     )
-    for name, edge_index, edge_attr, hamiltonian in dataset:
-        name = name[0]
-        edge_index = edge_index.squeeze(0).to(DEVICE)
-        edge_attr = edge_attr.squeeze(0).to(DEVICE)
-        hamiltonian = hamiltonian.squeeze(0).to(DEVICE)
 
-        logger = Logger(f"log/{name}.log")
-        print("=" * 25, name, "=" * 25)
+    # Training (via PyL)
+    early_stop_callback = EarlyStopping(
+        monitor="val_loss", 
+        min_delta=1e-4, 
+        patience=1000, 
+        verbose=True, 
+        mode="min"
+    )
 
-        solver = PUBOsolver(hamiltonian.shape[0]).to(DEVICE)
-        optimizer = torch.optim.Adam(solver.parameters(), lr=LEARNING_RATE)
-        criterion = RelaxedHamiltonian
+    trainer = Trainer(
+        callbacks=[early_stop_callback],
+        devices=[0],
+        accelerator='gpu',
+        max_epochs=EPOCHS,
+        check_val_every_n_epoch=1,
+    )
 
-        best_score = torch.inf
-        best_solution = None
-        # early stop strategy
-        cumulative_improvement = 0
-        last_significant_improvement = 0
-        # unsupervised training
-        logger("Training:")
-        for epoch in range(NUM_EPOCH):
-            output = solver(edge_index, edge_attr)
-            loss = criterion(hamiltonian, output)
-            loss.backward()
-            optimizer.step()
-            optimizer.zero_grad()
+    start_time = time()
+    trainer.fit(model, train_dataloaders=dataloader, val_dataloaders=dataloader)
 
-            if loss < best_score:
-                cumulative_improvement += best_score - loss
-                best_score = loss
-                best_solution = output
-            if cumulative_improvement >= TOLERANCE:
-                last_significant_improvement = epoch
-                cumulative_improvement = 0
-            elif epoch - last_significant_improvement >= PATIENCE:
-                logger(f"Early stopping with best score {best_score.item():.5f}")
-                break
+    # Evaluate after training
+    model.eval()
+    eval_fn = eval_maxcut if PROBLEM == Problem.maxcut else eval_MIS
 
-            logger(
-                f"[{epoch+1}/{NUM_EPOCH}], loss: {loss.item():.5f}, best score: {best_score.item():.5f}",
-                print_=(epoch + 1) % 1000 == 0,
-            )
+    with torch.no_grad():
+        e, a = [], []
+        for batch in tqdm(dataloader, desc='evaluating model...'):
+            x, edge_index = batch.x, batch.edge_index
+            pred = model(x, edge_index)
+            proj = torch.round(pred)
+            energy, approx_ratio = eval_fn(edge_index, proj, NODE_DEGREE, NUM_GRAPHS)
+            e.append(energy.item()), a.append(approx_ratio.item())
 
-        # evaluation
-        logger("Evaluation:")
-        for i in range(NUM_EVAL):
-            output = solver(edge_index, edge_attr)
-            loss = criterion(hamiltonian, output)
-            if loss < best_score:
-                best_score = loss
-                best_solution = output
-            logger(
-                f"[{i+1}/{NUM_EVAL}], loss: {loss.item():.5f}, best score: {best_score.item():.5f}",
-                print_=False,
-            )
-        # Final result
-        logger(f"best score: {best_score.item():.5f} on {name}")
+    print(f'Avg. estimated energy: {np.mean(e)}, avg. approximation ratio: {np.mean(a)}')    
+    print(f'Completed training and evaluation for seed={SEED} in {round(time()-start_time, 2)}s')
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--seed', type=int, default=42)
+    parser.add_argument('--num_graphs', type=int, default=100)
+    parser.add_argument('--num_nodes', type=int, default=100)
+    parser.add_argument('--node_degree', type=int, default=3)
+    parser.add_argument('--batch_size', type=int, default=1)
+    parser.add_argument('--learning_rate', type=float, default=1e-4)
+    parser.add_argument('--epochs', type=int, default=int(1e5))
+    parser.add_argument('--num_workers', type=int, default=6)
+    parser.add_argument('--gpu_num', type=int, default=0)
+    parser.add_argument('--maxcut', action='store_true', help='If this flag is true solve the maxcut problem, else solve mis')
+    parser.add_argument('--gnn_model', type=int, default=0)
+    parser.add_argument('--num_heads', type=int, default=4, help='Nr of heads if you wish to use GAT Ansatz')
+
+    args = parser.parse_args()
+    run(args)
+
+
