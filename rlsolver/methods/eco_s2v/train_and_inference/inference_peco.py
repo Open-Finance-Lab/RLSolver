@@ -17,7 +17,7 @@ from rlsolver.methods.eco_s2v.src.envs.util_envs import (RewardSignal, ExtraActi
                                                          DEFAULT_OBSERVABLES)
 from rlsolver.methods.eco_s2v.src.networks.mpnn import MPNN
 
-from rlsolver.methods.util_result import write_graph_result
+from rlsolver.methods.util_write_read_result import write_graph_result
 from rlsolver.methods.eco_s2v.config import *
 
 

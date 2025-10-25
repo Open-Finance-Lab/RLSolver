@@ -12,7 +12,7 @@ from typing import List, Union
 import random
 from rlsolver.methods.util_read_data import read_nxgraph
 from rlsolver.methods.util_obj import obj_maxcut
-from rlsolver.methods.util_result import write_graph_result
+from rlsolver.methods.util_write_read_result import write_graph_result
 from rlsolver.methods.util import plot_fig
 
 import sys

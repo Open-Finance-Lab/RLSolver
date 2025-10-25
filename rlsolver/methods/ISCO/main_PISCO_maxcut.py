@@ -11,7 +11,7 @@ from rlsolver.methods.ISCO.config_maxcut import *
 import torch
 import time
 import tqdm
-from rlsolver.methods.util_result import write_graph_result
+from rlsolver.methods.util_write_read_result import write_graph_result
 import torch.nn.functional as F
 from rlsolver.methods.ISCO.util_maxcut import *
 

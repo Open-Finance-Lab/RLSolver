@@ -18,8 +18,8 @@ from rlsolver.methods.util_obj import obj_maxcut
 from rlsolver.methods.util_read_data import read_nxgraph
 from rlsolver.methods.util import (calc_txt_files_with_prefixes,
                                    )
-from rlsolver.methods.util_result import (write_graph_result,
-                                          )
+from rlsolver.methods.util_write_read_result import (write_graph_result,
+                                                     )
 
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 

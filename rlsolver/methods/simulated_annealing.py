@@ -16,9 +16,9 @@ from rlsolver.methods.util import (calc_txt_files_with_prefixes,
                  )
 from rlsolver.methods.util_read_data import (read_nxgraph,
                             read_set_cover_data, )
-from rlsolver.methods.util_result import (write_graph_result,
-                                          write_result_set_cover
-                                          )
+from rlsolver.methods.util_write_read_result import (write_graph_result,
+                                                     write_result_set_cover
+                                                     )
 from rlsolver.methods.util_obj import (
     obj_maxcut,
     obj_graph_partitioning,

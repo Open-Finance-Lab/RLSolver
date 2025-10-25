@@ -26,8 +26,8 @@ from rlsolver.methods.util_obj import (cover_all_edges,
                                        obj_set_cover_ratio,
                                        obj_set_cover,
                                        obj_graph_coloring, )
-from rlsolver.methods.util_result import (write_graph_result,
-                                          )
+from rlsolver.methods.util_write_read_result import (write_graph_result,
+                                                     )
 from rlsolver.methods.config import *
 
 # init_solution is useless
@@ -313,7 +313,7 @@ def greedy_graph_coloring(num_steps: Optional[int], graph: nx.Graph) -> (int, Un
 # def run_greedy_over_multiple_files(alg, alg_name, num_steps, set_init_0: Optional[bool], directory_data: str, prefixes: List[str])-> List[List[float]]:
 def run_greedy_over_multiple_files(alg, alg_name, num_steps, directory_data: str, prefixes: List[str])-> List[List[float]]:
     from util_read_data import (read_set_cover_data, read_nxgraph)
-    from util_result import write_result_set_cover
+    from util_write_read_result import write_result_set_cover
     scoress = []
     files = calc_txt_files_with_prefixes(directory_data, prefixes)
     for i in range(len(files)):
