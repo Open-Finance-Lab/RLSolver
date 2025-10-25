@@ -1,4 +1,4 @@
-from seq2seq_ import Seq2seq
+from seq2seq__ import Seq2seq
 from random import randint
 
 """
