@@ -8,7 +8,7 @@ import networkx as nx
 from rlsolver.methods_problem_specific.maxcut.BLS import BLS_MaxCut
 from rlsolver.methods.util_read_data import read_nxgraph
 from rlsolver.methods.util_obj import obj_maxcut
-from rlsolver.methods.util_result import write_graph_result
+from rlsolver.methods.util_write_read_result import write_graph_result
 
 def run_bls_trial(args):
     trial_id, filename = args

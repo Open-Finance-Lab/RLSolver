@@ -34,54 +34,10 @@ GraphList = List[Tuple[int, int, int]]  # 每条边两端点的索引以及边�
 IndexList = List[List[int]]  # 按索引顺序记录每个点的所有邻居节点 IndexList[Node0ID] = [Node1ID, ...]
 # DataDir = '../data/syn_BA'  # 保存图最大割的txt文件的目录，txt数据以稀疏的方式记录了GraphList，可以重建图的邻接矩阵
 DataDir = '../data/gset'  # 保存图最大割的txt文件的目录，txt数据以稀疏的方式记录了GraphList，可以重建图的邻接矩阵
-
+from rlsolver.methods.util_evaluator import EncoderBase64
 
 test_sampling_speed = False
 
-class EncoderBase64:
-    def __init__(self, encode_len: int):
-        num_power = 6
-        self.encode_len = encode_len
-        self.string_len = -int(-(encode_len / num_power) // 1)  # ceil(num_nodes / num_power)
-
-        self.base_digits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_$"
-        self.base_num = len(self.base_digits)
-        assert self.base_num == 2 ** num_power
-
-    def bool_to_str(self, x_bool: Union[TEN, ARY]) -> str:
-        x_int = int(''.join([('1' if i else '0') for i in x_bool.tolist()]), 2)
-
-        '''bin_int_to_str'''
-        base_num = len(self.base_digits)
-        x_str = ""
-        while True:
-            remainder = x_int % base_num
-            x_str = self.base_digits[remainder] + x_str
-            x_int //= base_num
-            if x_int == 0:
-                break
-
-        if len(x_str) > 120:
-            x_str = '\n'.join([x_str[i:i + 120] for i in range(0, len(x_str), 120)])
-        if len(x_str) > 64:
-            x_str = f"\n{x_str}"
-        return x_str.zfill(self.string_len)
-
-    def str_to_bool(self, x_str: str) -> TEN:
-        x_b64 = x_str.replace('\n', '').replace(' ', '')
-
-        '''b64_str_to_int'''
-        x_int = 0
-        base_len = len(x_b64)
-        for i in range(base_len):
-            digit = self.base_digits.index(x_b64[i])
-            power = base_len - 1 - i
-            x_int += digit * (self.base_num ** power)
-
-        x_bin: str = bin(x_int)[2:]
-        x_bool = th.zeros(self.encode_len, dtype=th.bool)
-        x_bool[-len(x_bin):] = th.tensor([int(i) for i in x_bin], dtype=th.bool)
-        return x_bool
 
 class SolverLocalSearch:
     def __init__(self, simulator, num_nodes: int):

@@ -7,14 +7,14 @@ sys.path.append(os.path.dirname(rlsolver_path))
 
 import torch as th
 
-from rlsolver.envs.env_mcpg import (SimulatorMaxcut,
+from rlsolver.envs.env_mcpg import (EnvMaxcut,
                                     update_xs_by_vs)
 
 TEN = th.Tensor
 
 
 class LocalSearch:
-    def __init__(self, simulator: SimulatorMaxcut, num_nodes: int):
+    def __init__(self, simulator: EnvMaxcut, num_nodes: int):
         self.simulator = simulator
         self.num_nodes = num_nodes
 

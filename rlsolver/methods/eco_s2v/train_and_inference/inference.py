@@ -12,7 +12,7 @@ from rlsolver.methods.eco_s2v.src.envs.util_envs import (SingleGraphGenerator,
 from rlsolver.methods.eco_s2v.src.networks.mpnn import MPNN
 from rlsolver.methods.eco_s2v.util import test_network, load_graph_set_from_txt
 from rlsolver.methods.util import calc_txt_files_with_prefixes
-from rlsolver.methods.util_result import write_graph_result
+from rlsolver.methods.util_write_read_result import write_graph_result
 
 
 def run(save_loc="BA_40spin/eco",

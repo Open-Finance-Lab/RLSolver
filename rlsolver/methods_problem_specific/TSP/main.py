@@ -21,7 +21,7 @@ from opt_2 import local_search_2_opt
 from opt_3 import local_search_3_opt
 from s_tabu import tabu_search
 from sa import simulated_annealing_tsp
-from rlsolver.methods.util_result import write_graph_result
+from rlsolver.methods.util_write_read_result import write_graph_result
 from rlsolver.methods.util import (calc_txt_files_with_prefixes,
                                     transfer_nxgraph_to_adjacencymatrix
                                    )

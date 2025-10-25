@@ -18,7 +18,7 @@ from rlsolver.methods.eco_s2v.util import load_graph_from_txt
 
 from rlsolver.methods.eco_s2v.jumanji.agents.AgentPPO import AgentA2C
 from rlsolver.methods.eco_s2v.config import *
-from rlsolver.methods.util_result import write_graph_result
+from rlsolver.methods.util_write_read_result import write_graph_result
 from rlsolver.methods.eco_s2v.jumanji.train.config import Config
 
 

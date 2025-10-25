@@ -16,7 +16,7 @@ from rlsolver.methods.config import *
 TEN = th.Tensor
 
 
-class SimulatorMaxcut:
+class EnvMaxcut:
     def __init__(self, sim_name: str = 'max_cut', graph_list: GraphList = [],
                  device=calc_device(GPU_ID), if_bidirectional: bool = False):
         self.device = device
@@ -134,7 +134,7 @@ def find_best_num_sims():
 
     graph = load_graph_list(graph_name=graph_name)
     device = th.device(f'cuda:{gpu_id}' if th.cuda.is_available() and gpu_id >= 0 else 'cpu')
-    simulator = SimulatorMaxcut(sim_name=graph_name, graph_list=graph, device=device, if_bidirectional=False)
+    simulator = EnvMaxcut(sim_name=graph_name, graph_list=graph, device=device, if_bidirectional=False)
 
     print('find the best num_sims')
     from math import ceil
@@ -162,7 +162,7 @@ def check_simulator():
 
     graph = load_graph_list(graph_name=graph_name)
     device = th.device(f'cuda:{gpu_id}' if th.cuda.is_available() and gpu_id >= 0 else 'cpu')
-    simulator = SimulatorMaxcut(sim_name=graph_name, graph_list=graph, device=device)
+    simulator = EnvMaxcut(sim_name=graph_name, graph_list=graph, device=device)
 
     for i in range(8):
         xs = simulator.generate_xs_randomly(num_sims=num_sims)
@@ -191,7 +191,7 @@ def check_local_search():
         num_iters = 2 ** 5
 
     '''simulator'''
-    sim = SimulatorMaxcut(graph_list=graph_list, device=device, if_bidirectional=True)
+    sim = EnvMaxcut(graph_list=graph_list, device=device, if_bidirectional=True)
     if_maximize = sim.if_maximize
 
     '''evaluator'''
@@ -375,7 +375,7 @@ def check_generate_best_x():
     device = th.device(f'cuda:{gpu_id}' if th.cuda.is_available() and gpu_id >= 0 else 'cpu')
 
     '''simulator'''
-    sim = SimulatorMaxcut(sim_name=sim_name, device=device)
+    sim = EnvMaxcut(sim_name=sim_name, device=device)
     enc = EncoderBase64(encode_len=sim.num_nodes)
     num_nodes = sim.num_nodes
 
@@ -389,25 +389,6 @@ def check_generate_best_x():
 
     train_loop(num_train, device, seq_len, best_x, num_sims, sim, net, optimizer, show_gap, noise_std)
 
-
-'''utils'''
-
-
-def show_gpu_memory(device):
-    if not th.cuda.is_available():
-        return 'not th.cuda.is_available()'
-
-    all_memory = th.cuda.get_device_properties(device).total_memory / (1024 ** 3)  # GB
-    max_memory = th.cuda.max_memory_allocated(device) / (1024 ** 3)  # GB
-    now_memory = th.cuda.memory_allocated(device) / (1024 ** 3)  # GB
-
-    show_str = (
-        f"AllRAM {all_memory:.2f} GB, "
-        f"MaxRAM {max_memory:.2f} GB, "
-        f"NowRAM {now_memory:.2f} GB, "
-        f"Rate {(max_memory / all_memory) * 100:.2f}%"
-    )
-    return show_str
 
 
 '''run'''
@@ -442,7 +423,7 @@ def search_and_evaluate_local_search():
 
     device = th.device(f'cuda:{gpu_id}' if th.cuda.is_available() and gpu_id >= 0 else 'cpu')
 
-    simulator_class = SimulatorMaxcut
+    simulator_class = EnvMaxcut
     local_search_class = LocalSearch
 
     '''simulator'''
@@ -509,14 +490,14 @@ def search_and_evaluate_local_search():
 # if __name__ == '__main__':
 #     search_and_evaluate_local_search()
 
-from rlsolver.envs.env_mcpg import SimulatorMaxcut
+from rlsolver.envs.env_mcpg import EnvMaxcut
 from rlsolver.methods.util_read_data import read_graphlist
 
 
 def check_solution_x():
     filename = '../data/syn_BA/BA_100_ID0.txt'
     graph = read_graphlist(filename)
-    simulator = SimulatorMaxcut(sim_name=filename, graph_list=graph)
+    simulator = EnvMaxcut(sim_name=filename, graph_list=graph)
 
     x_str = X_G14
     num_nodes = simulator.num_nodes

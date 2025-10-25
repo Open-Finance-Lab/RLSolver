@@ -13,7 +13,7 @@ from rlsolver.envs.env_k_spin_Ising import MCMCSim
 from net import OptNet
 import pickle as pkl
 from rlsolver.methods.util_read_data import read_nxgraph
-from rlsolver.methods.util_result import calc_result_file_name
+from rlsolver.methods.util_write_read_result import calc_result_file_name
 
 # write a tensor/list/np.array (dim: 1) to a txt file.
 # The nodes start from 0, and the label of classified set is 0 or 1 in our codes, but the nodes written to file start from 1, and the label is 1 or 2
