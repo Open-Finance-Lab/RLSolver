@@ -1,4 +1,4 @@
-from model import Max_IS_Network
+from model import MIS_Network
 from util import CSP_Instance, is_language
 
 import data_utils
@@ -9,7 +9,7 @@ import random
 def train(network, train_data, t_max, epochs):
     '''
     Trains an MIS (Independent Set) Network on the given data
-    :param network: The Max_IS_Network instance
+    :param network: The MIS_Network instance
     :param train_data: A list of CSP instances that are used for training
     :param t_max: Number of RUN_CSP iterations on each instance
     :param epochs: Number of training epochs
@@ -55,7 +55,7 @@ def main():
     train_batches = CSP_Instance.batch_instances(instances, args.batch_size)
 
     # construct new network
-    network = Max_IS_Network(args.model_dir, state_size=args.state_size)
+    network = MIS_Network(args.model_dir, state_size=args.state_size)
     train(network, train_batches, t_max=args.t_max, epochs=args.epochs)
 
 

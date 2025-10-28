@@ -1,4 +1,4 @@
-from model import Max_IS_Network
+from model import MIS_Network
 from util import CSP_Instance, is_language
 
 import data_utils
@@ -9,7 +9,7 @@ import numpy as np
 def evaluate_boosted(network, eval_instances, t_max, attempts=64):
     """
     Evaluate Independent Set Network with boosted predictions
-    :param network: A Max_IS_Network
+    :param network: A MIS_Network
     :param eval_instances: A list of CSP instances for evaluation
     :param t_max: Number of RUN_CSP iterations on each instance
     :param attempts: Number of parallel attempts for each instance
@@ -42,7 +42,7 @@ def main():
     parser.add_argument('-d', '--data_path', default=None, help='Path to the evaluation data. Expects a directory with graphs in dimacs format.')
     args = parser.parse_args()
 
-    network = Max_IS_Network.load(args.model_dir)
+    network = MIS_Network.load(args.model_dir)
 
     print('loading graphs...')
     names, graphs = data_utils.load_graphs(args.data_path)

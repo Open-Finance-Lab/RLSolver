@@ -1,21 +1,16 @@
-# train_ddp.py
-import os
-import sys
 import torch
 import torch.distributed as dist
 import torch.nn.parallel
 import numpy as np
-from collections import deque
 import random
-from torch_scatter import scatter_add
 from tqdm import tqdm
 from torch_geometric.data import Data, Batch
 
-from models import PPOLinearModel
+from model import PPOLinearModel
 from ppo_trainer import PPOTrainer
 from data_utils import load_graphs_from_directory, sample_batch_graphs
 from config import Config
-from env import MaxCutEnv
+from env import EnvMaxcut
 
 
 def main_worker(rank, world_size):
@@ -92,7 +87,7 @@ def main_worker(rank, world_size):
         # 初始化环境
         envs = []
         for i in range(local_num_envs):
-            env = MaxCutEnv(graph_datas[i], config)
+            env = EnvMaxcut(graph_datas[i], config)
             envs.append(env)
         
         # 批量重置所有环境
@@ -160,7 +155,7 @@ def main_worker(rank, world_size):
                         best_cuts.append(info['best_cut'])
                         # 从预加载的图中随机选择新图
                         new_graph_data = sample_batch_graphs(all_graphs, 1)[0]
-                        envs[i] = MaxCutEnv(new_graph_data, config)
+                        envs[i] = EnvMaxcut(new_graph_data, config)
                         states[i] = envs[i].reset()
                         data_list[i] = Data(x=states[i]['x'], edge_index=states[i]['edge_index'])
                     else:

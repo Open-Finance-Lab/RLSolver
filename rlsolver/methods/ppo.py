@@ -10,9 +10,8 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import tyro
 from torch.distributions.categorical import Categorical
-from rlsolver.envs.env_ppo import load_graph_list, SimulatorGraphMaxCut
+from rlsolver.envs.env_ppo import load_graph_list, envMaxcut
 
 
 @dataclass
@@ -82,49 +81,48 @@ class Agent(nn.Module):
 
 
 if __name__ == "__main__":
-    config = tyro.cli(Config)
-    config.batch_size = int(config.num_envs * config.num_steps)
-    config.minibatch_size = int(config.batch_size // config.num_minibatches)
+    Config.batch_size = int(Config.num_envs * Config.num_steps)
+    Config.minibatch_size = int(Config.batch_size // Config.num_minibatches)
 
     # TRY NOT TO MODIFY: seeding
-    random.seed(config.seed)
-    np.random.seed(config.seed)
-    torch.manual_seed(config.seed)
-    torch.backends.cudnn.deterministic = config.torch_deterministic
+    random.seed(Config.seed)
+    np.random.seed(Config.seed)
+    torch.manual_seed(Config.seed)
+    torch.backends.cudnn.deterministic = Config.torch_deterministic
 
     # simulator
-    device = torch.device("cuda" if torch.cuda.is_available() and config.cuda else "cpu")
-    graph_type, num_nodes, graph_id = 'PowerLaw', config.num_nodes, 0
+    device = torch.device("cuda" if torch.cuda.is_available() and Config.cuda else "cpu")
+    graph_type, num_nodes, graph_id = 'PowerLaw', Config.num_nodes, 0
     graph_name = f'{graph_type}_{num_nodes}_ID{graph_id}'
     graph_list = load_graph_list(graph_name=graph_name)
-    envs = SimulatorGraphMaxCut(args=config, graph_list=graph_list, device=device, if_bidirectional=True)
+    envs = envMaxcut(args=Config, graph_list=graph_list, device=device, if_bidirectional=True)
 
     agent = Agent(envs).to(device)
-    optimizer = optim.Adam(agent.parameters(), lr=config.learning_rate, eps=1e-5)
+    optimizer = optim.Adam(agent.parameters(), lr=Config.learning_rate, eps=1e-5)
 
     # ALGO Logic: Storage setup
-    obs = torch.zeros(config.num_steps, config.num_envs, envs.num_nodes).to(device)
-    actions = torch.zeros((config.num_steps, config.num_envs)).to(device)
-    logprobs = torch.zeros((config.num_steps, config.num_envs)).to(device)
-    rewards = torch.zeros((config.num_steps, config.num_envs)).to(device)
-    cut_values = torch.zeros((config.num_steps, config.num_envs)).to(device)
-    dones = torch.zeros((config.num_steps, config.num_envs)).to(device)
-    values = torch.zeros((config.num_steps, config.num_envs)).to(device)
+    obs = torch.zeros(Config.num_steps, Config.num_envs, envs.num_nodes).to(device)
+    actions = torch.zeros((Config.num_steps, Config.num_envs)).to(device)
+    logprobs = torch.zeros((Config.num_steps, Config.num_envs)).to(device)
+    rewards = torch.zeros((Config.num_steps, Config.num_envs)).to(device)
+    cut_values = torch.zeros((Config.num_steps, Config.num_envs)).to(device)
+    dones = torch.zeros((Config.num_steps, Config.num_envs)).to(device)
+    values = torch.zeros((Config.num_steps, Config.num_envs)).to(device)
 
     # TRY NOT TO MODIFY: start the game
     global_step = 0
     next_obs = envs.reset()
-    next_done = torch.zeros(config.num_envs).to(device)
+    next_done = torch.zeros(Config.num_envs).to(device)
 
-    for iteration in range(1, config.num_iterations + 1):
+    for iteration in range(1, Config.num_iterations + 1):
         # Annealing the rate if instructed to do so.
-        if config.anneal_lr:
-            frac = 1.0 - (iteration - 1.0) / config.num_iterations
-            lrnow = frac * config.learning_rate
+        if Config.anneal_lr:
+            frac = 1.0 - (iteration - 1.0) / Config.num_iterations
+            lrnow = frac * Config.learning_rate
             optimizer.param_groups[0]["lr"] = lrnow
 
-        for step in range(0, config.num_steps):
-            global_step += config.num_envs
+        for step in range(0, Config.num_steps):
+            global_step += Config.num_envs
             obs[step] = next_obs
             dones[step] = next_done
 
@@ -148,15 +146,15 @@ if __name__ == "__main__":
             next_value = agent.get_value(next_obs).reshape(1, -1)
             advantages = torch.zeros_like(rewards).to(device)
             lastgaelam = 0
-            for t in reversed(range(config.num_steps)):
-                if t == config.num_steps - 1:
+            for t in reversed(range(Config.num_steps)):
+                if t == Config.num_steps - 1:
                     nextnonterminal = 1.0 - next_done
                     nextvalues = next_value
                 else:
                     nextnonterminal = 1.0 - dones[t + 1]
                     nextvalues = values[t + 1]
-                delta = rewards[t] + config.gamma * nextvalues * nextnonterminal - values[t]
-                advantages[t] = lastgaelam = delta + config.gamma * config.gae_lambda * nextnonterminal * lastgaelam
+                delta = rewards[t] + Config.gamma * nextvalues * nextnonterminal - values[t]
+                advantages[t] = lastgaelam = delta + Config.gamma * Config.gae_lambda * nextnonterminal * lastgaelam
             returns = advantages + values
 
         # flatten the batch
@@ -169,12 +167,12 @@ if __name__ == "__main__":
         b_values = values.reshape(-1)
 
         # Optimizing the policy and value network
-        b_inds = np.arange(config.batch_size)
+        b_inds = np.arange(Config.batch_size)
         clipfracs = []
-        for _ in range(config.update_epochs):
+        for _ in range(Config.update_epochs):
             np.random.shuffle(b_inds)
-            for start in range(0, config.batch_size, config.minibatch_size):
-                end = start + config.minibatch_size
+            for start in range(0, Config.batch_size, Config.minibatch_size):
+                end = start + Config.minibatch_size
                 mb_inds = b_inds[start:end]
 
                 _, newlogprob, entropy, newvalue = agent.get_action_and_value(b_obs[mb_inds],
@@ -183,22 +181,22 @@ if __name__ == "__main__":
                 ratio = logratio.exp()
 
                 mb_advantages = b_advantages[mb_inds]
-                if config.norm_adv:
+                if Config.norm_adv:
                     mb_advantages = (mb_advantages - mb_advantages.mean()) / (mb_advantages.std() + 1e-8)
 
                 # Policy loss
                 pg_loss1 = -mb_advantages * ratio
-                pg_loss2 = -mb_advantages * torch.clamp(ratio, 1 - config.clip_coef, 1 + config.clip_coef)
+                pg_loss2 = -mb_advantages * torch.clamp(ratio, 1 - Config.clip_coef, 1 + Config.clip_coef)
                 pg_loss = torch.max(pg_loss1, pg_loss2).mean()
 
                 # Value loss
                 newvalue = newvalue.view(-1)
-                if config.clip_vloss:
+                if Config.clip_vloss:
                     v_loss_unclipped = (newvalue - b_returns[mb_inds]) ** 2
                     v_clipped = b_values[mb_inds] + torch.clamp(
                         newvalue - b_values[mb_inds],
-                        -config.clip_coef,
-                        config.clip_coef,
+                        -Config.clip_coef,
+                        Config.clip_coef,
                     )
                     v_loss_clipped = (v_clipped - b_returns[mb_inds]) ** 2
                     v_loss_max = torch.max(v_loss_unclipped, v_loss_clipped)
@@ -207,9 +205,9 @@ if __name__ == "__main__":
                     v_loss = 0.5 * ((newvalue - b_returns[mb_inds]) ** 2).mean()
 
                 entropy_loss = entropy.mean()
-                loss = pg_loss - config.ent_coef * entropy_loss + v_loss * config.vf_coef
+                loss = pg_loss - Config.ent_coef * entropy_loss + v_loss * Config.vf_coef
 
                 optimizer.zero_grad()
                 loss.backward()
-                nn.utils.clip_grad_norm_(agent.parameters(), config.max_grad_norm)
+                nn.utils.clip_grad_norm_(agent.parameters(), Config.max_grad_norm)
                 optimizer.step()

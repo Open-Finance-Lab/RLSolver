@@ -1,10 +1,9 @@
 import numpy as np
-from numpy.random import randn
 from random import randint
 
-from seq2seq_.layers.lstm import Lstm
-from seq2seq_.layers.softmax import Softmax
-from seq2seq_.layers.embedding import Embedding
+from rlsolver.methods.seq2seq_.layers.lstm import Lstm
+from rlsolver.methods.seq2seq_.layers.softmax import Softmax
+from rlsolver.methods.seq2seq_.layers.embedding import Embedding
 
 DELTA = 1e-5
 THRESHOLD = 1e-2
@@ -79,7 +78,7 @@ def main():
 
     for layer in input_layers + output_layers:
         for name, mat, dmat in layer.params:
-            for i in xrange(mat.size):
+            for i in range(mat.size):
                 grad_num = numeric_gradient(mat, dmat, i)
                 grad_analytic = dmat.flat[i]
 
@@ -89,12 +88,12 @@ def main():
                 error = abs(grad_analytic - grad_num)
 
                 if error > THRESHOLD or np.isnan(error):
-                    print layer, name, "ERROR", grad_analytic, grad_num
+                    print (layer, name, "ERROR", grad_analytic, grad_num)
                     passed = False
                     break
 
     if passed:
-        print "ALL PASSED"
+        print ("ALL PASSED")
 
 if __name__ == "__main__":
     main()

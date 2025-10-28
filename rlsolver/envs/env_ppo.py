@@ -127,7 +127,7 @@ def obtain_num_nodes(graph_list: GraphList) -> int:
     return max([max(n0, n1) for n0, n1, distance in graph_list]) + 1
 
 
-class SimulatorGraphMaxCut:
+class envMaxcut:
     def __init__(self, args, graph_list: GraphList = (),
                  device=th.device('cpu'), if_bidirectional: bool = False):
         self.device = device

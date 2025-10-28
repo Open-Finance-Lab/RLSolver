@@ -552,7 +552,7 @@ class Max_2SAT_Network(RUN_CSP):
         super().__init__(model_dir, max_2sat_language, state_size=state_size)
 
 
-class Max_IS_Network(RUN_CSP):
+class MIS_Network(RUN_CSP):
     """ A Modified RUNCSP instance for the Max Independent Set Problem """
     def __init__(self, model_dir, kappa=1.0, state_size=128):
         self.kappa = kappa
@@ -646,4 +646,4 @@ class Max_IS_Network(RUN_CSP):
 
     @staticmethod
     def load(model_dir):
-        return Max_IS_Network(model_dir)
+        return MIS_Network(model_dir)
