@@ -1,11 +1,9 @@
 import networkx as nx
-import data_utils
 import argparse
-
-
+from util_data import load_graphs
 def greedy(g):
     """
-    Greedy heuristic for Max-IS 
+    Greedy heuristic for MIS
     :param g: A networkx graph
     :return: An independent set of nodes
     """
@@ -31,7 +29,7 @@ def main():
     args = parser.parse_args()
 
     print('loading graphs...')
-    names, graphs = data_utils.load_graphs(args.data_path)
+    names, graphs = load_graphs(args.data_path)
     for n, g in zip(names, graphs):
         mis = greedy(g)
         print(f'IS size for instance {n}: {len(mis)}')

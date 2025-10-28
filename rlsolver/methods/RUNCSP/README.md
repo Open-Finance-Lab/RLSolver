@@ -36,7 +36,7 @@ python3 evaluate_max_2sat.py -m models/2SAT -d data/Spinglass_2SAT -a 64 -t 100
 python3 evaluate_max_cut.py -m models/Max_Cut -d data/GSET -a 64 -t 500
 ```
 
-To evaluate the models for Max-2SAT and Max-IS on random graphs of a given density/degree (6.0 used as example) use:
+To evaluate the models for Max-2SAT and MIS on random graphs of a given density/degree (6.0 used as example) use:
 
 ```
 python3 evaluate_max_2sat.py -m models/2SAT -d data/2SAT_100_Eval/6.0 -a 64 -t 100
@@ -55,7 +55,7 @@ To evaluate a model in the IS benchmark instances of Xu et al., use:
 
 ```python3 evaluate_MIS.py -m models/IS_RB_Model -d data/Xu_IS_Benchmarks/frb30-15 -a 8 -t 100```
 
-To execute our greedy Max-IS heuristic on the same graphs use the following command:
+To execute our greedy MIS heuristic on the same graphs use the following command:
 
 ```python3 greedy_is.py -d data/RB_Model/frb30-15 ```
 

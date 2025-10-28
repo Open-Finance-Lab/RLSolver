@@ -2,12 +2,10 @@ from model import RUN_CSP
 from util import CSP_Instance, Constraint_Language
 from train import train
 
-import data_utils
-
 import argparse
 import random
 from tqdm import tqdm
-
+from util_data import load_graphs
 
 def main():
     parser = argparse.ArgumentParser()
@@ -22,7 +20,7 @@ def main():
     language = Constraint_Language.get_coloring_language(args.n_colors)
 
     print('loading graphs...')
-    names, graphs = data_utils.load_graphs(args.data_path)
+    names, graphs = load_graphs(args.data_path)
     random.shuffle(graphs)
     print('Converting graphs to CSP Instances')
     instances = [CSP_Instance.graph_to_csp_instance(g, language, 'NEQ') for g in tqdm(graphs)]

@@ -1,7 +1,7 @@
 from model import MIS_Network
 from util import CSP_Instance, is_language
 
-import data_utils
+import util_data
 import argparse
 import random
 
@@ -46,7 +46,7 @@ def main():
     args = parser.parse_args()
  
     print('loading graphs...')
-    names, graphs = data_utils.load_graphs(args.data_path)
+    names, graphs = util_data.load_graphs(args.data_path)
     random.shuffle(graphs)
     print('Converting graphs to CSP Instances')
     instances = [CSP_Instance.graph_to_csp_instance(g, is_language, 'NAND') for g in graphs]

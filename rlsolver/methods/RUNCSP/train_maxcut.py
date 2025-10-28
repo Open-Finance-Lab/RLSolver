@@ -1,8 +1,7 @@
 from model import RUN_CSP
 from train import train
 from util import CSP_Instance, Constraint_Language
-
-import data_utils
+from util_data import load_graphs
 import argparse
 
 
@@ -21,7 +20,7 @@ def main():
     language = Constraint_Language.get_coloring_language(2)
 
     print('loading graphs...')
-    names, graphs = data_utils.load_graphs(args.data_path)
+    names, graphs = load_graphs(args.data_path)
     instances = [CSP_Instance.graph_to_csp_instance(g, language, 'NEQ') for g in graphs]
 
     train_batches = CSP_Instance.batch_instances(instances, args.batch_size)

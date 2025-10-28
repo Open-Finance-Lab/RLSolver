@@ -1,8 +1,8 @@
 from model import RUN_CSP
 from evaluate import evaluate_boosted
 from util import CSP_Instance
-
-import data_utils
+from util_data import load_graphs
+import util_data
 import argparse
 
 from tqdm import tqdm
@@ -24,7 +24,7 @@ def main():
 
     if args.data_path is not None:
         print('loading graphs...')
-        names, graphs = data_utils.load_graphs(args.data_path)
+        names, graphs = load_graphs(args.data_path)
         instances = [CSP_Instance.graph_to_csp_instance(g, language, 'NEQ', name=n) for n, g in zip(names, graphs)]
     else:
         print(f'Generating {args.n_instances} training instances')

@@ -1,8 +1,8 @@
 from model import RUN_CSP
-from evaluate import evaluate_and_save
+# from evaluate import evaluate_and_save
 from util import CSP_Instance, mc_weighted_language
 
-import data_utils
+import util_data
 import argparse
 import os
 import numpy as np
@@ -66,12 +66,14 @@ def main():
 
     language = mc_weighted_language
 
-    if args.data_path is not None:
-        print('loading graphs...')
-        graphs = [data_utils.load_col_graph(p) for p in tqdm(glob.glob(args.data_path))]
-        names = [os.path.basename(p) for p in glob.glob(args.data_path)]
-        instances = [CSP_Instance.graph_to_weighted_mc_instance(g, name=name) for g, name in zip(graphs, names)]
-    else:
+    assert args.data_path is None
+    # if args.data_path is not None:
+    #     print('loading graphs...')
+    #     graphs = [load_col_graph(p) for p in tqdm(glob.glob(args.data_path))]
+    #     names = [os.path.basename(p) for p in glob.glob(args.data_path)]
+    #     instances = [CSP_Instance.graph_to_weighted_mc_instance(g, name=name) for g, name in zip(graphs, names)]
+    # else:
+    if args.data_path is None:
         print(f'Generating {args.n_instances} training instances')
         # instances = [CSP_Instance.generate_random(args.n_variables, args.n_clauses, language) for _ in tqdm(range(args.n_instances))]
         graphs = [nx.random_regular_graph(args.degree, args.n_variables) for _ in range(args.n_instances)]
@@ -79,10 +81,12 @@ def main():
 
     net = RUN_CSP.load(args.model_dir)
 
+    assert args.save_path is None
     if args.save_path is None:
         conflicting_edges = evaluate_boosted(net, instances, args.t_max, attempts=args.attempts)
-    else:
-        conflicting_edges = evaluate_and_save(args.save_path, net, instances, args.t_max, attempts=args.attempts)
+    # else:
+    #     conflicting_edges = evaluate_and_save(args.save_path, net, instances, args.t_max, attempts=args.attempts)
+
 
 
 if __name__ == '__main__':

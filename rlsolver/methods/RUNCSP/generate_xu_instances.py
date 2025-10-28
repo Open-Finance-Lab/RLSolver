@@ -1,9 +1,8 @@
 import numpy as np
 import itertools
-import util
 import random
 import networkx as nx
-
+from util import CSP_Instance, is_language
 
 def generate_instance(n, k, r, p):
     a = np.log(k) / np.log(n)
@@ -27,7 +26,7 @@ def generate_instance(n, k, r, p):
     nand_clauses += list(edges)
     clauses = {'NAND': nand_clauses}
 
-    instance = csp_utils.CSP_Instance(language=csp_utils.is_language,
+    instance = CSP_Instance(language=is_language,
                                       n_variables=v,
                                       clauses=clauses)
     return instance

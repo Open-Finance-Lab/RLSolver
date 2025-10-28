@@ -1,7 +1,7 @@
 from model import MIS_Network
 from util import CSP_Instance, is_language
 
-import data_utils
+import util_data
 import argparse
 import numpy as np
 
@@ -45,7 +45,7 @@ def main():
     network = MIS_Network.load(args.model_dir)
 
     print('loading graphs...')
-    names, graphs = data_utils.load_graphs(args.data_path)
+    names, graphs = util_data.load_graphs(args.data_path)
     instances = [CSP_Instance.graph_to_csp_instance(g, is_language, 'NAND') for n, g in zip(names, graphs)]
     
     evaluate_boosted(network, instances, args.t_max, attempts=args.attempts)
