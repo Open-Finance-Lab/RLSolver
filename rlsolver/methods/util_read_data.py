@@ -23,7 +23,7 @@ import torch as th
 GraphList = List[Tuple[int, int, int]]  # 每条边两端点的索引以及边的权重 List[Tuple[Node0ID, Node1ID, WeightEdge]]
 IndexList = List[List[int]]  # 按索引顺序记录每个点的所有邻居节点 IndexList[Node0ID] = [Node1ID, ...]
 
-GraphTypes = ['BarabasiAlbert', 'ErdosRenyi', 'PowerLaw']
+GraphTypes = ['BA', 'ER', 'PL']
 TEN = th.Tensor
 
 from rlsolver.methods.util import calc_txt_files_with_prefixes
@@ -68,15 +68,15 @@ def read_graphlist(filename: str) -> GraphList:
     graph_list = [(n0 - 1, n1 - 1, dt) for n0, n1, dt in lines[1:]]  # 将node_id 由“从1开始”改为“从0开始”
     return graph_list
 
-def generate_graph_list(graph_type: str, num_nodes: int) -> GraphList:
+def generate_graph_list(graph_type: GRAPH_TYPE, num_nodes: int) -> GraphList:
     graph_types = GraphTypes
-    assert graph_type in graph_types
+    assert graph_type.value in graph_types
 
-    if graph_type == 'BarabasiAlbert':
+    if graph_type == GRAPH_TYPE.BA:
         g = nx.barabasi_albert_graph(n=num_nodes, m=4)
-    elif graph_type == 'ErdosRenyi':
+    elif graph_type == GRAPH_TYPE.ER:
         g = nx.erdos_renyi_graph(n=num_nodes, p=0.15)
-    elif graph_type == 'PowerLaw':
+    elif graph_type == GRAPH_TYPE.PL:
         g = nx.powerlaw_cluster_graph(n=num_nodes, m=4, p=0.05)
     else:
         raise ValueError(f"g_type {graph_type} should in {graph_types}")
@@ -89,7 +89,7 @@ def generate_graph_list(graph_type: str, num_nodes: int) -> GraphList:
 def load_graph_list(graph_name: str, if_force_exist: bool = False):
     import random
     graph_type = GRAPH_TYPE  # 匹配 graph_type
-    DataDir = './data/syn_graph_list'  # 保存图最大割的txt文件的目录，txt数据以稀疏的方式记录了GraphList，可以重建图的邻接矩阵
+    DataDir = './data/syn_'  + graph_type.value# 保存图最大割的txt文件的目录，txt数据以稀疏的方式记录了GraphList，可以重建图的邻接矩阵
 
     if if_force_exist:
         txt_path = f"{DataDir}/{graph_name}.txt"
@@ -102,7 +102,6 @@ def load_graph_list(graph_name: str, if_force_exist: bool = False):
     elif os.path.isfile(graph_name) and os.path.splitext(graph_name)[-1] == '.txt':
         txt_path = graph_name
         graph_list = read_graphlist(filename=txt_path)
-
     elif graph_type and graph_name.find('ID') == -1:
         num_nodes = int(graph_name.split('_')[-1])
         graph_list = generate_graph_list(num_nodes=num_nodes, graph_type=graph_type)

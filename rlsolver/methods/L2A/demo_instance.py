@@ -16,6 +16,7 @@ from network import GraphTRS, create_mask
 from rlsolver.methods.util_read_data import load_graph_list, GraphTypes, update_xs_by_vs, pick_xs_by_vs, GraphList, build_adjacency_bool
 from rlsolver.methods.util import gpu_info_str
 from graph_embedding_pretrain import train_graph_net_in_a_single_graph, train_graph_net_in_graph_distribution
+from rlsolver.envs.env_L2A import EnvMaxcut
 
 
 def solve_single_graph_problem_using_trs(
@@ -35,8 +36,7 @@ def solve_single_graph_problem_using_trs(
     num_nodes = args_graph.num_nodes
 
     '''simulator'''
-    from graph_max_cut_simulator import SimulatorGraphMaxCut
-    sim = SimulatorGraphMaxCut(graph_list=graph_list, device=device, if_bidirectional=True)
+    sim = EnvMaxcut(graph_list=graph_list, device=device, if_bidirectional=True)
     if_max = sim.if_maximize
 
     '''seq_adj_float'''
@@ -276,8 +276,7 @@ def solve_single_graph_problem_using_trs(
             #     else th.optim.AdamW(net_param, lr=learning_rate, weight_decay=weight_decay)
 
 
-def run_graph_set_14_15(graph_type: str = 'G14', gpu_id: int = 0):
-    # graph_list = load_graph_list(graph_name=graph_type)
+def run_graph_set_14_15(graph_type: str = 'gset_14', gpu_id: int = 0):
     graph_list = load_graph_list(graph_name=graph_type)
 
     args_graph = ConfigGraph(graph_list=graph_list, graph_type=graph_type)

@@ -3,7 +3,7 @@ import sys
 import torch as th
 import networkx as nx
 from typing import List, Tuple
-
+from rlsolver.methods.util_read_data import load_graph_list
 '''graph'''
 
 TEN = th.Tensor
@@ -85,32 +85,32 @@ def generate_graph_list(graph_type: str, num_nodes: int) -> GraphList:
     return graph_list
 
 
-def load_graph_list(graph_name: str):
-    import random
-    graph_types = ['ErdosRenyi', 'PowerLaw', 'BarabasiAlbert']
-    graph_type = next((graph_type for graph_type in graph_types if graph_type in graph_name), None)  # 匹配 graph_type
-
-    if os.path.exists(f"{DataDir}/{graph_name}.txt"):
-        txt_path = f"{DataDir}/{graph_name}.txt"
-        graph_list = load_graph_list_from_txt(txt_path=txt_path)
-    elif os.path.isfile(graph_name) and os.path.splitext(graph_name)[-1] == '.txt':
-        txt_path = graph_name
-        graph_list = load_graph_list_from_txt(txt_path=txt_path)
-
-    elif graph_type and graph_name.find('ID') == -1:
-        num_nodes = int(graph_name.split('_')[-1])
-        graph_list = generate_graph_list(num_nodes=num_nodes, graph_type=graph_type)
-    elif graph_type and graph_name.find('ID') >= 0:
-        num_nodes, valid_i = graph_name.split('_')[-2:]
-        num_nodes = int(num_nodes)
-        valid_i = int(valid_i[len('ID'):])
-        random.seed(valid_i)
-        graph_list = generate_graph_list(num_nodes=num_nodes, graph_type=graph_type)
-        random.seed()
-
-    else:
-        raise ValueError(f"DataDir {DataDir} | graph_name {graph_name} txt_path {DataDir}/{graph_name}.txt")
-    return graph_list
+# def load_graph_list(graph_name: str):
+#     import random
+#     graph_types = ['ErdosRenyi', 'PowerLaw', 'BarabasiAlbert']
+#     graph_type = next((graph_type for graph_type in graph_types if graph_type in graph_name), None)  # 匹配 graph_type
+#
+#     if os.path.exists(f"{DataDir}/{graph_name}.txt"):
+#         txt_path = f"{DataDir}/{graph_name}.txt"
+#         graph_list = load_graph_list_from_txt(txt_path=txt_path)
+#     elif os.path.isfile(graph_name) and os.path.splitext(graph_name)[-1] == '.txt':
+#         txt_path = graph_name
+#         graph_list = load_graph_list_from_txt(txt_path=txt_path)
+#
+#     elif graph_type and graph_name.find('ID') == -1:
+#         num_nodes = int(graph_name.split('_')[-1])
+#         graph_list = generate_graph_list(num_nodes=num_nodes, graph_type=graph_type)
+#     elif graph_type and graph_name.find('ID') >= 0:
+#         num_nodes, valid_i = graph_name.split('_')[-2:]
+#         num_nodes = int(num_nodes)
+#         valid_i = int(valid_i[len('ID'):])
+#         random.seed(valid_i)
+#         graph_list = generate_graph_list(num_nodes=num_nodes, graph_type=graph_type)
+#         random.seed()
+#
+#     else:
+#         raise ValueError(f"DataDir {DataDir} | graph_name {graph_name} txt_path {DataDir}/{graph_name}.txt")
+#     return graph_list
 
 
 '''adjacency matrix'''

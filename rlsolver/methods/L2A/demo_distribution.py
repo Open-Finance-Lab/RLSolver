@@ -17,6 +17,7 @@ from network import GraphTRS
 from rlsolver.methods.util_read_data import GraphList, load_graph_list, update_xs_by_vs, pick_xs_by_vs
 from rlsolver.methods.util import gpu_info_str
 from graph_embedding_pretrain import train_graph_net_in_graph_distribution
+from rlsolver.envs.env_L2A import EnvMaxcut
 
 
 def solve_graph_dist_problem_using_trs(
@@ -40,8 +41,7 @@ def solve_graph_dist_problem_using_trs(
     # 加载测试集的30个实例，用于训练中打印出策略模型学习曲线
 
     '''simulator'''
-    from graph_max_cut_simulator import SimulatorGraphMaxCut
-    sim = SimulatorGraphMaxCut(graph_list=graph_list, device=device, if_bidirectional=True)
+    sim = EnvMaxcut(graph_list=graph_list, device=device, if_bidirectional=True)
     if_max = sim.if_maximize
 
     """get seq_graph"""
@@ -312,7 +312,7 @@ def solve_graph_dist_problem_using_trs(
                 _seq_graph = seq_graphs[_graph_id].to(device)
 
                 _graph_list = graph_lists[_graph_id]
-                _sim = SimulatorGraphMaxCut(graph_list=_graph_list, device=device, if_bidirectional=True)
+                _sim = EnvMaxcut(graph_list=_graph_list, device=device, if_bidirectional=True)
                 valid_net(sim=_sim, net=net, evaluator=_evaluator, seq_graph=_seq_graph, iter_i=iter_i,
                           num_sims=num_sims, graph_id=_graph_id,
                           seq_len=seq_len, num_repeats=num_repeats, top_k=top_k, num_searchers=num_searchers)
@@ -325,7 +325,7 @@ def solve_graph_dist_problem_using_trs(
         _seq_graph = seq_graphs[_graph_id].to(device)
 
         _graph_list = graph_lists[_graph_id]
-        _sim = SimulatorGraphMaxCut(graph_list=graph_list, device=device, if_bidirectional=True)
+        _sim = EnvMaxcut(graph_list=graph_list, device=device, if_bidirectional=True)
         valid_net(sim=_sim, net=net, evaluator=_evaluator, seq_graph=_seq_graph, iter_i=-1,
                   num_sims=num_sims, graph_id=_graph_id,
                   seq_len=seq_len, num_repeats=num_repeats, top_k=top_k, num_searchers=num_searchers)

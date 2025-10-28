@@ -10,6 +10,7 @@ from graph_embedding_pretrain import sort_adj_bools
 from network import GraphTRS, create_mask
 from rlsolver.methods.util_evaluator import Evaluator
 from rlsolver.methods.util_read_data import load_graph_list, update_xs_by_vs, pick_xs_by_vs, GraphList, build_adjacency_bool
+from rlsolver.envs.env_L2A import EnvMaxcut
 
 TEN = th.Tensor
 '''network'''
@@ -160,8 +161,7 @@ def check_policy_trs_layer():
     graph_list = load_graph_list(graph_name=graph_name)
 
     '''simulator'''
-    from graph_max_cut_simulator import SimulatorGraphMaxCut
-    sim = SimulatorGraphMaxCut(graph_list=graph_list, device=device, if_bidirectional=True)
+    sim = EnvMaxcut(graph_list=graph_list, device=device, if_bidirectional=True)
     # if_max = sim.if_maximize
 
     '''seq_adj_float'''
