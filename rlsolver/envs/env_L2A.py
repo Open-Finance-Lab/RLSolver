@@ -5,16 +5,13 @@ cur_path = os.path.dirname(os.path.abspath(__file__))
 rlsolver_path = os.path.join(cur_path, '../../../rlsolver')
 sys.path.append(os.path.dirname(rlsolver_path))
 
-import time
-import torch as th
-
 from rlsolver.methods.util_read_data import load_graph_list, GraphList
 from rlsolver.methods.util_read_data import build_adjacency_bool, build_adjacency_indies, obtain_num_nodes, update_xs_by_vs
 from rlsolver.methods.util import gpu_info_str, evolutionary_replacement
 from rlsolver.methods.L2A.TNCO_simulator import *
 from rlsolver.methods.L2A.TNCO_local_search import *
 from rlsolver.methods.util import show_gpu_memory, reset_parameters_of_model
-from rlsolver.methods.config import ConfigPolicy
+from rlsolver.methods.L2A.config import ConfigPolicyL2A
 from torch.nn.utils import clip_grad_norm_
 
 TEN = th.Tensor
@@ -286,7 +283,7 @@ class McmcIterator_TNCO:
         self.sim_ids = th.arange(num_sims, device=device)
 
         # build in reset
-        self.simulator = SimulatorTensorNetContract(nodes_list=nodes_list, ban_edges=0, device=self.device)
+        self.simulator = EnvTNCO(nodes_list=nodes_list, ban_edges=0, device=self.device)
         self.num_bits = self.simulator.num_bits
         self.searcher = SolverLocalSearch(simulator=self.simulator, num_bits=self.num_bits)
         self.if_maximize = self.searcher.if_maximize
@@ -320,7 +317,7 @@ class McmcIterator_TNCO:
 
 
 def valid_in_single_graph_TNCO(
-        args0: ConfigPolicy = None,
+        args0: ConfigPolicyL2A = None,
         nodes_list: list = None,
 ):
     gpu_id = int(sys.argv[1]) if len(sys.argv) > 1 else 0
@@ -329,7 +326,7 @@ def valid_in_single_graph_TNCO(
     '''dummy value'''
     # args0 = args0 if args0 else ConfigPolicy(graph_type='SycamoreN12M14', num_nodes=1)  # todo plan remove num_nodes
     # nodes_list = NodesSycamoreN12M14 if nodes_list is None else nodes_list
-    args0 = args0 if args0 else ConfigPolicy(graph_type='SycamoreN53M20', num_nodes=1)  # todo plan remove num_nodes
+    args0 = args0 if args0 else ConfigPolicyL2A(graph_type='SycamoreN53M20', num_nodes=1)  # todo plan remove num_nodes
     nodes_list = NodesSycamoreN53M20 if nodes_list is None else nodes_list
 
     '''custom'''

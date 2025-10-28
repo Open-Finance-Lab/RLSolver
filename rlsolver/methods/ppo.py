@@ -11,8 +11,8 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.distributions.categorical import Categorical
-from rlsolver.envs.env_ppo import load_graph_list, envMaxcut
-
+from rlsolver.envs.env_ppo import EnvMaxcut
+from rlsolver.methods.util_read_data import load_graph_list
 
 @dataclass
 class Config:
@@ -95,7 +95,7 @@ if __name__ == "__main__":
     graph_type, num_nodes, graph_id = 'PowerLaw', Config.num_nodes, 0
     graph_name = f'{graph_type}_{num_nodes}_ID{graph_id}'
     graph_list = load_graph_list(graph_name=graph_name)
-    envs = envMaxcut(args=Config, graph_list=graph_list, device=device, if_bidirectional=True)
+    envs = EnvMaxcut(args=Config, graph_list=graph_list, device=device, if_bidirectional=True)
 
     agent = Agent(envs).to(device)
     optimizer = optim.Adam(agent.parameters(), lr=Config.learning_rate, eps=1e-5)

@@ -33,7 +33,12 @@ def plot_nxgraph(g: nx.Graph(), fig_filename='.result/fig.png'):
     plt.savefig(fig_filename)
     plt.show()
 
-
+def obtain_num_nodes(graph_list: GraphList) -> int:
+    s: set = set()
+    for n0, n1, distance in graph_list:
+        s.add(n0)
+        s.add(n1)
+    return len(s)
 
 def transfer_nxgraph_to_adjacencymatrix(graph: nx.Graph):
     return nx.to_numpy_array(graph)
@@ -561,6 +566,18 @@ def show_gpu_memory(device):
         f"Rate {(max_memory / all_memory) * 100:.2f}%"
     )
     return show_str
+
+
+
+def save_graph_list_to_txt(graph_list: GraphList, txt_path: str):
+    num_nodes = obtain_num_nodes(graph_list=graph_list)
+    num_edges = len(graph_list)
+
+    lines = [f"{num_nodes} {num_edges}", ]
+    lines.extend([f"{n0 + 1} {n1 + 1} {distance}" for n0, n1, distance in graph_list])
+    lines = [line + '\n' for line in lines]
+    with open(txt_path, 'w') as file:
+        file.writelines(lines)
 
 if __name__ == '__main__':
     s = "// time_limit: ('TIME_LIMIT', <class 'float'>, 36.0, 0.0, inf, inf)"

@@ -1,7 +1,7 @@
 from TNCO_simulator import *
 from TNCO_local_search import *
 from rlsolver.methods.util import show_gpu_memory, reset_parameters_of_model
-from rlsolver.methods.config import ConfigPolicy
+from rlsolver.methods.L2A.config import ConfigPolicyL2A
 from torch.nn.utils import clip_grad_norm_
 
 
@@ -61,7 +61,7 @@ class EnvTNCO:
         self.sim_ids = th.arange(num_sims, device=device)
 
         # build in reset
-        self.simulator = SimulatorTensorNetContract(nodes_list=nodes_list, ban_edges=0, device=self.device)
+        self.simulator = EnvTNCO(nodes_list=nodes_list, ban_edges=0, device=self.device)
         self.num_bits = self.simulator.num_bits
         self.searcher = SolverLocalSearch(simulator=self.simulator, num_bits=self.num_bits)
         self.if_maximize = self.searcher.if_maximize
@@ -94,14 +94,14 @@ class EnvTNCO:
         return good_xs, good_vs
 
 
-def valid_in_single_graph_TNCO(args0: ConfigPolicy = None, nodes_list: list = None, ):
+def valid_in_single_graph_TNCO(args0: ConfigPolicyL2A = None, nodes_list: list = None, ):
     gpu_id = int(sys.argv[1]) if len(sys.argv) > 1 else 0
     device = th.device(f'cuda:{gpu_id}' if th.cuda.is_available() and gpu_id >= 0 else 'cpu')
 
     '''dummy value'''
     # args0 = args0 if args0 else ConfigPolicy(graph_type='SycamoreN12M14', num_nodes=1)  # todo plan remove num_nodes
     # nodes_list = NodesSycamoreN12M14 if nodes_list is None else nodes_list
-    args0 = args0 if args0 else ConfigPolicy(graph_type='SycamoreN53M20', num_nodes=1)  # todo plan remove num_nodes
+    args0 = args0 if args0 else ConfigPolicyL2A(graph_type='SycamoreN53M20', num_nodes=1)  # todo plan remove num_nodes
     nodes_list = NodesSycamoreN53M20 if nodes_list is None else nodes_list
 
     '''custom'''

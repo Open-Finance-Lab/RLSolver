@@ -160,6 +160,27 @@ def generate_write_distribution(num_nodess: List[int], num_graphs: int, graph_ty
                 write_nxgraph(nxgraph, filename)
     return nxgraphs
 
+from rlsolver.methods.config import GraphList
+
+def generate_graph_list(graph_type: str, num_nodes: int) -> GraphList:
+    graph_types = ['ErdosRenyi', 'BarabasiAlbert', 'PowerLaw']
+    assert graph_type in graph_types
+
+    if graph_type == 'ErdosRenyi':
+        g = nx.erdos_renyi_graph(n=num_nodes, p=0.15)
+    elif graph_type == 'BarabasiAlbert':
+        g = nx.barabasi_albert_graph(n=num_nodes, m=4)
+    elif graph_type == 'PowerLaw':
+        g = nx.powerlaw_cluster_graph(n=num_nodes, m=4, p=0.05)
+    elif graph_type == 'BarabasiAlbert':
+        g = nx.barabasi_albert_graph(n=num_nodes, m=4)
+    else:
+        raise ValueError(f"g_type {graph_type} should in {graph_types}")
+
+    distance = 1
+    graph_list = [(node0, node1, distance) for node0, node1 in g.edges]
+    return graph_list
+
 def write_nxgraph(g: nx.Graph(), filename: str):
     num_nodes = nx.number_of_nodes(g)
     num_edges = nx.number_of_edges(g)
@@ -176,15 +197,15 @@ def write_nxgraph(g: nx.Graph(), filename: str):
 
 
 if __name__ == '__main__':
-    if_generate_distribution = False
+    if_generate_distribution = True
     if if_generate_distribution:
-        num_nodess = [20, 40] + list(range(100, 201, 100))
+        # num_nodess = [20, 40] + list(range(100, 201, 100))
         # num_nodess = list(range(2100, 3001, 100))
         # num_nodess = [1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000]
-        # num_nodess = [20]
+        num_nodess = [20]
         num_graphs = 30
-        graph_type = GraphType.BA
-        directory = '../data/syn_BA'
+        graph_type = GraphType.PL
+        directory = '../data/syn_' + graph_type.value
         generate_write_distribution(num_nodess, num_graphs, graph_type, directory)
 
     # generate synthetic data

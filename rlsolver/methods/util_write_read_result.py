@@ -117,7 +117,7 @@ def read_graph_result_comments(filename: str):
 
 
 # max_ID: exclusive
-def read_graph_result_comments_multifiles2(dir: str, prefixes: List[str], max_ID: int):
+def read_graph_result_comments_manyfiles2(dir: str, prefixes: List[str], max_ID: int):
     objs = {}
     running_durations = {}
     obj_bounds = {}
@@ -213,7 +213,7 @@ if __name__ == '__main__':
         max_ID = 10  # exclusive
         objs, obj_bounds, running_durations, avg_objs, avg_obj_bounds, \
         avg_running_durations, std_objs, std_obj_bounds, std_running_durations \
-            = read_graph_result_comments_multifiles2(dir, prefixes, max_ID)
+            = read_graph_result_comments_manyfiles2(dir, prefixes, max_ID)
 
     test_frist_30 = False
     if test_frist_30:
@@ -222,4 +222,4 @@ if __name__ == '__main__':
         max_ID = 30  # exclusive
         objs, obj_bounds, running_durations, avg_objs, avg_obj_bounds, \
         avg_running_durations, std_objs, std_obj_bounds, std_running_durations \
-            = read_graph_result_comments_multifiles2(dir, prefixes, max_ID)
+            = read_graph_result_comments_manyfiles2(dir, prefixes, max_ID)

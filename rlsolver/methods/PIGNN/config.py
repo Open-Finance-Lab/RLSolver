@@ -2,7 +2,7 @@ import torch as th
 from typing import List
 from enum import Enum, unique
 import os
-from rlsolver.methods.L2A.graph_utils import GraphList, obtain_num_nodes
+from rlsolver.methods.L2A.graph_util import GraphList, obtain_num_nodes
 
 
 @unique

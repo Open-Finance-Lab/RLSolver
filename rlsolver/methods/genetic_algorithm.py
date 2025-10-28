@@ -211,7 +211,7 @@ def genetic_maxcut(graph: nx.Graph(), filename):
 
 
 
-def run_genetic_over_multiple_files(directory_data: str, prefixes: List[str])-> List[List[float]]:
+def run_genetic_over_manyfiles(directory_data: str, prefixes: List[str])-> List[List[float]]:
     assert PROBLEM == Problem.maxcut
     scoress = []
     files = calc_txt_files_with_prefixes(directory_data, prefixes)
@@ -234,7 +234,7 @@ if __name__ == '__main__':
     # directory_data = '../data/syn_ER'
     # directory_data = '../data/syn'
     prefixes = ['BA_100_']
-    run_genetic_over_multiple_files(directory_data, prefixes)
+    run_genetic_over_manyfiles(directory_data, prefixes)
 
     # Cut checker
     # vector = [1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1]

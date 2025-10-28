@@ -9,6 +9,7 @@ import torch as th
 from typing import List, Tuple, Union
 import networkx as nx
 import numpy as np
+from rlsolver.methods.util_read_data import load_graph_list
 
 fix_seed = False
 if fix_seed:
@@ -199,7 +200,7 @@ class SimulatorGraphMaxCut:
         self.if_bidirectional = if_bidirectional
 
         '''load graph'''
-        graph_list: GraphList = graph_list if graph_list else load_graph_list(graph_name=sim_name)
+        graph_list: GraphList = graph_list if graph_list else load_graph_list(DataDir, graph_name=sim_name)
 
         '''建立邻接矩阵'''
         # self.adjacency_matrix = build_adjacency_matrix(graph_list=graph_list, if_bidirectional=True).to(device)
@@ -287,62 +288,6 @@ class SimulatorGraphMaxCut:
 def obtain_num_nodes(graph_list: GraphList) -> int:
     return max([max(n0, n1) for n0, n1, distance in graph_list]) + 1
 
-def load_graph_list_from_txt(txt_path: str = 'G14.txt') -> GraphList:
-    with open(txt_path, 'r') as file:
-        lines = file.readlines()
-        lines = [[int(i1) for i1 in i0.split()] for i0 in lines]
-    num_nodes, num_edges = lines[0]
-    graph_list = [(n0 - 1, n1 - 1, dt) for n0, n1, dt in lines[1:]]  # 将node_id 由“从1开始”改为“从0开始”
-
-    assert num_nodes == obtain_num_nodes(graph_list=graph_list)
-    assert num_edges == len(graph_list)
-    return graph_list
-
-def generate_graph_list(graph_type: str, num_nodes: int) -> GraphList:
-    graph_types = ['ErdosRenyi', 'BarabasiAlbert', 'PowerLaw']
-    assert graph_type in graph_types
-
-    if graph_type == 'ErdosRenyi':
-        g = nx.erdos_renyi_graph(n=num_nodes, p=0.15)
-    elif graph_type == 'BarabasiAlbert':
-        g = nx.barabasi_albert_graph(n=num_nodes, m=4)
-    elif graph_type == 'PowerLaw':
-        g = nx.powerlaw_cluster_graph(n=num_nodes, m=4, p=0.05)
-    elif graph_type == 'BarabasiAlbert':
-        g = nx.barabasi_albert_graph(n=num_nodes, m=4)
-    else:
-        raise ValueError(f"g_type {graph_type} should in {graph_types}")
-
-    distance = 1
-    graph_list = [(node0, node1, distance) for node0, node1 in g.edges]
-    return graph_list
-
-def load_graph_list(graph_name: str):
-    import random
-    graph_types = ['ErdosRenyi', 'PowerLaw', 'BarabasiAlbert']
-    graph_type = next((graph_type for graph_type in graph_types if graph_type in graph_name), None)  # 匹配 graph_type
-
-    if os.path.exists(f"{DataDir}/{graph_name}.txt"):
-        txt_path = f"{DataDir}/{graph_name}.txt"
-        graph_list = load_graph_list_from_txt(txt_path=txt_path)
-    elif os.path.isfile(graph_name) and os.path.splitext(graph_name)[-1] == '.txt':
-        txt_path = graph_name
-        graph_list = load_graph_list_from_txt(txt_path=txt_path)
-
-    elif graph_type and graph_name.find('ID') == -1:
-        num_nodes = int(graph_name.split('_')[-1])
-        graph_list = generate_graph_list(num_nodes=num_nodes, graph_type=graph_type)
-    elif graph_type and graph_name.find('ID') >= 0:
-        num_nodes, valid_i = graph_name.split('_')[-2:]
-        num_nodes = int(num_nodes)
-        valid_i = int(valid_i[len('ID'):])
-        random.seed(valid_i)
-        graph_list = generate_graph_list(num_nodes=num_nodes, graph_type=graph_type)
-        random.seed()
-
-    else:
-        raise ValueError(f"DataDir {DataDir} | graph_name {graph_name} txt_path {DataDir}/{graph_name}.txt")
-    return graph_list
 
 
 def metro_sampling(probs, start_status, max_transfer_time, device=None):

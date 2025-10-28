@@ -10,8 +10,9 @@ from typing import List, Tuple
 TEN = th.Tensor
 GraphList = List[Tuple[int, int, int]]
 IndexList = List[List[int]]
-DataDir = './data/graph_max_cut'
-
+# DataDir = './data/graph_max_cut'
+DataDir = '../../data/gset/'
+from rlsolver.methods.util import obtain_num_nodes
 
 def load_graph_from_txt(txt_path: str = 'G14.txt') -> GraphList:
     with open(txt_path, 'r') as file:
@@ -20,7 +21,8 @@ def load_graph_from_txt(txt_path: str = 'G14.txt') -> GraphList:
     num_nodes, num_edges = lines[0]
     graph = [(n0 - 1, n1 - 1, dt) for n0, n1, dt in lines[1:]]  # 将node_id 由“从1开始”改为“从0开始”
 
-    assert num_nodes == obtain_num_nodes(graph=graph)
+    num_nodes2 = obtain_num_nodes(graph)
+    assert num_nodes == num_nodes2
     assert num_edges == len(graph)
     return graph
 
@@ -66,8 +68,7 @@ def load_graph(graph_name: str):
     return graph
 
 
-def obtain_num_nodes(graph: GraphList) -> int:
-    return max([max(n0, n1) for n0, n1, distance in graph]) + 1
+
 
 
 def build_adjacency_matrix(graph: GraphList, if_bidirectional: bool = False):
@@ -90,7 +91,7 @@ def build_adjacency_matrix(graph: GraphList, if_bidirectional: bool = False):
     - 其余为False
     """
     not_connection = -1  # 选用-1去表示表示两个node之间没有edge相连，不选用0是为了避免两个节点的距离为0时出现冲突
-    num_nodes = obtain_num_nodes(graph=graph)
+    num_nodes = obtain_num_nodes(graph)
 
     adjacency_matrix = th.zeros((num_nodes, num_nodes), dtype=th.float32)
     adjacency_matrix[:] = not_connection
@@ -124,7 +125,7 @@ def build_adjacency_indies(graph: GraphList, if_bidirectional: bool = False) -> 
     0, 2, 1
     2, 3, 1
     """
-    num_nodes = obtain_num_nodes(graph=graph)
+    num_nodes = obtain_num_nodes(graph)
 
     n0_to_n1s = [[] for _ in range(num_nodes)]  # 将 node0_id 映射到 node1_id
     n0_to_dts = [[] for _ in range(num_nodes)]  # 将 mode0_id 映射到 node1_id 与 node0_id 的距离

@@ -1,7 +1,7 @@
 import sys
 import math
 import torch as th
-
+from rlsolver.methods.L2A.config import GPU_ID, DEVICE
 TEN = th.Tensor
 
 NodesSycamoreN12M14 = [
@@ -646,7 +646,7 @@ def get_node_bool_arys(nodes_ary: TEN) -> list:
     return arys
 
 
-class SimulatorTensorNetContract:
+class EnvTNCO:
     def __init__(self, nodes_list: list, ban_edges: int, device: th.device, if_vec: bool = True):
         self.device = device
 
@@ -863,6 +863,8 @@ class SimulatorTensorNetContract:
         num_sims = xs.shape[0]
 
         xs_view = xs.view(num_sims, self.num_edges, self.num_bases)
+        if xs_view.device != self.base_numbers.device:
+            xs_view = xs_view.to(self.base_numbers.device)
         edge_ranks = (xs_view * self.base_numbers).sum(dim=2)
         edge_sorts = th.argsort(edge_ranks, dim=1)
         return edge_sorts
@@ -915,8 +917,7 @@ def convert_str_ary_to_list_as_edge_sort(str_ary: str) -> list:
 
 
 def unit_test_get_log10_multiple_times():
-    gpu_id = int(sys.argv[1]) if len(sys.argv) > 1 else 0
-    device = th.device(f'cuda:{gpu_id}' if th.cuda.is_available() and gpu_id >= 0 else 'cpu')
+    device = DEVICE
 
     # nodes_list, ban_edges = NodesSycamoreN12M14, 0
     # nodes_list, ban_edges = NodesSycamoreN14M14, 0
@@ -927,7 +928,7 @@ def unit_test_get_log10_multiple_times():
     # from TNCO_env import get_nodes_list_of_tensor_tree
     # nodes_list, ban_edges = get_nodes_list_of_tensor_tree(depth=3), 2 ** (3 - 1)
 
-    env = SimulatorTensorNetContract(nodes_list=nodes_list, ban_edges=ban_edges, device=device)
+    env = EnvTNCO(nodes_list=nodes_list, ban_edges=ban_edges, device=device)
     print(f"\nnum_nodes      {env.num_nodes:9}"
           f"\nnum_edges      {env.num_edges:9}"
           f"\nban_edges      {env.ban_edges:9}")
@@ -948,8 +949,7 @@ def unit_test_get_log10_multiple_times():
 
 
 def unit_test_convert_node2s_to_edge_sorts():
-    gpu_id = int(sys.argv[1]) if len(sys.argv) > 1 else 0
-    device = th.device(f'cuda:{gpu_id}' if th.cuda.is_available() and gpu_id >= 0 else 'cpu')
+    device = DEVICE
 
     # nodes_list, ban_edges = NodesSycamoreN12M14, 0
     # nodes_list, ban_edges = NodesSycamoreN14M14, 0
@@ -960,7 +960,7 @@ def unit_test_convert_node2s_to_edge_sorts():
     # from TNCO_env import get_nodes_list_of_tensor_tree
     # nodes_list, ban_edges = get_nodes_list_of_tensor_tree(depth=3), 2 ** (3 - 1)
 
-    env = SimulatorTensorNetContract(nodes_list=nodes_list, ban_edges=ban_edges, device=device)
+    env = EnvTNCO(nodes_list=nodes_list, ban_edges=ban_edges, device=device)
     print(f"\nnum_nodes      {env.num_nodes:9}"
           f"\nnum_edges      {env.num_edges:9}"
           f"\nban_edges      {env.ban_edges:9}")
@@ -985,12 +985,11 @@ def unit_test_convert_node2s_to_edge_sorts():
 
 
 def unit_test_convert_node2s_to_edge_sorts_of_load():
-    gpu_id = int(sys.argv[1]) if len(sys.argv) > 1 else 0
-    device = th.device(f'cuda:{gpu_id}' if th.cuda.is_available() and gpu_id >= 0 else 'cpu')
+    device = DEVICE
 
     # nodes_list, ban_edges = NodesSycamoreN53M20, 0
     nodes_list, ban_edges = get_nodes_list_and_band_edges_of_tensor_train(len_list=100)
-    env = SimulatorTensorNetContract(nodes_list=nodes_list, ban_edges=ban_edges, device=device)
+    env = EnvTNCO(nodes_list=nodes_list, ban_edges=ban_edges, device=device)
     print(f"\nnum_nodes      {env.num_nodes:9}"
           f"\nnum_edges      {env.num_edges:9}"
           f"\nban_edges      {env.ban_edges:9}")
@@ -1013,8 +1012,7 @@ def unit_test_convert_node2s_to_edge_sorts_of_load():
 
 
 def unit_test_edge_sorts_to_log10_multiple_times():
-    gpu_id = int(sys.argv[1]) if len(sys.argv) > 1 else 0
-    device = th.device(f'cuda:{gpu_id}' if th.cuda.is_available() and gpu_id >= 0 else 'cpu')
+    device = DEVICE
 
     edge_sort_str = EdgeSortStrH2OSycamoreN12M14  # 5.5792907356870209, otherSOTA 5.83
     # edge_sort_str = EdgeSortStrH2OSycamoreN53M12  # 14.7798258185512630, otherSOTA 12.869
@@ -1033,7 +1031,7 @@ def unit_test_edge_sorts_to_log10_multiple_times():
             NodesSycamoreN12M14, NodesSycamoreN14M14,
             NodesSycamoreN53M12, NodesSycamoreN53M14, NodesSycamoreN53M16, NodesSycamoreN53M18, NodesSycamoreN53M20,
     ):
-        env = SimulatorTensorNetContract(nodes_list=nodes_list, ban_edges=ban_edges, device=device)
+        env = EnvTNCO(nodes_list=nodes_list, ban_edges=ban_edges, device=device)
         if num_edges == env.num_edges:
             break
     else:
@@ -1054,7 +1052,6 @@ def unit_test_edge_sorts_to_log10_multiple_times():
 
 
 def unit_test_warm_up():
-    gpu_id = int(sys.argv[1]) if len(sys.argv) > 1 else 0
     warm_up_size = 2 ** 6  # 2 ** 14
     target_score = -th.inf  # 7.0
     """
@@ -1077,9 +1074,9 @@ def unit_test_warm_up():
     这里你可以选择不同的张量电路无向图，在这里跑不同的任务。注意选择正确的 ban_edges 以及对应的 target_socre
     """
 
-    device = th.device(f'cuda:{gpu_id}' if th.cuda.is_available() and gpu_id >= 0 else 'cpu')
+    device = DEVICE
 
-    env = SimulatorTensorNetContract(nodes_list=nodes_list, ban_edges=ban_edges, device=device, if_vec=if_vec)
+    env = EnvTNCO(nodes_list=nodes_list, ban_edges=ban_edges, device=device, if_vec=if_vec)
     dim = env.num_edges - env.ban_edges
 
     min_score = th.inf
@@ -1113,8 +1110,7 @@ def unit_test_warm_up():
 
 
 def check_env_calculate_obj_values():
-    gpu_id = int(sys.argv[1]) if len(sys.argv) > 1 else 0
-    device = th.device(f'cuda:{gpu_id}' if th.cuda.is_available() and gpu_id >= 0 else 'cpu')
+    device = DEVICE
 
     num_sims = 3
 
@@ -1135,7 +1131,7 @@ def check_env_calculate_obj_values():
             NodesSycamoreN12M14, NodesSycamoreN14M14,
             NodesSycamoreN53M12, NodesSycamoreN53M14, NodesSycamoreN53M16, NodesSycamoreN53M18, NodesSycamoreN53M20,
     ):
-        env = SimulatorTensorNetContract(nodes_list=nodes_list, ban_edges=ban_edges, device=device)
+        env = EnvTNCO(nodes_list=nodes_list, ban_edges=ban_edges, device=device)
         if num_edges == env.num_edges:
             break
     else:
@@ -1152,8 +1148,7 @@ def check_env_calculate_obj_values():
 
 def check_format_xs():
     import sys
-    gpu_id = int(sys.argv[1]) if len(sys.argv) > 1 else 0
-    device = th.device(f'cuda:{gpu_id}' if th.cuda.is_available() and gpu_id >= 0 else 'cpu')
+    device = DEVICE
 
     nodes_list, ban_edges = NodesSycamoreN53M20, 0
     edge_sort_str = EdgeSortStrH2OSycamoreN53M20  # 21.1282464668655585, otherSOTA 18.544
@@ -1163,7 +1158,7 @@ def check_format_xs():
 
     '''auto choose NodesSycamore'''
     # env = TensorNetworkEnv(nodes_list=nodes_list, ban_edges=ban_edges, device=device, num_bases=-1)
-    env = SimulatorTensorNetContract(nodes_list=nodes_list, ban_edges=ban_edges, device=device)
+    env = EnvTNCO(nodes_list=nodes_list, ban_edges=ban_edges, device=device)
     print(f"\nnum_nodes      {env.num_nodes:9}"
           f"\nnum_edges      {env.num_edges:9}"
           f"\nban_edges      {env.ban_edges:9}")
@@ -1178,15 +1173,14 @@ def check_format_xs():
 
 
 def check_str_edge_sort():
-    gpu_id = int(sys.argv[1]) if len(sys.argv) > 1 else 0
-    device = th.device(f'cuda:{gpu_id}' if th.cuda.is_available() and gpu_id >= 0 else 'cpu')
+    device = DEVICE
 
     # nodes_list, ban_edges = NodesSycamoreN53M20, 0
     # x_str = StrSycamoreN53M20
     nodes_list, ban_edges = NodesSycamoreN12M14, 0
     x_str = StrSycamoreN12M14
 
-    sim = SimulatorTensorNetContract(nodes_list=nodes_list, ban_edges=ban_edges, device=device)
+    sim = EnvTNCO(nodes_list=nodes_list, ban_edges=ban_edges, device=device)
     print(f"\nnum_nodes      {sim.num_nodes:9}"
           f"\nnum_edges      {sim.num_edges:9}"
           f"\nban_edges      {sim.ban_edges:9}")

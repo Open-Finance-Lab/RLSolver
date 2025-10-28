@@ -298,7 +298,6 @@ def get_advantages(rewards: TEN, values: TEN, lambda_gae_adv: float = 0.98) -> T
 
 def get_seq_graph(graph_list: GraphList, args_graph: ConfigGraph, args_policy: ConfigPolicy, device: th.device,
                   graph_embed_net):
-    from graph_max_cut_simulator import SimulatorGraphMaxCut
 
     '''config'''
     graph_type = args_graph.graph_type
@@ -306,7 +305,7 @@ def get_seq_graph(graph_list: GraphList, args_graph: ConfigGraph, args_policy: C
     num_sims = args_policy.num_sims
     save_dir = f"./{graph_type}_{num_nodes}"  # TODO wait for adding to ConfigPolicy
 
-    sim = SimulatorGraphMaxCut(graph_list=graph_list, device=device, if_bidirectional=True)
+    sim = EnvMaxcut(graph_list=graph_list, device=device, if_bidirectional=True)
     if_max = sim.if_maximize
 
     '''seq_adj_float'''

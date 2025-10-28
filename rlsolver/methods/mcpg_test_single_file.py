@@ -5,6 +5,7 @@ cur_path = os.path.dirname(os.path.abspath(__file__))
 rlsolver_path = os.path.join(cur_path, '../../rlsolver')
 sys.path.append(os.path.dirname(rlsolver_path))
 
+from rlsolver.methods.util_read_data import load_graph_list
 import sys
 sys.path.append('..')
 
@@ -357,66 +358,6 @@ def obtain_num_nodes(graph_list: GraphList) -> int:
     return max([max(n0, n1) for n0, n1, distance in graph_list]) + 1
 
 
-def load_graph_list_from_txt(txt_path: str = 'G14.txt') -> GraphList:
-    with open(txt_path, 'r') as file:
-        lines = file.readlines()
-        lines = [[int(i1) for i1 in i0.split()] for i0 in lines]
-    num_nodes, num_edges = lines[0]
-    graph_list = [(n0 - 1, n1 - 1, dt) for n0, n1, dt in lines[1:]]  # 将node_id 由“从1开始”改为“从0开始”
-
-    assert num_nodes == obtain_num_nodes(graph_list=graph_list)
-    assert num_edges == len(graph_list)
-    return graph_list
-
-
-def generate_graph_list(graph_type: str, num_nodes: int) -> GraphList:
-    graph_types = ['ErdosRenyi', 'BarabasiAlbert', 'PowerLaw']
-    assert graph_type in graph_types
-
-    if graph_type == 'ErdosRenyi':
-        g = nx.erdos_renyi_graph(n=num_nodes, p=0.15)
-    elif graph_type == 'BarabasiAlbert':
-        g = nx.barabasi_albert_graph(n=num_nodes, m=4)
-    elif graph_type == 'PowerLaw':
-        g = nx.powerlaw_cluster_graph(n=num_nodes, m=4, p=0.05)
-    elif graph_type == 'BarabasiAlbert':
-        g = nx.barabasi_albert_graph(n=num_nodes, m=4)
-    else:
-        raise ValueError(f"g_type {graph_type} should in {graph_types}")
-
-    distance = 1
-    graph_list = [(node0, node1, distance) for node0, node1 in g.edges]
-    return graph_list
-
-
-def load_graph_list(graph_name: str):
-    import random
-    graph_types = ['ErdosRenyi', 'PowerLaw', 'BarabasiAlbert']
-    graph_type = next((graph_type for graph_type in graph_types if graph_type in graph_name), None)  # 匹配 graph_type
-
-    if os.path.exists(f"{DataDir}/{graph_name}.txt"):
-        txt_path = f"{DataDir}/{graph_name}.txt"
-        graph_list = load_graph_list_from_txt(txt_path=txt_path)
-    elif os.path.isfile(graph_name) and os.path.splitext(graph_name)[-1] == '.txt':
-        txt_path = graph_name
-        graph_list = load_graph_list_from_txt(txt_path=txt_path)
-
-    elif graph_type and graph_name.find('ID') == -1:
-        num_nodes = int(graph_name.split('_')[-1])
-        graph_list = generate_graph_list(num_nodes=num_nodes, graph_type=graph_type)
-    elif graph_type and graph_name.find('ID') >= 0:
-        num_nodes, valid_i = graph_name.split('_')[-2:]
-        num_nodes = int(num_nodes)
-        valid_i = int(valid_i[len('ID'):])
-        random.seed(valid_i)
-        graph_list = generate_graph_list(num_nodes=num_nodes, graph_type=graph_type)
-        random.seed()
-
-    else:
-        raise ValueError(f"DataDir {DataDir} | graph_name {graph_name} txt_path {DataDir}/{graph_name}.txt")
-    return graph_list
-
-
 def metro_sampling(probs, start_status, max_transfer_time, device=None):
     # Metropolis-Hastings sampling
     torch.set_grad_enabled(False)
@@ -642,15 +583,6 @@ def get_return(probs, samples, value, total_mcmc_num, repeat_times):
     return objective
 
 
-def save_graph_list_to_txt(graph_list, txt_path: str):
-    num_nodes = max([max(n0, n1) for n0, n1, distance in graph_list]) + 1
-    num_edges = len(graph_list)
-
-    lines = [f"{num_nodes} {num_edges}", ]
-    lines.extend([f"{n0 + 1} {n1 + 1} {distance}" for n0, n1, distance in graph_list])
-    lines = [l + '\n' for l in lines]
-    # with open(txt_path, 'w') as file:
-    #     file.writelines(lines)
 
 
 def print_gpu_memory(device):
@@ -846,10 +778,10 @@ def run():
         # num_samples_per_second = sum(sum_samples_per_second)/len(sum_samples_per_second)
         filename = os.path.basename(path)  # 提取文件名 gset_22.txt
         graph_name = os.path.splitext(filename)[0]
-        filename = f'mcpg_{graph_name}_seed{seed}_{total_mcmc_num}.txt'
+        filename = f'../result/mcpg_{graph_name}_seed{seed}_{total_mcmc_num}.txt'
         # 将 a 和 b 写入到 txt 文件
         if test_sampling_speed:
-            filename = f'mcpg_speed_{graph_name}.txt'
+            filename = f'../result/mcpg_speed_{graph_name}.txt'
             num_samples_per_second = sum(sum_samples_per_second) / len(sum_samples_per_second)
             with open(filename, 'a') as file:
                 file.write(f"seed:{seed}\ny2_{total_mcmc_num} = {num_samples_per_second}\n")
