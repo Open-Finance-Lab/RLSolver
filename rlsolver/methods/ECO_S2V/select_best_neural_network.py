@@ -36,7 +36,7 @@ def run(neural_network_folder, num_envs, mini_envs, num_generated_instances, alg
     network_path = []
     obj_vs_time = {}
     data = {}
-    if alg == Alg.eco or alg == Alg.peco:
+    if alg == Alg.ECO or alg == Alg.PECO:
         env_args = {
             'observables': DEFAULT_OBSERVABLES,
             'reward_signal': RewardSignal.BLS,
@@ -51,7 +51,7 @@ def run(neural_network_folder, num_envs, mini_envs, num_generated_instances, alg
             'reversible_spins': True,
             'if_greedy': False,
         }
-    elif alg == Alg.s2v:
+    elif alg == Alg.S2V:
         env_args = {'observables': [Observable.SPIN_STATE],
                     'reward_signal': RewardSignal.DENSE,
                     'extra_action': ExtraAction.NONE,
@@ -64,12 +64,12 @@ def run(neural_network_folder, num_envs, mini_envs, num_generated_instances, alg
                     'basin_reward': None,
                     'reversible_spins': False,
                     'if_greedy': False}
-    if alg == Alg.peco:
+    if alg == Alg.PECO:
         from rlsolver.methods.ECO_S2V.src.envs.util_envs_PECO import ValidationGraphGenerator
         validation_graph_generator = ValidationGraphGenerator(n_spins=num_nodes, graph_type=graph_type,
                                                               edge_type=EdgeType.DISCRETE, device=INFERENCE_DEVICE,
                                                               num_envs=num_generated_instances, seed=VALIDATION_SEED)
-    elif alg == Alg.s2v or alg == Alg.eco:
+    elif alg == Alg.S2V or alg == Alg.ECO:
         from rlsolver.methods.ECO_S2V.src.envs.util_envs import ValidationGraphGenerator
         validation_graph_generator = ValidationGraphGenerator(n_spins=num_nodes, graph_type=graph_type,
                                                               edge_type=EdgeType.DISCRETE, seed=VALIDATION_SEED,
@@ -93,16 +93,16 @@ def run(neural_network_folder, num_envs, mini_envs, num_generated_instances, alg
                 'n_hid_readout': [],
                 'tied_weights': False
             }
-            if alg == Alg.eco or alg == Alg.peco:
+            if alg == Alg.ECO or alg == Alg.PECO:
                 network = network_fn(n_obs_in=7, **network_args).to(INFERENCE_DEVICE)
-            elif alg == Alg.s2v:
+            elif alg == Alg.S2V:
                 network = network_fn(n_obs_in=1, **network_args).to(INFERENCE_DEVICE)
             network.load_state_dict(torch.load(network_save_path, map_location=INFERENCE_DEVICE))
             for param in network.parameters():
                 param.requires_grad = False
             network.eval()
             step_factor = 2
-            if alg == Alg.eco or alg == Alg.s2v:
+            if alg == Alg.ECO or alg == Alg.S2V:
                 for i, graph_array in enumerate(graphs):
                     results, results_raw, history = test_network(network, env_args, [graph_array], INFERENCE_DEVICE, step_factor, n_attempts=50,
                                                                  # step_factor is 1
@@ -110,7 +110,7 @@ def run(neural_network_folder, num_envs, mini_envs, num_generated_instances, alg
                                                                  batched=True, max_batch_size=None)
                     best_obj = results['cut'][0]
                     network_results.append(best_obj)
-            elif alg == Alg.peco:
+            elif alg == Alg.PECO:
                 for i, graph_tensor in enumerate(graphs):
                     best_obj = -1e10
                     test_graph_generator = SetGraphGenerator(graph_tensor, device=INFERENCE_DEVICE)

@@ -47,7 +47,7 @@ def run(graph_folder="../../data/syn_BA",
         param.requires_grad = False
     network.eval()
 
-    if ALG == Alg.peco:
+    if ALG == Alg.PECO:
         env_args = {
             'observables': DEFAULT_OBSERVABLES,
             'reward_signal': RewardSignal.BLS,

@@ -28,12 +28,12 @@ Overview
    * - S2V-DQN
      - RL
      - I
-     - `code <https://github.com/Open-Finance-Lab/RLSolver/blob/master/rlsolver/methods/ECO_S2V/train_and_inference/train_s2v.py>`_
+     - `code <https://github.com/Open-Finance-Lab/RLSolver/blob/master/rlsolver/methods/ECO_S2V/train_and_inference/train_S2V.py>`_
      - `code <https://github.com/zhumingpassional/RLSolver/blob/master/rlsolver/envs/env_S2V.py>`_
    * - ECO-DQN
      - RL
      - I
-     - `code <https://github.com/zhumingpassional/RLSolver/blob/master/rlsolver/methods/ECO_S2V/train_and_inference/train_eco.py>`_
+     - `code <https://github.com/zhumingpassional/RLSolver/blob/master/rlsolver/methods/ECO_S2V/train_and_inference/train_ECO.py>`_
      - `code <https://github.com/zhumingpassional/RLSolver/blob/master/rlsolver/envs/env_ECO.py>`_
    * - Jumanji
      - RL

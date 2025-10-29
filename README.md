@@ -131,8 +131,8 @@ problems.
 | Gurobi (QUBO) | Conventional | -       | [code](https://github.com/zhumingpassional/RLSolver/blob/master/rlsolver/methods/gurobi.py)                                | -                                                                                             |
 | Greedy        | Conventional | -       | [code](https://github.com/zhumingpassional/RLSolver/blob/master/rlsolver/methods/greedy.py)                                | -                                                                                             |
 | SDP           | Conventional | -       | [code](https://github.com/zhumingpassional/RLSolver/blob/master/rlsolver/methods/sdp.py)                                   | -                                                                                             |
-| S2V-DQN       | RL           | I       | [code](https://github.com/zhumingpassional/RLSolver/blob/master/rlsolver/methods/ECO_S2V/train_and_inference/train_s2v.py) | [code](https://github.com/zhumingpassional/RLSolver/blob/master/rlsolver/envs/env_S2V.py)     | 
-| ECO-DQN       | RL           | I       | [code](https://github.com/zhumingpassional/RLSolver/blob/master/rlsolver/methods/ECO_S2V/train_and_inference/train_eco.py) | [code](https://github.com/zhumingpassional/RLSolver/blob/master/rlsolver/envs/env_ECO.py)     | 
+| S2V-DQN       | RL           | I       | [code](https://github.com/zhumingpassional/RLSolver/blob/master/rlsolver/methods/ECO_S2V/train_and_inference/train_S2V.py) | [code](https://github.com/zhumingpassional/RLSolver/blob/master/rlsolver/envs/env_S2V.py)     | 
+| ECO-DQN       | RL           | I       | [code](https://github.com/zhumingpassional/RLSolver/blob/master/rlsolver/methods/ECO_S2V/train_and_inference/train_ECO.py) | [code](https://github.com/zhumingpassional/RLSolver/blob/master/rlsolver/envs/env_ECO.py)     | 
 | Jumanji       | RL           | I       | [code](https://github.com/zhumingpassional/RLSolver/tree/master/rlsolver/methods/ECO_S2V/jumanji)                          | [code](https://github.com/zhumingpassional/RLSolver/blob/master/rlsolver/envs/env_Jumanji.py) |
 | PI-GNN        | RL           | I       | [code](https://github.com/zhumingpassional/RLSolver/tree/master/rlsolver/methods/PIGNN)                                    | [code](https://github.com/zhumingpassional/RLSolver/blob/master/rlsolver/envs/env_PIGNN.py)   |
 | RUN-CSP       | RL           | I       | [code](https://github.com/zhumingpassional/RLSolver/tree/master/rlsolver/methods/RUNCSP)                                   | [code](https://github.com/zhumingpassional/RLSolver/blob/master/rlsolver/envs/env_RUNCSP.py)  |
@@ -180,15 +180,15 @@ rlsolver
 └──methods # generic RL methods, i.e., one method can solver multiple problems
     └──attention_model
     └──ECO_S2V
-          └──eco
-          └──s2v
+          └──ECO
+          └──S2V
           └──jumanji
           └──rl4co
     └──ISCO
     └──L2A (ours)
     └──PI-GNN
     └──RUN-CSP
-    └──s2v_ppo
+    └──S2V_PPO
     └──config.py
     └──genetic_algorithm.py
     └──greedy.py

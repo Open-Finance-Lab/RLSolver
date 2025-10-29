@@ -12,4 +12,4 @@ from rlsolver.methods.ECO_S2V.rl4co.models.common.constructive.base import (
 from rlsolver.methods.ECO_S2V.rl4co.models.rl.common.base import RL4COLitModule
 from rlsolver.methods.ECO_S2V.rl4co.models.rl.reinforce.baselines import REINFORCEBaseline, get_reinforce_baseline
 from rlsolver.methods.ECO_S2V.rl4co.models.rl.reinforce.reinforce import REINFORCE
-from rlsolver.methods.ECO_S2V.rl4co.models.zoo.s2v import S2VModel, S2VModelPolicy
+from rlsolver.methods.ECO_S2V.rl4co.models.zoo.S2V import S2VModel, S2VModelPolicy
