@@ -5,6 +5,8 @@ import plotly.graph_objects as go
 import numpy  as np
 import random
 import networkx as nx
+import random
+
 from numpy.core.defchararray import isnumeric
 cur_path = os.path.dirname(os.path.abspath(__file__))
 rlsolver_path = os.path.join(cur_path, '../../rlsolver')
@@ -22,15 +24,22 @@ except ImportError:
 import torch as th
 import random
 from rlsolver.methods.util import obtain_num_nodes
+from rlsolver.methods.util import build_adjacency_bool
+from rlsolver.methods.util import get_hot_image_of_graph
+from rlsolver.methods.util import show_array2d
+from rlsolver.methods.config import MyGraph
+from rlsolver.methods.config import MyNeighbor
+from rlsolver.methods.config import DIRECTORY_DATA
+from rlsolver.methods.config import GRAPH_TYPES
+from rlsolver.methods.util_generate import generate_mygraph
 
-GraphList = List[Tuple[int, int, int]]  # 每条边两端点的索引以及边的权重 List[Tuple[Node0ID, Node1ID, WeightEdge]]
-IndexList = List[List[int]]  # 按索引顺序记录每个点的所有邻居节点 IndexList[Node0ID] = [Node1ID, ...]
-
+from rlsolver.methods.config import MyGraph
+from rlsolver.methods.config import MyNeighbor
 GraphTypes = ['BA', 'ER', 'PL']
 TEN = th.Tensor
 
 from rlsolver.methods.util import calc_txt_files_with_prefixes
-from rlsolver.methods.util_generate import generate_graph_list
+from rlsolver.methods.util_generate import generate_mygraph
 
 # read graph file, e.g., gset_14.txt, as networkx.Graph
 # The nodes in file start from 1, but the nodes start from 0 in our codes.
@@ -64,59 +73,61 @@ def read_nxgraphs(directory: str, prefixes: List[str]) -> List[nx.Graph]:
         graphs.append(graph)
     return graphs
 
-def read_graphlist(filename: str) -> GraphList:
+def read_mygraph(filename: str) -> MyGraph:
     with open(filename, 'r') as file:
         lines = file.readlines()
         lines = [[int(i1) for i1 in i0.split()] for i0 in lines]
     num_nodes, num_edges = lines[0]
-    graph_list = [(n0 - 1, n1 - 1, dt) for n0, n1, dt in lines[1:]]  # 将node_id 由“从1开始”改为“从0开始”
-    return graph_list
+    mygraph = [(n0 - 1, n1 - 1, dt) for n0, n1, dt in lines[1:]]  # 将node_id 由“从1开始”改为“从0开始”
+    return mygraph
 
+def load_mygraph(DataDir, graph_name: str):
+    graph_types = GRAPH_TYPES
+    if os.path.exists(f"{DataDir}/{graph_name}.txt"):
+        txt_path = f"{DataDir}/{graph_name}.txt"
+        graph = read_mygraph(txt_path)
+    elif graph_name.split('_')[0] in graph_types and len(graph_name.split('_')) == 3:
+        graph_type, num_nodes, valid_i = graph_name.split('_')
+        num_nodes = int(num_nodes)
+        valid_i = int(valid_i[len('ID'):])
+        random.seed(valid_i)
+        graph, _, _ = generate_mygraph(graph_type, num_nodes)
+        random.seed()
+    elif graph_name.split('_')[0] in graph_types and len(graph_name.split('_')) == 2:
+        graph_type, num_nodes = graph_name.split('_')
+        num_nodes = int(num_nodes)
+        graph, _, _= generate_mygraph(graph_type, num_nodes)
+    elif os.path.isfile(graph_name):
+        txt_path = graph_name
+        graph = read_mygraph(txt_path)
+    else:
+        raise ValueError(f"DataDir {DataDir} | graph_name {graph_name}")
+    return graph
 
-
-
-def load_graph_list(dataDir='./data/syn_' + GRAPH_TYPE.value, graph_name: str= "", if_force_exist: bool = False):
-    # DataDir = './data/syn_'  + GRAPH_TYPE.value# 保存图最大割的txt文件的目录，txt数据以稀疏的方式记录了GraphList，可以重建图的邻接矩阵
-    if if_force_exist:
-        txt_path = f"{dataDir}/{graph_name}.txt"
-        if_exist = os.path.exists(txt_path)
-        print(f"| txt_path {txt_path} not exist") if not if_exist else None
-        assert if_exist
+def load_mygraph2(dataDir='./data/syn_'+GRAPH_TYPE.value, graph_name: str= ""):
     if os.path.exists(f"{dataDir}/{graph_name}.txt"):
         txt_path = f"{dataDir}/{graph_name}.txt"
-        graph_list = read_graphlist(filename=txt_path)
+        graph_list = read_mygraph(filename=txt_path)
     elif os.path.isfile(graph_name) and os.path.splitext(graph_name)[-1] == '.txt':
         txt_path = graph_name
-        graph_list = read_graphlist(filename=txt_path)
+        graph_list = read_mygraph(filename=txt_path)
     elif GRAPH_TYPE and graph_name.find('ID') == -1:
         num_nodes = int(graph_name.split('_')[-1])
-        graph_list = generate_graph_list(num_nodes=num_nodes, graph_type=GRAPH_TYPE)
+        graph_list, _, _ = generate_mygraph(num_nodes=num_nodes, graph_type=GRAPH_TYPE)
     elif GRAPH_TYPE and graph_name.find('ID') >= 0:
         num_nodes, valid_i = graph_name.split('_')[-2:]
         num_nodes = int(num_nodes)
         valid_i = int(valid_i[len('ID'):])
         random.seed(valid_i)
-        graph_list = generate_graph_list(num_nodes=num_nodes, graph_type=GRAPH_TYPE)
+        graph_list, _, _ = generate_mygraph(num_nodes=num_nodes, graph_type=GRAPH_TYPE)
         random.seed()
     else:
         raise ValueError(f"DataDir {dataDir} | graph_name {graph_name} txt_path {dataDir}/{graph_name}.txt")
     return graph_list
 
-def load_graph_list_from_txt(txt_path: str = 'G14.txt') -> GraphList:
-    with open(txt_path, 'r') as file:
-        lines = file.readlines()
-        lines = [[int(i1) for i1 in i0.split()] for i0 in lines]
-    num_nodes, num_edges = lines[0]
-    graph_list = [(n0 - 1, n1 - 1, dt) for n0, n1, dt in lines[1:]]  # 将node_id 由“从1开始”改为“从0开始”
-    assert num_nodes == obtain_num_nodes(graph_list=graph_list)
-    assert num_edges == len(graph_list)
-    return graph_list
 
 
-
-
-
-def build_adjacency_indies(graph_list: GraphList, if_bidirectional: bool = False) -> (IndexList, IndexList):
+def build_adjacency_indies(mygraph: MyGraph, if_bidirectional: bool = False) -> (MyNeighbor, MyNeighbor):
     """
     用二维列表list2d表示这个图：
     [
@@ -139,11 +150,11 @@ def build_adjacency_indies(graph_list: GraphList, if_bidirectional: bool = False
     0, 2, 1
     2, 3, 1
     """
-    num_nodes = obtain_num_nodes(graph_list=graph_list)
+    num_nodes = obtain_num_nodes(graph_list=mygraph)
 
     n0_to_n1s = [[] for _ in range(num_nodes)]  # 将 node0_id 映射到 node1_id
     n0_to_dts = [[] for _ in range(num_nodes)]  # 将 mode0_id 映射到 node1_id 与 node0_id 的距离
-    for n0, n1, distance in graph_list:
+    for n0, n1, distance in mygraph:
         n0_to_n1s[n0].append(n1)
         n0_to_dts[n0].append(distance)
         if if_bidirectional:
@@ -160,7 +171,6 @@ def build_adjacency_indies(graph_list: GraphList, if_bidirectional: bool = False
         n0_to_n1s[i] = n0_to_n1s[i][sort_ids]
         n0_to_dts[i] = n0_to_dts[i][sort_ids]
     return n0_to_n1s, n0_to_dts
-
 
 
 def update_xs_by_vs(xs0: TEN, vs0: TEN, xs1: TEN, vs1: TEN, if_maximize: bool) -> int:
@@ -272,9 +282,41 @@ def read_tsp_file(filename: str):
             graph.add_edge(i, j, weight=dist)
     return graph, coordinates
 
+def check_get_hot_tenor_of_graph():
+    gpu_id = int(sys.argv[1]) if len(sys.argv) > 1 else 0
+    device = th.device(f'cuda:{gpu_id}' if th.cuda.is_available() and gpu_id >= 0 else 'cpu')
+
+    if_save = True
+
+    # graph_names = []
+    # for graph_type in GraphTypes:
+    #     for num_nodes in (100, 101):
+    #         for seed_id in range(1):
+    #             graph_names.append(f'{graph_type}_{num_nodes}_ID{seed_id}')
+    # for gset_id in (14, 15, 49, 50, 22, 55, 70):  # todo
+    #     graph_names.append(f"gset_{gset_id}")
+    DataDir = "../../data/syn_BA"
+    graph_names = ["BA_100_ID0"]
+    for graph_name in graph_names:
+        graph_list: MyGraph = load_mygraph2(dataDir=DataDir, graph_name=graph_name)
+
+        graph = nx.Graph()
+        for n0, n1, weight in graph_list:
+            graph.add_edge(n0, n1, weight=weight)
+
+        for hot_type in ('avg', 'sum'):
+            adj_bool = build_adjacency_bool(mygraph=graph_list, if_bidirectional=True).to(device)
+            hot_array = get_hot_image_of_graph(adj_bool=adj_bool, hot_type=hot_type).cpu().data.numpy()
+            title = f"{hot_type}_{graph_name}_N{graph.number_of_nodes()}_E{graph.number_of_edges()}"
+            show_array2d(ary=hot_array, title=title, if_save=if_save)
+            print(f"title {title}")
+
+    print()
 if __name__ == '__main__':
 
     read_txt = True
     if read_txt:
         graph1 = read_nxgraph('../data/gset/gset_14.txt')
         graph2 = read_nxgraph('../data/syn_BA/BA_100_ID0.txt')
+
+    check_get_hot_tenor_of_graph()

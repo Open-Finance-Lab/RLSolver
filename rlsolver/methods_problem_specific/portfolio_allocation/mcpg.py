@@ -3,8 +3,9 @@ import torch
 import sys
 from torch_geometric.data import Data
 from evaluator import EncoderBase64
-from simulator import SimulatorGraphMaxCut, load_graph
-
+from simulator import SimulatorMaxcut
+from rlsolver.methods.util_read_data import load_mygraph
+from local_search import SolverLocalSearch
 """
 pip install torch_geometric
 """
@@ -318,11 +319,10 @@ def run():
     optimizer = torch.optim.Adam(net.parameters(), lr=8e-2)
 
     '''addition'''
-    from simulator import load_graph, SimulatorGraphMaxCut
-    from local_search import SolverLocalSearch
+
     graph_name = path.split('/')[-1][:-4]
-    graph = load_graph(graph_name=graph_name)
-    simulator = SimulatorGraphMaxCut(sim_name=graph_name, device=device)
+    graph = load_mygraph(graph_name=graph_name)
+    simulator = SimulatorMaxcut(sim_name=graph_name, device=device)
     solver = SolverLocalSearch(simulator=simulator, num_nodes=num_nodes)
 
     xs = simulator.generate_xs_randomly(num_sims=total_mcmc_num)

@@ -14,7 +14,7 @@ from config import ConfigGraph, ConfigPolicy
 from rlsolver.methods.util_evaluator import Evaluator
 from transformer import TrsCell, Buffer, convert_solution_to_prob, sub_set_sampling, get_advantages
 from network import GraphTRS, create_mask
-from rlsolver.methods.util_read_data import load_graph_list, GraphTypes, update_xs_by_vs, pick_xs_by_vs, GraphList
+from rlsolver.methods.util_read_data import load_mygraph2, GraphTypes, update_xs_by_vs, pick_xs_by_vs, MyGraph
 from rlsolver.methods.util import build_adjacency_bool
 
 from rlsolver.methods.util import gpu_info_str
@@ -23,7 +23,7 @@ from rlsolver.envs.env_L2A import EnvMaxcut
 
 
 def solve_single_graph_problem_using_trs(
-        graph_list: GraphList,
+        graph_list: MyGraph,
         args_graph: ConfigGraph,
         args_policy: ConfigPolicy,
         gpu_id: int = 0
@@ -39,11 +39,11 @@ def solve_single_graph_problem_using_trs(
     num_nodes = args_graph.num_nodes
 
     '''simulator'''
-    sim = EnvMaxcut(graph_list=graph_list, device=device, if_bidirectional=True)
+    sim = EnvMaxcut(mygraph=graph_list, device=device, if_bidirectional=True)
     if_max = sim.if_maximize
 
     '''seq_adj_float'''
-    adj_bool = build_adjacency_bool(graph_list=graph_list, num_nodes=num_nodes, if_bidirectional=True).to(device)
+    adj_bool = build_adjacency_bool(mygraph=graph_list, num_nodes=num_nodes, if_bidirectional=True).to(device)
     seq_adj_float = adj_bool[:, None, :].float()  # input tensor, sequence of adjacency_bool
     seq_mask_bool = create_mask(seq_len=num_nodes, mask_type='eye').to(device).detach()
 
@@ -280,7 +280,7 @@ def solve_single_graph_problem_using_trs(
 
 
 def run_graph_set_14_15(graph_type: str = 'gset_14', gpu_id: int = 0):
-    graph_list = load_graph_list(dataDir=DataDir, graph_name=graph_type)
+    graph_list = load_mygraph2(dataDir=DataDir, graph_name=graph_type)
 
     args_graph = ConfigGraph(graph_list=graph_list, graph_type=graph_type)
     args_graph.batch_size = 2 ** 5
@@ -296,7 +296,7 @@ def run_graph_set_14_15(graph_type: str = 'gset_14', gpu_id: int = 0):
 
 
 def run_graph_set_22_23(graph_type: str = 'G22', gpu_id: int = 0):
-    graph_list = load_graph_list(graph_name=graph_type)
+    graph_list = load_mygraph2(graph_name=graph_type)
 
     args_graph = ConfigGraph(graph_list=graph_list, graph_type=graph_type)
     args_graph.batch_size = 2 ** 3
@@ -311,7 +311,7 @@ def run_graph_set_22_23(graph_type: str = 'G22', gpu_id: int = 0):
 
 
 def run_graph_set_55_58(graph_type: str = 'G55', gpu_id: int = 0):
-    graph_list = load_graph_list(graph_name=graph_type)
+    graph_list = load_mygraph2(graph_name=graph_type)
 
     args_graph = ConfigGraph(graph_list=graph_list, graph_type=graph_type)
     args_graph.batch_size = 2 ** 3
@@ -326,7 +326,7 @@ def run_graph_set_55_58(graph_type: str = 'G55', gpu_id: int = 0):
 
 
 def run_graph_set_63(graph_type: str = 'G63', gpu_id: int = 0):
-    graph_list = load_graph_list(graph_name=graph_type)
+    graph_list = load_mygraph2(graph_name=graph_type)
 
     args_graph = ConfigGraph(graph_list=graph_list, graph_type=graph_type)
     args_graph.batch_size = 2 ** 2
@@ -341,7 +341,7 @@ def run_graph_set_63(graph_type: str = 'G63', gpu_id: int = 0):
 
 
 def run_graph_set_70(graph_type: str = 'G70', gpu_id: int = 0):
-    graph_list = load_graph_list(graph_name=graph_type)
+    graph_list = load_mygraph2(graph_name=graph_type)
 
     args_graph = ConfigGraph(graph_list=graph_list, graph_type=graph_type)
     args_graph.batch_size = 2 ** 1

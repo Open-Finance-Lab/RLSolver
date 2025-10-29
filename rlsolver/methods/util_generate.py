@@ -10,9 +10,8 @@ import numpy as np
 from typing import Union, Tuple, List
 import networkx as nx
 import torch as th
-
-from rlsolver.methods.util import (transfer_weightmatrix_to_nxgraph,
-                                                      )
+from rlsolver.methods.config import GRAPH_TYPES, MyGraph
+from rlsolver.methods.util import transfer_weightmatrix_to_nxgraph
 from rlsolver.methods.config import GraphType
 
 try:
@@ -21,11 +20,9 @@ try:
 except ImportError:
     plt = None
 
-from rlsolver.methods.config import GRAPH_TYPES
-def generate_graph(num_nodes: int, graph_type: GraphType):
+def generate_mygraph(graph_type: GraphType, num_nodes: int) -> (MyGraph, int, int):
     graph_types = GRAPH_TYPES
     assert graph_type in graph_types
-
     if graph_type == GraphType.ER:
         g = nx.erdos_renyi_graph(n=num_nodes, p=0.15)
     elif graph_type == GraphType.PL:
@@ -34,7 +31,6 @@ def generate_graph(num_nodes: int, graph_type: GraphType):
         g = nx.barabasi_albert_graph(n=num_nodes, m=4)
     else:
         raise ValueError(f"g_type {graph_type} should in {graph_types}")
-
     graph = []
     for node0, node1 in g.edges:
         distance = 1
@@ -152,7 +148,7 @@ def generate_write_distribution(num_nodess: List[int], num_graphs: int, graph_ty
     nxgraphs = []
     for num_nodes in num_nodess:
         for i in range(num_graphs):
-            weightmatrix, num_nodes, num_edges = generate_graph(num_nodes, graph_type)
+            weightmatrix, num_nodes, num_edges = generate_mygraph(graph_type, num_nodes)
             nxgraph = transfer_weightmatrix_to_nxgraph(weightmatrix, num_nodes)
             nxgraphs.append(nxgraph)
             filename = directory + '/' + graph_type.value + '_' + str(num_nodes) + '_ID' + str(i) + '.txt'
@@ -160,26 +156,9 @@ def generate_write_distribution(num_nodess: List[int], num_graphs: int, graph_ty
                 write_nxgraph(nxgraph, filename)
     return nxgraphs
 
-from rlsolver.methods.config import GraphList
+from rlsolver.methods.config import MyGraph
 
-def generate_graph_list(graph_type: str, num_nodes: int) -> GraphList:
-    graph_types = ['ErdosRenyi', 'BarabasiAlbert', 'PowerLaw']
-    assert graph_type in graph_types
 
-    if graph_type == 'ErdosRenyi':
-        g = nx.erdos_renyi_graph(n=num_nodes, p=0.15)
-    elif graph_type == 'BarabasiAlbert':
-        g = nx.barabasi_albert_graph(n=num_nodes, m=4)
-    elif graph_type == 'PowerLaw':
-        g = nx.powerlaw_cluster_graph(n=num_nodes, m=4, p=0.05)
-    elif graph_type == 'BarabasiAlbert':
-        g = nx.barabasi_albert_graph(n=num_nodes, m=4)
-    else:
-        raise ValueError(f"g_type {graph_type} should in {graph_types}")
-
-    distance = 1
-    graph_list = [(node0, node1, distance) for node0, node1 in g.edges]
-    return graph_list
 
 def write_nxgraph(g: nx.Graph(), filename: str):
     num_nodes = nx.number_of_nodes(g)

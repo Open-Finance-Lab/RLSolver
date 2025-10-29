@@ -20,8 +20,9 @@ try:
     import matplotlib.pyplot as plt
 except ImportError:
     plt = None
-GraphList = List[Tuple[int, int, int]]
-IndexList = List[List[int]]
+
+from rlsolver.methods.config import MyGraph
+from rlsolver.methods.config import MyNeighbor
 
 TEN = th.Tensor
 
@@ -31,7 +32,7 @@ def plot_nxgraph(g: nx.Graph(), fig_filename='.result/fig.png'):
     plt.savefig(fig_filename)
     plt.show()
 
-def obtain_num_nodes(graph_list: GraphList) -> int:
+def obtain_num_nodes(graph_list: MyGraph) -> int:
     s: set = set()
     for n0, n1, distance in graph_list:
         s.add(n0)
@@ -294,55 +295,12 @@ def obtain_first_number(s: str):
     return value
 
 
-def load_graph_from_txt(txt_path: str = './data/gset_14.txt'):
-    with open(txt_path, 'r') as file:
-        lines = file.readlines()
-        lines = [[int(i1) for i1 in i0.split()] for i0 in lines]
-    num_nodes, num_edges = lines[0]
-    graph = [(n0 - 1, n1 - 1, dt) for n0, n1, dt in lines[1:]]  # node_id “从1开始”改为“从0开始”
-    return graph, num_nodes, num_edges
-
 def get_adjacency_matrix(graph, num_nodes):
     adjacency_matrix = np.empty((num_nodes, num_nodes))
     adjacency_matrix[:] = -1  # 选用-1而非0表示表示两个node之间没有edge相连，避免两个节点的距离为0时出现冲突
     for n0, n1, dt in graph:
         adjacency_matrix[n0, n1] = dt
     return adjacency_matrix
-
-# def load_graph(graph_name: str):
-#     data_dir = DATA_DIR
-#     graph_types = GRAPH_DISTRI_TYPES
-#     if os.path.exists(f"{data_dir}/{graph_name}.txt"):
-#         txt_path = f"{data_dir}/{graph_name}.txt"
-#         graph, num_nodes, num_edges = load_graph_from_txt(txt_path=txt_path)
-#     elif graph_name.split('_')[0] in graph_types:
-#         g_type, num_nodes = graph_name.split('_')
-#         num_nodes = int(num_nodes)
-#         graph, num_nodes, num_edges = generate_graph(num_nodes=num_nodes, g_type=g_type)
-#     else:
-#         raise ValueError(f"graph_name {graph_name}")
-#     return graph, num_nodes, num_edges
-#
-# def load_graph_auto(graph_name: str):
-#     import random
-#     graph_types = GRAPH_DISTRI_TYPES
-#     if os.path.exists(f"{DataDir}/{graph_name}.txt"):
-#         txt_path = f"{DataDir}/{graph_name}.txt"
-#         graph = load_graph_from_txt(txt_path=txt_path)
-#     elif graph_name.split('_')[0] in graph_types and len(graph_name.split('_')) == 3:
-#         graph_type, num_nodes, valid_i = graph_name.split('_')
-#         num_nodes = int(num_nodes)
-#         valid_i = int(valid_i[len('ID'):])
-#         random.seed(valid_i)
-#         graph = generate_graph(num_nodes=num_nodes, graph_type=graph_type)
-#         random.seed()
-#     elif graph_name.split('_')[0] in graph_types and len(graph_name.split('_')) == 2:
-#         graph_type, num_nodes = graph_name.split('_')
-#         num_nodes = int(num_nodes)
-#         graph = generate_graph(num_nodes=num_nodes, graph_type=graph_type)
-#     else:
-#         raise ValueError(f"DataDir {DataDir} | graph_name {graph_name}")
-#     return graph
 
 def save_graph_info_to_txt(txt_path, graph, num_nodes, num_edges):
     formatted_content = f"{num_nodes} {num_edges}\n"
@@ -353,7 +311,7 @@ def save_graph_info_to_txt(txt_path, graph, num_nodes, num_edges):
         file.write(formatted_content)
 
 
-def build_adjacency_matrix(graph_list: GraphList, if_bidirectional: bool = False) -> TEN:
+def build_adjacency_matrix(graph_list: MyGraph, if_bidirectional: bool = False) -> TEN:
     """例如，无向图里：
     - 节点0连接了节点1，边的权重为1
     - 节点0连接了节点2，边的权重为2
@@ -384,7 +342,7 @@ def build_adjacency_matrix(graph_list: GraphList, if_bidirectional: bool = False
     return adjacency_matrix
 
 
-def build_adjacency_bool(graph_list: GraphList, num_nodes: int = 0, if_bidirectional: bool = False) -> TEN:
+def build_adjacency_bool(mygraph: MyGraph, num_nodes: int = 0, if_bidirectional: bool = False) -> TEN:
     """例如，无向图里：
     - 节点0连接了节点1
     - 节点0连接了节点2
@@ -404,16 +362,16 @@ def build_adjacency_bool(graph_list: GraphList, num_nodes: int = 0, if_bidirecti
     - 其余为False
     """
     if num_nodes == 0:
-        num_nodes = obtain_num_nodes(graph_list=graph_list)
+        num_nodes = obtain_num_nodes(graph_list=mygraph)
 
     adjacency_bool = th.zeros((num_nodes, num_nodes), dtype=th.bool)
-    node0s, node1s = list(zip(*graph_list))[:2]
+    node0s, node1s = list(zip(*mygraph))[:2]
     adjacency_bool[node0s, node1s] = True
     if if_bidirectional:
         adjacency_bool = th.logical_or(adjacency_bool, adjacency_bool.T)
     return adjacency_bool
 
-def build_adjacency_matrix_auto(graph: GraphList, if_bidirectional: bool = False):
+def build_adjacency_matrix_auto(mygraph: MyGraph, if_bidirectional: bool = False):
     """例如，无向图里：
     - 节点0连接了节点1
     - 节点0连接了节点2
@@ -433,18 +391,18 @@ def build_adjacency_matrix_auto(graph: GraphList, if_bidirectional: bool = False
     - 其余为False
     """
     not_connection = -1  # 选用-1去表示表示两个node之间没有edge相连，不选用0是为了避免两个节点的距离为0时出现冲突
-    print(f"graph before enter: {graph}")
-    num_nodes = obtain_num_nodes(graph)
+    print(f"graph before enter: {mygraph}")
+    num_nodes = obtain_num_nodes(mygraph)
 
     adjacency_matrix = th.zeros((num_nodes, num_nodes), dtype=th.float32)
     adjacency_matrix[:] = not_connection
-    for n0, n1, distance in graph:
+    for n0, n1, distance in mygraph:
         adjacency_matrix[n0, n1] = distance
         if if_bidirectional:
             adjacency_matrix[n1, n0] = distance
     return adjacency_matrix
 
-def build_adjacency_indies_auto(graph, if_bidirectional: bool = False) -> (IndexList, IndexList):
+def build_adjacency_indies_auto(graph, if_bidirectional: bool = False) -> (MyNeighbor, MyNeighbor):
     """
     用二维列表list2d表示这个图：
     [
@@ -497,7 +455,7 @@ def convert_matrix_to_vector(matrix):
     return th.hstack(vector)
 
 
-def build_graph_list(adjacency_bool: TEN) -> GraphList:
+def build_graph_list(adjacency_bool: TEN) -> MyGraph:
     num_nodes = adjacency_bool.shape[0]
 
     graph_list = []
@@ -637,7 +595,7 @@ def show_gpu_memory(device):
 
 
 
-def save_graph_list_to_txt(graph_list: GraphList, txt_path: str):
+def save_graph_list_to_txt(graph_list: MyGraph, txt_path: str):
     num_nodes = obtain_num_nodes(graph_list=graph_list)
     num_edges = len(graph_list)
 
@@ -704,35 +662,7 @@ def get_hot_image_of_graph(adj_bool, hot_type):
 
 
 
-def check_get_hot_tenor_of_graph():
-    gpu_id = int(sys.argv[1]) if len(sys.argv) > 1 else 0
-    device = th.device(f'cuda:{gpu_id}' if th.cuda.is_available() and gpu_id >= 0 else 'cpu')
 
-    if_save = True
-
-    graph_names = []
-    for graph_type in ['ErdosRenyi', 'PowerLaw', 'BarabasiAlbert']:
-        for num_nodes in (128, 1024):
-            for seed_id in range(2):
-                graph_names.append(f'{graph_type}_{num_nodes}_ID{seed_id}')
-    for gset_id in (14, 15, 49, 50, 22, 55, 70):  # todo
-        graph_names.append(f"gset_{gset_id}")
-
-    for graph_name in graph_names:
-        graph_list: GraphList = load_graph_list(dataDir=DataDir, graph_name=graph_name)
-
-        graph = nx.Graph()
-        for n0, n1, weight in graph_list:
-            graph.add_edge(n0, n1, weight=weight)
-
-        for hot_type in ('avg', 'sum'):
-            adj_bool = build_adjacency_bool(graph_list=graph_list, if_bidirectional=True).to(device)
-            hot_array = get_hot_image_of_graph(adj_bool=adj_bool, hot_type=hot_type).cpu().data.numpy()
-            title = f"{hot_type}_{graph_name}_N{graph.number_of_nodes()}_E{graph.number_of_edges()}"
-            show_array2d(ary=hot_array, title=title, if_save=if_save)
-            print(f"title {title}")
-
-    print()
 
 if __name__ == '__main__':
     s = "// time_limit: ('TIME_LIMIT', <class 'float'>, 36.0, 0.0, inf, inf)"
@@ -758,7 +688,6 @@ if __name__ == '__main__':
     # to_extension = '.txt'
     # transfer_write_solver_results(directory_result, prefixes, time_limits, from_extension, to_extension)
 
-    check_get_hot_tenor_of_graph()
 
 
     print()

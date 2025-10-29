@@ -5,13 +5,13 @@ import torch as th
 import torch.nn as nn
 from torch.nn.utils import clip_grad_norm_
 
-from config import ConfigGraph, GraphList
+from config import ConfigGraph, MyGraph
 from network import GraphTRS, create_mask
 from rlsolver.methods.util_evaluator import Recorder
 from rlsolver.methods.util import build_adjacency_bool
-from rlsolver.methods.util_read_data import load_graph_list
+from rlsolver.methods.util_read_data import load_mygraph2
 from rlsolver.methods.util import get_hot_image_of_graph, get_adjacency_distance_matrix
-from rlsolver.methods.util_generate import generate_graph_list
+from rlsolver.methods.util_generate import generate_mygraph
 
 TEN = th.Tensor
 
@@ -21,8 +21,8 @@ def generate_adjacency_seq(num_sims, graph_type, num_nodes, if_tqdm=False):
 
     i_iteration = tqdm.trange(num_sims, ascii=True) if if_tqdm else range(num_sims)
     for i in i_iteration:
-        graph_list = generate_graph_list(graph_type=graph_type, num_nodes=num_nodes)
-        adjacency_seq[:, i, :] = build_adjacency_bool(graph_list=graph_list, if_bidirectional=True)
+        graph_list = generate_mygraph(graph_type=graph_type, num_nodes=num_nodes)
+        adjacency_seq[:, i, :] = build_adjacency_bool(mygraph=graph_list, if_bidirectional=True)
     return adjacency_seq
 
 
@@ -102,7 +102,7 @@ def sort_adj_bools(adj_bools: TEN) -> TEN:
 '''run'''
 
 
-def train_graph_net_in_a_single_graph(graph_list: GraphList, args: ConfigGraph, net_path: str, gpu_id: int = 0):
+def train_graph_net_in_a_single_graph(graph_list: MyGraph, args: ConfigGraph, net_path: str, gpu_id: int = 0):
     device = th.device(f'cuda:{gpu_id}' if th.cuda.is_available() and gpu_id >= 0 else 'cpu')
 
     '''config'''
@@ -121,7 +121,7 @@ def train_graph_net_in_a_single_graph(graph_list: GraphList, args: ConfigGraph, 
     learning_rate = args.learning_rate
 
     '''graph'''
-    adj_bool = build_adjacency_bool(graph_list=graph_list, num_nodes=num_nodes, if_bidirectional=True).to(device)
+    adj_bool = build_adjacency_bool(mygraph=graph_list, num_nodes=num_nodes, if_bidirectional=True).to(device)
 
     '''model'''
     net = GraphTRS(inp_dim=inp_dim, mid_dim=mid_dim, out_dim=out_dim,
@@ -179,7 +179,7 @@ def check_train_graph_trs_net_in_a_single_graph():
     gpu_id = GPU_ID
 
     graph_type, num_nodes, graph_id = 'PowerLaw', 100, 0
-    graph_list = load_graph_list(f"{graph_type}_{num_nodes}_ID{graph_id}")
+    graph_list = load_mygraph2(f"{graph_type}_{num_nodes}_ID{graph_id}")
     net_path = f'./model/graph_trs_{graph_type}_{num_nodes}_ID{graph_id}.pth'
     args = ConfigGraph(graph_list=graph_list, graph_type=graph_type, num_nodes=num_nodes)
 
