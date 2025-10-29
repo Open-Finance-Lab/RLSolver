@@ -2,14 +2,14 @@ import os
 import time
 
 import torch as th
-from TNCO_simulator import SimulatorTensorNetContract
+from rlsolver.envs.env_L2A import EnvTNCO
 from rlsolver.methods.util_evaluator import Evaluator
 
 TEN = th.Tensor
 
 
 class SolverLocalSearch:
-    def __init__(self, simulator: SimulatorTensorNetContract, num_bits: int):
+    def __init__(self, simulator: EnvTNCO, num_bits: int):
         # the num_nodes of SolverLocalSearch is not the num_nodes of TensorNetworkEnv
         self.simulator = simulator
         self.num_bits = num_bits
@@ -124,7 +124,7 @@ def check_searcher():
 
     '''auto choose NodesSycamore'''
     # env = TensorNetworkEnv(nodes_list=nodes_list, ban_edges=ban_edges, device=device, num_bases=-1)
-    env = SimulatorTensorNetContract(nodes_list=nodes_list, ban_edges=ban_edges, device=device)
+    env = EnvTNCO(nodes_list=nodes_list, ban_edges=ban_edges, device=device)
     print(f"\nnum_nodes      {env.num_nodes:9}"
           f"\nnum_edges      {env.num_edges:9}"
           f"\nban_edges      {env.ban_edges:9}")

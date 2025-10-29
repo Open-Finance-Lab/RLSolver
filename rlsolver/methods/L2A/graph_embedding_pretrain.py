@@ -8,8 +8,10 @@ from torch.nn.utils import clip_grad_norm_
 from config import ConfigGraph, GraphList
 from network import GraphTRS, create_mask
 from rlsolver.methods.util_evaluator import Recorder
-from rlsolver.methods.util_read_data import build_adjacency_bool, load_graph_list, generate_graph_list
+from rlsolver.methods.util import build_adjacency_bool
+from rlsolver.methods.util_read_data import load_graph_list
 from rlsolver.methods.util import get_hot_image_of_graph, get_adjacency_distance_matrix
+from rlsolver.methods.util_generate import generate_graph_list
 
 TEN = th.Tensor
 
@@ -174,7 +176,7 @@ def train_graph_net_in_a_single_graph(graph_list: GraphList, args: ConfigGraph, 
 
 
 def check_train_graph_trs_net_in_a_single_graph():
-    gpu_id = int(sys.argv[1]) if len(sys.argv) > 1 else 0
+    gpu_id = GPU_ID
 
     graph_type, num_nodes, graph_id = 'PowerLaw', 100, 0
     graph_list = load_graph_list(f"{graph_type}_{num_nodes}_ID{graph_id}")

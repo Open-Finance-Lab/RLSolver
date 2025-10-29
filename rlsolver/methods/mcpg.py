@@ -17,7 +17,8 @@ from rlsolver.methods.util_evaluator import EncoderBase64
 from rlsolver.envs.env_mcpg import EnvMaxcut
 from rlsolver.methods.util import calc_txt_files_with_prefixes
 import time
-from rlsolver.envs.LocalSearch import LocalSearch
+# from rlsolver.envs.LocalSearch import LocalSearch
+from rlsolver.methods.LocalSearch import LocalSearch
 from rlsolver.methods.util_write_read_result import write_graph_result
 """
 pip install torch_geometric
@@ -301,15 +302,7 @@ def get_return(probs, samples, value, total_mcmc_num, repeat_times):
     return objective
 
 
-def save_graph_list_to_txt(graph_list, txt_path: str):
-    num_nodes = max([max(n0, n1) for n0, n1, distance in graph_list]) + 1
-    num_edges = len(graph_list)
 
-    lines = [f"{num_nodes} {num_edges}", ]
-    lines.extend([f"{n0 + 1} {n1 + 1} {distance}" for n0, n1, distance in graph_list])
-    lines = [l + '\n' for l in lines]
-    with open(txt_path, 'w') as file:
-        file.writelines(lines)
 
 
 def print_gpu_memory(device):
@@ -463,7 +456,7 @@ def mcpg(filename: str):
     best_x = xs_epochs[best_index]
     return best_obj, best_x
 
-def mcpg_multifiles(directory_data: str, prefixes: List[str]):
+def mcpg_manyfiles(directory_data: str, prefixes: List[str]):
     files = calc_txt_files_with_prefixes(directory_data, prefixes)
     for i in range(len(files)):
         start_time = time.time()
@@ -481,7 +474,7 @@ def mcpg_multifiles(directory_data: str, prefixes: List[str]):
 if __name__ == '__main__':
     directory_data = DIRECTORY_DATA
     prefixes = PREFIXES
-    mcpg_multifiles(directory_data, prefixes)
+    mcpg_manyfiles(directory_data, prefixes)
 
 
 

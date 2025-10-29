@@ -296,7 +296,7 @@ def run():
     reset_epoch_num = 320
     repeat_times = 288
     total_mcmc_num = 768
-    path = 'data/gset_70.txt'  # GPU RAM 40GB
+    path = '../../data/gset/gset_14.txt'  # GPU RAM 40GB
 
     show_gap = 2 ** 4
 
@@ -322,7 +322,7 @@ def run():
     from local_search import SolverLocalSearch
     graph_name = path.split('/')[-1][:-4]
     graph = load_graph(graph_name=graph_name)
-    simulator = SimulatorGraphMaxCut(graph=graph, device=device)
+    simulator = SimulatorGraphMaxCut(sim_name=graph_name, device=device)
     solver = SolverLocalSearch(simulator=simulator, num_nodes=num_nodes)
 
     xs = simulator.generate_xs_randomly(num_sims=total_mcmc_num)
@@ -389,7 +389,7 @@ def run():
                 objective_value = max(total_max)
                 solution = total_best_info
 
-                encoder = EncoderBase64(num_nodes=num_nodes)
+                encoder = EncoderBase64(num_nodes)
                 x_str = encoder.bool_to_str(x_bool=solution)
                 print(f"epoch {epoch:6}  objective value  {objective_value.item():8.2f}  solution {x_str}")
                 print_gpu_memory(device)

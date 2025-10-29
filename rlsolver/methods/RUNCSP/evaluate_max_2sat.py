@@ -1,8 +1,7 @@
 from model import Max_2SAT_Network
 from evaluate import evaluate_boosted
 from util import CSP_Instance
-
-import data_utils
+from util_data import load_formulas
 import argparse
 
 
@@ -17,7 +16,7 @@ def main():
     network = Max_2SAT_Network.load(args.model_dir)
 
     print('loading cnf formulas...')
-    names, formulas = data_utils.load_formulas(args.data_path)
+    names, formulas = load_formulas(args.data_path)
     print('Converting formulas to CSP instances')
     instances = [CSP_Instance.cnf_to_instance(f, name=n) for n, f in zip(names, formulas)]
     

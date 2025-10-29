@@ -2,13 +2,8 @@ from model import RUN_CSP
 from train import train
 from util import CSP_Instance, mc_weighted_language
 
-import data_utils
 import argparse
-import os
-import numpy as np
-import glob
 import networkx as nx
-import csv
 import numpy as np
 
 from tqdm import tqdm

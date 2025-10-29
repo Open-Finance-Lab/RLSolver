@@ -2,11 +2,9 @@ from model import Max_2SAT_Network
 from util import CSP_Instance
 from train import train
 
-import data_utils
-
 import argparse
 import random
-
+from util_data import load_graphs, load_formulas
 
 def main():
     parser = argparse.ArgumentParser()
@@ -19,7 +17,7 @@ def main():
     args = parser.parse_args()
 
     print('loading cnf formulas...')
-    names, formulas = data_utils.load_formulas(args.data_path)
+    names, formulas = load_formulas(args.data_path)
     random.shuffle(formulas)
     print('Converting formulas to CSP instances')
     instances = [CSP_Instance.cnf_to_instance(f) for f in formulas]

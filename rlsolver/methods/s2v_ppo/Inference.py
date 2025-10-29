@@ -6,9 +6,9 @@ import networkx as nx
 from pathlib import Path
 from tqdm import tqdm
 
-from models import PPOLinearModel
+from model import PPOLinearModel
 from config import Config
-from env import MaxCutEnv
+from env import EnvMaxcut
 from torch_geometric.data import Data, Batch
 
 
@@ -53,7 +53,7 @@ def load_graph_from_file(filepath):
 def evaluate_single_graph(model, graph_data, config):
     """对单个图进行评估"""
     # 创建环境
-    env = MaxCutEnv(graph_data, config)
+    env = EnvMaxcut(graph_data, config)
     state = env.reset()
     
     # 贪婪策略运行直到结束

@@ -4,10 +4,7 @@ from util import CSP_Instance
 import numpy as np
 import argparse
 
-import time
-
 from tqdm import tqdm
-import csv
 
 def evaluate_boosted(network, eval_instances, t_max, attempts=64):
     """

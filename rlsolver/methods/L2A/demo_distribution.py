@@ -17,9 +17,11 @@ from network import GraphTRS
 from rlsolver.methods.util_read_data import GraphList, load_graph_list, update_xs_by_vs, pick_xs_by_vs
 from rlsolver.methods.util import gpu_info_str
 from graph_embedding_pretrain import train_graph_net_in_graph_distribution
+from rlsolver.envs.env_L2A import EnvMaxcut
+from rlsolver.methods.config import GRAPH_TYPE, NUM_TRAIN_NODES, NUM_INFERENCE_NODES
+DataDir = '../../data/syn_' + GRAPH_TYPE.value
 
-
-def solve_graph_dist_problem_using_trs(
+def solve_graph_distribution_problem_using_trs(
         graph_list: GraphList,
         args_graph: ConfigGraph,
         args_policy: ConfigPolicy,
@@ -28,20 +30,19 @@ def solve_graph_dist_problem_using_trs(
     # graph_type, num_nodes, graph_id = 'PowerLaw', 100, 0
     # graph_name = f'{graph_type}_{num_nodes}_ID{graph_id}'
     # graph_type, num_nodes, graph_id = 'gset_14', 800, 0
-    # args_graph = ConfigGraph(graph_list=graph_list, graph_type=graph_type)
     device = th.device(f'cuda:{gpu_id}' if th.cuda.is_available() and gpu_id >= 0 else 'cpu')
 
     '''config'''
     graph_type = args_graph.graph_type
     num_nodes = args_graph.num_nodes
 
-    graph_lists = [load_graph_list(graph_name=f"{graph_type}_{num_nodes}_ID{graph_id}", if_force_exist=True)
-                   for graph_id in range(30)]
+    num_graphs = 1
+    graph_lists = [load_graph_list(dataDir=DataDir, graph_name=f"{graph_type.value}_{num_nodes}_ID{graph_id}", if_force_exist=True)
+                   for graph_id in range(num_graphs)]
     # 加载测试集的30个实例，用于训练中打印出策略模型学习曲线
 
     '''simulator'''
-    from graph_max_cut_simulator import SimulatorGraphMaxCut
-    sim = SimulatorGraphMaxCut(graph_list=graph_list, device=device, if_bidirectional=True)
+    sim = EnvMaxcut(graph_list=graph_list, device=device, if_bidirectional=True)
     if_max = sim.if_maximize
 
     """get seq_graph"""
@@ -121,7 +122,7 @@ def solve_graph_dist_problem_using_trs(
     # 提前计算好测试集的30个实例的嵌入特征，避免在训练过程中重复计算
 
     seq_graph, sim, evaluator, best_xs, best_vs = get_seq_graph(
-        graph_list=load_graph_list(graph_name=f"{graph_type}_{num_nodes}"),
+        graph_list=load_graph_list(dataDir=DataDir, graph_name=f"{graph_type}_{num_nodes}"),
         args_graph=args_graph,
         args_policy=args_policy,
         graph_embed_net=graph_embed_net,
@@ -300,7 +301,7 @@ def solve_graph_dist_problem_using_trs(
             graph_id = th.randint(num_instances, 2 ** 24, size=(1,)).item()
             # 重新从图分布里采样新的图，用于训练。避免抽取到训练集的图。
             seq_graph, sim, evaluator, best_xs, best_vs = get_seq_graph(
-                graph_list=load_graph_list(graph_name=f"{graph_type}_{num_nodes}_ID{graph_id}"),
+                graph_list=load_graph_list(dataDir=DataDir, graph_name=f"{graph_type}_{num_nodes}_ID{graph_id}"),
                 args_graph=args_graph,
                 args_policy=args_policy,
                 graph_embed_net=graph_embed_net,
@@ -312,7 +313,7 @@ def solve_graph_dist_problem_using_trs(
                 _seq_graph = seq_graphs[_graph_id].to(device)
 
                 _graph_list = graph_lists[_graph_id]
-                _sim = SimulatorGraphMaxCut(graph_list=_graph_list, device=device, if_bidirectional=True)
+                _sim = EnvMaxcut(graph_list=_graph_list, device=device, if_bidirectional=True)
                 valid_net(sim=_sim, net=net, evaluator=_evaluator, seq_graph=_seq_graph, iter_i=iter_i,
                           num_sims=num_sims, graph_id=_graph_id,
                           seq_len=seq_len, num_repeats=num_repeats, top_k=top_k, num_searchers=num_searchers)
@@ -325,7 +326,7 @@ def solve_graph_dist_problem_using_trs(
         _seq_graph = seq_graphs[_graph_id].to(device)
 
         _graph_list = graph_lists[_graph_id]
-        _sim = SimulatorGraphMaxCut(graph_list=graph_list, device=device, if_bidirectional=True)
+        _sim = EnvMaxcut(graph_list=graph_list, device=device, if_bidirectional=True)
         valid_net(sim=_sim, net=net, evaluator=_evaluator, seq_graph=_seq_graph, iter_i=-1,
                   num_sims=num_sims, graph_id=_graph_id,
                   seq_len=seq_len, num_repeats=num_repeats, top_k=top_k, num_searchers=num_searchers)
@@ -403,13 +404,13 @@ def convert_log_txt_in_dir_to_df(model_dir='./model'):
     print(result)
 
 
-def run_graph_dist_num_nodes():
+def run_graph_distribution_num_nodes():
     sys_argv_id = int(sys.argv[1]) if len(sys.argv) > 1 else 0
     gpu_id = sys_argv_id
     cwd = os.getcwd()  # "/home/shixi/yonv/L2A_Algorithm"
 
     # graph_name.replace('BA', 'BarabasiAlbert').replace('ER', 'ErdosRenyi').replace('PL', 'PowerLaw')
-    graph_type, num_nodes = 'ER', 100
+    graph_type, num_nodes = GRAPH_TYPE, NUM_TRAIN_NODES
     # graph_type, num_nodes = 'ErdosRenyi', 1000
     # graph_type, num_nodes = 'BarabasiAlbert', 2000
 
@@ -478,7 +479,7 @@ def run_graph_dist_num_nodes():
     args_graph.buffer_repeats = buffer_repeats
     args_graph.num_buffers = num_buffers
 
-    graph_list = load_graph_list(graph_name=f"{graph_type}_{num_nodes}")
+    graph_list = load_graph_list(dataDir=DataDir, graph_name= f"{graph_type}_{num_nodes}")
     args_policy = ConfigPolicy(graph_list=graph_list)
     args_policy.num_sims = policy_num_sims
     args_policy.num_repeats = num_repeats
@@ -488,7 +489,7 @@ def run_graph_dist_num_nodes():
     assert args_graph.embed_dim == args_policy.embed_dim
     assert args_graph.mid_dim == args_policy.mid_dim
     # solve_single_graph_problem_using_trs(graph_list, args_graph=args_graph, args_policy=args_policy, gpu_id=gpu_id)
-    solve_graph_dist_problem_using_trs(graph_list, args_graph=args_graph, args_policy=args_policy, gpu_id=gpu_id)
+    solve_graph_distribution_problem_using_trs(graph_list, args_graph=args_graph, args_policy=args_policy, gpu_id=gpu_id)
 
 
 def check_x_str():
@@ -497,7 +498,6 @@ def check_x_str():
     device = th.device(f'cuda:{gpu_id}' if th.cuda.is_available() and gpu_id >= 0 else 'cpu')
 
     import pandas as pd
-    from graph_max_cut_simulator import SimulatorGraphMaxCut
     from rlsolver.methods.util_evaluator import EncoderBase64
     df = pd.read_csv(csv_path)
 
@@ -509,8 +509,8 @@ def check_x_str():
         x_str = str(row['x_str'])
         cut_value = int(row['cut_value'])
 
-        graph_list = load_graph_list(graph_name=f'{graph_dist}_{num_nodes}_ID{graph_id}', if_force_exist=True)
-        sim = SimulatorGraphMaxCut(graph_list=graph_list)
+        graph_list = load_graph_list(dataDir=DataDir, graph_name=f'{graph_dist}_{num_nodes}_ID{graph_id}', if_force_exist=True)
+        sim = EnvMaxcut(graph_list=graph_list)
         encoder = EncoderBase64(encode_len=num_nodes)
         x = encoder.str_to_bool(x_str=x_str)
         obj_value = sim.calculate_obj_values(xs=x[None, :].to(device))[0].item()
@@ -521,6 +521,6 @@ def check_x_str():
 
 
 if __name__ == '__main__':
-    run_graph_dist_num_nodes()
+    run_graph_distribution_num_nodes()
     # convert_log_txt_in_dir_to_df()
     # check_x_str()

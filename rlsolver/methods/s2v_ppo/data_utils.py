@@ -1,4 +1,4 @@
-# data_utils.py
+# util_data.py
 import torch
 import networkx as nx
 import numpy as np

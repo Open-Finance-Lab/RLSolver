@@ -35,7 +35,7 @@ from rlsolver.methods.greedy import (greedy_maxcut,
                                      greedy_set_cover,
                                      greedy_graph_coloring,
                                      )
-# from util import run_simulated_annealing_over_multiple_files
+# from util import run_simulated_annealing_over_manyfiles
 from rlsolver.methods.config import *
 
 
@@ -233,7 +233,7 @@ def simulated_annealing(init_temperature: int, num_steps: Optional[int], graph: 
     print('running_duration: ', running_duration)
     return curr_score, curr_solution, scores
 
-def run_simulated_annealing_over_multiple_files(alg, alg_name, init_temperature, num_steps, directory_data: str, prefixes: List[str])-> List[List[float]]:
+def run_simulated_annealing_over_manyfiles(alg, alg_name, init_temperature, num_steps, directory_data: str, prefixes: List[str])-> List[List[float]]:
     scoress = []
     files = calc_txt_files_with_prefixes(directory_data, prefixes)
     for i in range(len(files)):
@@ -275,4 +275,4 @@ if __name__ == '__main__':
         num_steps = None
         directory_data = '../data/set_cover'
         prefixes = ['frb30-15-1.msc']
-    run_simulated_annealing_over_multiple_files(alg, alg_name, init_temperature, num_steps, directory_data, prefixes)
+    run_simulated_annealing_over_manyfiles(alg, alg_name, init_temperature, num_steps, directory_data, prefixes)

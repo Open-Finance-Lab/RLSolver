@@ -7,9 +7,15 @@ import torch.nn as nn
 
 from config import ConfigGraph, ConfigPolicy
 from graph_embedding_pretrain import sort_adj_bools
-from network import GraphTRS, create_mask
+from network import GraphTRS
+from network import create_mask
 from rlsolver.methods.util_evaluator import Evaluator
-from rlsolver.methods.util_read_data import load_graph_list, update_xs_by_vs, pick_xs_by_vs, GraphList, build_adjacency_bool
+from rlsolver.methods.util_read_data import load_graph_list
+from rlsolver.methods.util_read_data import update_xs_by_vs
+from rlsolver.methods.util_read_data import pick_xs_by_vs
+from rlsolver.methods.util_read_data import GraphList
+from rlsolver.methods.util import build_adjacency_bool
+from rlsolver.envs.env_L2A import EnvMaxcut
 
 TEN = th.Tensor
 '''network'''
@@ -160,8 +166,7 @@ def check_policy_trs_layer():
     graph_list = load_graph_list(graph_name=graph_name)
 
     '''simulator'''
-    from graph_max_cut_simulator import SimulatorGraphMaxCut
-    sim = SimulatorGraphMaxCut(graph_list=graph_list, device=device, if_bidirectional=True)
+    sim = EnvMaxcut(graph_list=graph_list, device=device, if_bidirectional=True)
     # if_max = sim.if_maximize
 
     '''seq_adj_float'''
@@ -298,7 +303,6 @@ def get_advantages(rewards: TEN, values: TEN, lambda_gae_adv: float = 0.98) -> T
 
 def get_seq_graph(graph_list: GraphList, args_graph: ConfigGraph, args_policy: ConfigPolicy, device: th.device,
                   graph_embed_net):
-    from graph_max_cut_simulator import SimulatorGraphMaxCut
 
     '''config'''
     graph_type = args_graph.graph_type
@@ -306,7 +310,7 @@ def get_seq_graph(graph_list: GraphList, args_graph: ConfigGraph, args_policy: C
     num_sims = args_policy.num_sims
     save_dir = f"./{graph_type}_{num_nodes}"  # TODO wait for adding to ConfigPolicy
 
-    sim = SimulatorGraphMaxCut(graph_list=graph_list, device=device, if_bidirectional=True)
+    sim = EnvMaxcut(graph_list=graph_list, device=device, if_bidirectional=True)
     if_max = sim.if_maximize
 
     '''seq_adj_float'''

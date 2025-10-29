@@ -66,7 +66,7 @@ def sdp_maxcut(filename: str):
     return score, solution
 
 
-def run_sdp_over_multiple_files(alg, alg_name, directory_data: str, prefixes: List[str]) -> List[List[float]]:
+def run_sdp_over_manyfiles(alg, alg_name, directory_data: str, prefixes: List[str]) -> List[List[float]]:
     scores = []
     files = calc_txt_files_with_prefixes(directory_data, prefixes)
     for i in range(len(files)):
@@ -97,5 +97,5 @@ if __name__ == '__main__':
     alg_name = 'sdp'
     directory_data = '../data/syn_BA'
     prefixes = ['BA_100']
-    scores = run_sdp_over_multiple_files(alg, alg_name, directory_data, prefixes)
+    scores = run_sdp_over_manyfiles(alg, alg_name, directory_data, prefixes)
     print(f"scores: {scores}")

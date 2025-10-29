@@ -7,14 +7,25 @@ sys.path.append(os.path.dirname(rlsolver_path))
 
 import torch as th
 
-from rlsolver.envs.env_mcpg import (EnvMaxcut,
-                                    update_xs_by_vs)
 
 TEN = th.Tensor
 
+def update_xs_by_vs(xs0, vs0, xs1, vs1, if_maximize: bool = True):
+    """
+    并行的子模拟器数量为 num_sims, 解x 的节点数量为 num_nodes
+    xs: 并行数量个解x,xs.shape == (num_sims, num_nodes)
+    vs: 并行数量个解x对应的 objective value. vs.shape == (num_sims, )
+
+    更新后，将xs1，vs1 中 objective value数值更高的解x 替换到xs0，vs0中
+    如果被更新的解的数量大于0，将返回True
+    """
+    good_is = vs1.ge(vs0) if if_maximize else vs1.le(vs0)
+    xs0[good_is] = xs1[good_is]
+    vs0[good_is] = vs1[good_is]
+    return good_is.shape[0]
 
 class LocalSearch:
-    def __init__(self, simulator: EnvMaxcut, num_nodes: int):
+    def __init__(self, simulator, num_nodes: int):
         self.simulator = simulator
         self.num_nodes = num_nodes
 

@@ -20,13 +20,17 @@ try:
 except ImportError:
     plt = None
 import torch as th
+import random
+from rlsolver.methods.util import obtain_num_nodes
+
 GraphList = List[Tuple[int, int, int]]  # 每条边两端点的索引以及边的权重 List[Tuple[Node0ID, Node1ID, WeightEdge]]
 IndexList = List[List[int]]  # 按索引顺序记录每个点的所有邻居节点 IndexList[Node0ID] = [Node1ID, ...]
 
-GraphTypes = ['BarabasiAlbert', 'ErdosRenyi', 'PowerLaw']
+GraphTypes = ['BA', 'ER', 'PL']
 TEN = th.Tensor
 
 from rlsolver.methods.util import calc_txt_files_with_prefixes
+from rlsolver.methods.util_generate import generate_graph_list
 
 # read graph file, e.g., gset_14.txt, as networkx.Graph
 # The nodes in file start from 1, but the nodes start from 0 in our codes.
@@ -68,141 +72,48 @@ def read_graphlist(filename: str) -> GraphList:
     graph_list = [(n0 - 1, n1 - 1, dt) for n0, n1, dt in lines[1:]]  # 将node_id 由“从1开始”改为“从0开始”
     return graph_list
 
-def generate_graph_list(graph_type: str, num_nodes: int) -> GraphList:
-    graph_types = GraphTypes
-    assert graph_type in graph_types
-
-    if graph_type == 'BarabasiAlbert':
-        g = nx.barabasi_albert_graph(n=num_nodes, m=4)
-    elif graph_type == 'ErdosRenyi':
-        g = nx.erdos_renyi_graph(n=num_nodes, p=0.15)
-    elif graph_type == 'PowerLaw':
-        g = nx.powerlaw_cluster_graph(n=num_nodes, m=4, p=0.05)
-    else:
-        raise ValueError(f"g_type {graph_type} should in {graph_types}")
-
-    distance = 1
-    graph_list = [(node0, node1, distance) for node0, node1 in g.edges]
-    return graph_list
 
 
-def load_graph_list(graph_name: str, if_force_exist: bool = False):
-    import random
-    graph_type = GRAPH_TYPE  # 匹配 graph_type
-    DataDir = './data/syn_graph_list'  # 保存图最大割的txt文件的目录，txt数据以稀疏的方式记录了GraphList，可以重建图的邻接矩阵
 
+def load_graph_list(dataDir='./data/syn_' + GRAPH_TYPE.value, graph_name: str= "", if_force_exist: bool = False):
+    # DataDir = './data/syn_'  + GRAPH_TYPE.value# 保存图最大割的txt文件的目录，txt数据以稀疏的方式记录了GraphList，可以重建图的邻接矩阵
     if if_force_exist:
-        txt_path = f"{DataDir}/{graph_name}.txt"
+        txt_path = f"{dataDir}/{graph_name}.txt"
         if_exist = os.path.exists(txt_path)
         print(f"| txt_path {txt_path} not exist") if not if_exist else None
         assert if_exist
-    if os.path.exists(f"{DataDir}/{graph_name}.txt"):
-        txt_path = f"{DataDir}/{graph_name}.txt"
+    if os.path.exists(f"{dataDir}/{graph_name}.txt"):
+        txt_path = f"{dataDir}/{graph_name}.txt"
         graph_list = read_graphlist(filename=txt_path)
     elif os.path.isfile(graph_name) and os.path.splitext(graph_name)[-1] == '.txt':
         txt_path = graph_name
         graph_list = read_graphlist(filename=txt_path)
-
-    elif graph_type and graph_name.find('ID') == -1:
+    elif GRAPH_TYPE and graph_name.find('ID') == -1:
         num_nodes = int(graph_name.split('_')[-1])
-        graph_list = generate_graph_list(num_nodes=num_nodes, graph_type=graph_type)
-    elif graph_type and graph_name.find('ID') >= 0:
+        graph_list = generate_graph_list(num_nodes=num_nodes, graph_type=GRAPH_TYPE)
+    elif GRAPH_TYPE and graph_name.find('ID') >= 0:
         num_nodes, valid_i = graph_name.split('_')[-2:]
         num_nodes = int(num_nodes)
         valid_i = int(valid_i[len('ID'):])
         random.seed(valid_i)
-        graph_list = generate_graph_list(num_nodes=num_nodes, graph_type=graph_type)
+        graph_list = generate_graph_list(num_nodes=num_nodes, graph_type=GRAPH_TYPE)
         random.seed()
-
     else:
-        raise ValueError(f"DataDir {DataDir} | graph_name {graph_name} txt_path {DataDir}/{graph_name}.txt")
+        raise ValueError(f"DataDir {dataDir} | graph_name {graph_name} txt_path {dataDir}/{graph_name}.txt")
     return graph_list
 
-def obtain_num_nodes(graph_list: GraphList) -> int:
-    return max([max(n0, n1) for n0, n1, distance in graph_list]) + 1
-
-def build_adjacency_matrix(graph_list: GraphList, if_bidirectional: bool = False) -> TEN:
-    """例如，无向图里：
-    - 节点0连接了节点1，边的权重为1
-    - 节点0连接了节点2，边的权重为2
-    - 节点2连接了节点3，边的权重为3
-
-    用邻接阶矩阵Ary的上三角表示这个无向图：
-      0 1 2 3
-    0 F T T F
-    1 _ F F F
-    2 _ _ F T
-    3 _ _ _ F
-
-    其中：
-    - Ary[0,1]=边的权重为1
-    - Ary[0,2]=边的权重为2
-    - Ary[2,3]=边的权重为3
-    - 其余为-1，表示False 节点之间没有连接关系
-    """
-    not_connection = -1  # 选用-1去表示表示两个node之间没有edge相连，不选用0是为了避免两个节点的距离为0时出现冲突
-    num_nodes = obtain_num_nodes(graph_list=graph_list)
-
-    adjacency_matrix = th.zeros((num_nodes, num_nodes), dtype=th.float32)
-    adjacency_matrix[:] = not_connection
-    for n0, n1, distance in graph_list:
-        adjacency_matrix[n0, n1] = distance
-        if if_bidirectional:
-            adjacency_matrix[n1, n0] = distance
-    return adjacency_matrix
-
-
-def build_adjacency_bool(graph_list: GraphList, num_nodes: int = 0, if_bidirectional: bool = False) -> TEN:
-    """例如，无向图里：
-    - 节点0连接了节点1
-    - 节点0连接了节点2
-    - 节点2连接了节点3
-
-    用邻接阶矩阵Ary的上三角表示这个无向图：
-      0 1 2 3
-    0 F T T F
-    1 _ F F F
-    2 _ _ F T
-    3 _ _ _ F
-
-    其中：
-    - Ary[0,1]=True
-    - Ary[0,2]=True
-    - Ary[2,3]=True
-    - 其余为False
-    """
-    if num_nodes == 0:
-        num_nodes = obtain_num_nodes(graph_list=graph_list)
-
-    adjacency_bool = th.zeros((num_nodes, num_nodes), dtype=th.bool)
-    node0s, node1s = list(zip(*graph_list))[:2]
-    adjacency_bool[node0s, node1s] = True
-    if if_bidirectional:
-        adjacency_bool = th.logical_or(adjacency_bool, adjacency_bool.T)
-    return adjacency_bool
-
-
-def build_graph_list(adjacency_bool: TEN) -> GraphList:
-    num_nodes = adjacency_bool.shape[0]
-
-    graph_list = []
-    for node_i in range(1, num_nodes):
-        for node_j in range(node_i):
-            edge_weight = int(adjacency_bool[node_i, node_j])
-            if edge_weight > 0:
-                graph_list.append((node_i, node_j, edge_weight))
+def load_graph_list_from_txt(txt_path: str = 'G14.txt') -> GraphList:
+    with open(txt_path, 'r') as file:
+        lines = file.readlines()
+        lines = [[int(i1) for i1 in i0.split()] for i0 in lines]
+    num_nodes, num_edges = lines[0]
+    graph_list = [(n0 - 1, n1 - 1, dt) for n0, n1, dt in lines[1:]]  # 将node_id 由“从1开始”改为“从0开始”
+    assert num_nodes == obtain_num_nodes(graph_list=graph_list)
+    assert num_edges == len(graph_list)
     return graph_list
 
 
-def check_convert_between_graph_list_and_adjacency_bool():
-    num_nodes = 8
-    adjacency_bool = th.tril(th.randint(0, 2, size=(num_nodes, num_nodes), dtype=th.bool))
 
-    graph_list = build_graph_list(adjacency_bool)
-    print("Original  graph list:", graph_list)
-    adjacency_bool = build_adjacency_bool(graph_list, num_nodes, if_bidirectional=True)
-    graph_list = build_graph_list(adjacency_bool)
-    print("Converted graph list:", graph_list)
 
 
 def build_adjacency_indies(graph_list: GraphList, if_bidirectional: bool = False) -> (IndexList, IndexList):

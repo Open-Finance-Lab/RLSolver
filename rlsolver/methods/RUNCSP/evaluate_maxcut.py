@@ -2,9 +2,8 @@ from model import RUN_CSP
 from evaluate import evaluate_boosted
 from util import CSP_Instance, Constraint_Language
 
-import data_utils
 import argparse
-
+from util_data import load_graphs
 
 def main():
     parser = argparse.ArgumentParser()
@@ -18,7 +17,7 @@ def main():
     language = Constraint_Language.get_coloring_language(2)
 
     print('loading graphs...')
-    names, graphs = data_utils.load_graphs(args.data_path)
+    names, graphs = load_graphs(args.data_path)
     instances = [CSP_Instance.graph_to_csp_instance(g, language, 'NEQ', name=n) for n, g in zip(names, graphs)]
     
     conflicting_edges = evaluate_boosted(network, instances, args.t_max, attempts=args.attempts)

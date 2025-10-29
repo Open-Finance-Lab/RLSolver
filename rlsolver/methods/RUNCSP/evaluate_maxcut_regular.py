@@ -1,11 +1,10 @@
 from model import RUN_CSP
 from util import CSP_Instance, Constraint_Language
 
-import data_utils
 import argparse
 import numpy as np
 import networkx as nx
-
+from util_data import load_graphs
 
 def get_P_value(n, d, z):
     return ((z / n) - (d / 4.0)) / np.sqrt(d / 4.0)
@@ -55,7 +54,7 @@ def main():
 
     if args.data_path is not None:
         print('loading graphs...')
-        names, graphs = data_utils.load_graphs(args.data_path)
+        names, graphs = load_graphs(args.data_path)
         instances = [CSP_Instance.graph_to_csp_instance(g, language, 'NEQ') for g in graphs]
     else:
         print(f'Generating {args.n_instances} training instances')

@@ -75,7 +75,7 @@ def greedy_maxcut(num_steps: Optional[int], graph: nx.Graph, filename) -> (int, 
     print('running_duration: ', running_duration)
     # alg_name = "greedy"
     # write_graph_result(score, running_duration, num_nodes, alg_name, curr_solution, filename)
-    # 修复“重复写入”的问题，原来greedy_maxcut函数内部会写一次结果，外层函数run_greedy_over_multiple_files又会写一次，导致生成两个结果一样名称不一样的文件，这里注释掉，改为在run_greedy_over_multiple_files中统一写入结果
+    # 修复“重复写入”的问题，原来greedy_maxcut函数内部会写一次结果，外层函数run_greedy_over_manyfiles又会写一次，导致生成两个结果一样名称不一样的文件，这里注释掉，改为在run_greedy_over_manyfiles中统一写入结果
     return curr_score, curr_solution, scores
 
 def greedy_graph_partitioning(num_steps:Optional[int], graph: nx.Graph) -> (int, Union[List[int], np.array], List[int]):
@@ -217,7 +217,7 @@ def greedy_MIS(num_steps: Optional[int], graph: nx.Graph, filename) -> (int, Uni
     print("solution: ", curr_solution)
     running_duration = time.time() - start_time
     print('running_duration: ', running_duration)
-    # write_graph_result 在 run_greedy_over_multiple_files 中统一调用
+    # write_graph_result 在 run_greedy_over_manyfiles 中统一调用
     return curr_score, curr_solution, scores
 
 def greedy_set_cover(num_items: int, num_sets: int, item_matrix: List[List[int]]) -> (int, Union[List[int], np.array], List[int]):
@@ -310,8 +310,8 @@ def greedy_graph_coloring(num_steps: Optional[int], graph: nx.Graph) -> (int, Un
     scores = [curr_score]
     return curr_score, curr_solution, scores
 
-# def run_greedy_over_multiple_files(alg, alg_name, num_steps, set_init_0: Optional[bool], directory_data: str, prefixes: List[str])-> List[List[float]]:
-def run_greedy_over_multiple_files(alg, alg_name, num_steps, directory_data: str, prefixes: List[str])-> List[List[float]]:
+# def run_greedy_over_manyfiles(alg, alg_name, num_steps, set_init_0: Optional[bool], directory_data: str, prefixes: List[str])-> List[List[float]]:
+def run_greedy_over_manyfiles(alg, alg_name, num_steps, directory_data: str, prefixes: List[str])-> List[List[float]]:
     from util_read_data import (read_set_cover_data, read_nxgraph)
     from util_write_read_result import write_result_set_cover
     scoress = []
@@ -375,7 +375,7 @@ if __name__ == '__main__':
         directory_data = '../data/set_cover'
         prefixes = ['frb30-15-1']
 
-    scoress = run_greedy_over_multiple_files(alg, alg_name, num_steps, directory_data, prefixes)
+    scoress = run_greedy_over_manyfiles(alg, alg_name, num_steps, directory_data, prefixes)
     print(f"scoress: {scoress}")
 
     # plot fig

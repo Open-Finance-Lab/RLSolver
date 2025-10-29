@@ -5,7 +5,7 @@ from collections import deque
 from torch_scatter import scatter_add
 
 
-class MaxCutEnv:
+class EnvMaxcut:
     def __init__(self, graph_data, config):
         self.config = config
         self.device = config.device
@@ -37,7 +37,7 @@ class MaxCutEnv:
         self.state_history = deque(maxlen=50)  
         self.visited_basins = set()  
         
-        节点翻转时间追踪
+        # 节点翻转时间追踪
         self.time_since_flip = torch.zeros(self.num_nodes, device=self.device)
         
         self.current_cut = 0

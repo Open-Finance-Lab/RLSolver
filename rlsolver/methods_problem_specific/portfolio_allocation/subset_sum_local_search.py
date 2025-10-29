@@ -259,7 +259,7 @@ def search_and_evaluate_local_search():
     gpu_id = int(sys.argv[1]) if len(sys.argv) > 1 else 0
 
     x_str = None
-    sim_name = 'xxx.csv'
+    sim_name = 'SSP_tag_USD_551.csv'
 
     # if_reinforce = False
     # num_reset = 2 ** 1

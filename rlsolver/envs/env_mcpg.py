@@ -5,16 +5,20 @@ cur_path = os.path.dirname(os.path.abspath(__file__))
 rlsolver_path = os.path.join(cur_path, '../../rlsolver')
 sys.path.append(os.path.dirname(rlsolver_path))
 
-from rlsolver.methods.util_read_data import (load_graph_list, GraphList,
-                                             build_adjacency_bool,
-                                             build_adjacency_indies,
-                                             obtain_num_nodes,
-                                             update_xs_by_vs, )
-from rlsolver.methods.util import gpu_info_str, evolutionary_replacement
+from rlsolver.methods.util_read_data import load_graph_list
+from rlsolver.methods.util_read_data import GraphList
+from rlsolver.methods.util_read_data import build_adjacency_indies
+from rlsolver.methods.util_read_data import obtain_num_nodes
+from rlsolver.methods.util_read_data import update_xs_by_vs
+
+from rlsolver.methods.util import build_adjacency_bool
+from rlsolver.methods.util import gpu_info_str
+from rlsolver.methods.util import evolutionary_replacement
 from rlsolver.methods.config import *
 
 TEN = th.Tensor
-
+# from rlsolver.envs.LocalSearch import LocalSearch
+from rlsolver.methods.LocalSearch import LocalSearch
 
 class EnvMaxcut:
     def __init__(self, sim_name: str = 'max_cut', graph_list: GraphList = [],
@@ -433,7 +437,7 @@ def search_and_evaluate_local_search():
     '''evaluator'''
     temp_xs = sim.generate_xs_randomly(num_sims=1)
     temp_vs = sim.calculate_obj_values(xs=temp_xs)
-    evaluator = Evaluator(save_dir=f"{sim_name}_{gpu_id}", num_bits=num_nodes, x=temp_xs[0], v=temp_vs[0].item())
+    evaluator = Evaluator(save_dir=f"{sim_name}_{gpu_id}", num_bits=num_nodes, x=temp_xs[0], v=temp_vs[0].item(), if_maximize=True)
 
     '''solver'''
     solver = local_search_class(simulator=sim, num_nodes=sim.num_nodes)
@@ -479,7 +483,7 @@ def search_and_evaluate_local_search():
                 good_v = solver.good_vs[good_i].item()
 
                 if_update1 = evaluator.record2(i=i, vs=good_v, xs=good_x)
-                evaluator.logging_print(x=good_x, v=good_v, show_str=f"{good_v:6}", if_show_x=if_update1)
+                evaluator.logging_print(show_str=f"{good_v:6}", if_show_x=if_update1)
                 if if_update1:
                     update_j1 = j1
                 elif j1 - update_j1 > num_iter1_wait:

@@ -3,7 +3,7 @@ import torch as th
 from evaluator import EncoderBase64
 
 TEN = th.Tensor
-DataDir = './data/subset_sum'
+DataDir = './data/'
 '''simulator'''
 
 

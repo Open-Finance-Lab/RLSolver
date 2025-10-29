@@ -23,7 +23,7 @@ class Evaluator:
         self.start_timer = time.time()
         self.recorder1 = []
         self.recorder2 = []
-        self.encoder_base64 = EncoderBase64(num_nodes=num_nodes)
+        self.encoder_base64 = EncoderBase64(num_nodes)
 
         self.best_x = x  # solution x
         self.best_v = v  # objective value of solution x
