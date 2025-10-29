@@ -293,8 +293,6 @@ def check_get_hot_tenor_of_graph():
     #     for num_nodes in (100, 101):
     #         for seed_id in range(1):
     #             graph_names.append(f'{graph_type}_{num_nodes}_ID{seed_id}')
-    # for gset_id in (14, 15, 49, 50, 22, 55, 70):  # todo
-    #     graph_names.append(f"gset_{gset_id}")
     DataDir = "../../data/syn_BA"
     graph_names = ["BA_100_ID0"]
     for graph_name in graph_names:
