@@ -1,0 +1,126 @@
+import os
+from typing import List, Tuple
+
+import networkx as nx
+import torch as th
+
+TEN = th.Tensor
+
+
+from rlsolver.methods.config import MyGraph
+from rlsolver.methods.config import MyNeighbor
+DataDir = './data/graph_max_cut'  # 保存图最大割的txt文件的目录，txt数据以稀疏的方式记录了GraphList，可以重建图的邻接矩阵
+
+from rlsolver.methods.util import calc_num_nodes_in_mygraph
+
+def build_adjacency_indies(mygraph: MyGraph, if_bidirectional: bool = False) -> (MyNeighbor, MyNeighbor):
+    """
+    用二维列表list2d表示这个图：
+    [
+        [1, 2],
+        [],
+        [3],
+        [],
+    ]
+    其中：
+    - list2d[0] = [1, 2]
+    - list2d[2] = [3]
+
+    对于稀疏的矩阵，可以直接记录每条边两端节点的序号，用shape=(2,N)的二维列表 表示这个图：
+    0, 1
+    0, 2
+    2, 3
+    如果条边的长度为1，那么表示为shape=(2,N)的二维列表，并在第一行，写上 4个节点，3条边的信息，帮助重建这个图，然后保存在txt里：
+    4, 3
+    0, 1, 1
+    0, 2, 1
+    2, 3, 1
+    """
+    num_nodes = calc_num_nodes_in_mygraph(mygraph=mygraph)
+
+    n0_to_n1s = [[] for _ in range(num_nodes)]  # 将 node0_id 映射到 node1_id
+    n0_to_dts = [[] for _ in range(num_nodes)]  # 将 mode0_id 映射到 node1_id 与 node0_id 的距离
+    for n0, n1, distance in mygraph:
+        n0_to_n1s[n0].append(n1)
+        n0_to_dts[n0].append(distance)
+        if if_bidirectional:
+            n0_to_n1s[n1].append(n0)
+            n0_to_dts[n1].append(distance)
+    n0_to_n1s = [th.tensor(node1s) for node1s in n0_to_n1s]
+    n0_to_dts = [th.tensor(node1s) for node1s in n0_to_dts]
+    assert num_nodes == len(n0_to_n1s)
+    assert num_nodes == len(n0_to_dts)
+
+    '''sort'''
+    for i, node1s in enumerate(n0_to_n1s):
+        sort_ids = th.argsort(node1s)
+        n0_to_n1s[i] = n0_to_n1s[i][sort_ids]
+        n0_to_dts[i] = n0_to_dts[i][sort_ids]
+    return n0_to_n1s, n0_to_dts
+
+
+
+class EnvMaxcut:
+    def __init__(self, args, mygraph: MyGraph = (),
+                 device=th.device('cpu'), if_bidirectional: bool = False):
+        self.device = device
+        self.int_type = int_type = th.long
+        self.if_bidirectional = if_bidirectional
+        self.num_nodes = args.num_nodes
+        self.num_envs = args.num_envs
+        self.xs = None
+        self.action_count = 0
+        self.last_reward = None
+        self.num_steps = args.num_steps
+
+        n0_to_n1s, n0_to_dts = build_adjacency_indies(mygraph=mygraph, if_bidirectional=if_bidirectional)
+        n0_to_n1s = [t.to(int_type).to(device) for t in n0_to_n1s]
+        self.num_edges = len(mygraph)
+        n0_to_n0s = [(th.zeros_like(n1s) + i) for i, n1s in enumerate(n0_to_n1s)]
+        self.n0_ids = th.hstack(n0_to_n0s)[None, :]
+        self.n1_ids = th.hstack(n0_to_n1s)[None, :]
+        len_sim_ids = self.num_edges * (2 if if_bidirectional else 1)
+        self.sim_ids = th.zeros(len_sim_ids, dtype=int_type, device=device)[None, :]
+
+    def reset(self):
+        self.xs = self.generate_xs_randomly(num_sims=self.num_envs)
+        self.xs = self.xs.to(th.float)
+        self.last_reward = self.calculate_obj_values().to(th.float)
+
+        return self.xs
+
+    def step(self, action):
+        self.action_count += 1
+        for n in range(self.num_envs):
+            self.xs[n, action[n]] = th.logical_not(self.xs[n, action[n]])
+        cur_reward = self.calculate_obj_values().to(th.float)
+        reward = cur_reward - self.last_reward
+        self.last_reward = cur_reward
+
+        if self.action_count == self.num_steps:
+            self.action_count = 0
+            next_done = th.ones([self.num_envs], dtype=th.float, device=self.device)
+        else:
+            next_done = th.zeros([self.num_envs], dtype=th.float, device=self.device)
+
+        return self.xs, reward, next_done, cur_reward
+
+    def calculate_obj_values(self, if_sum: bool = True) -> TEN:
+        xs = self.xs > 0
+        num_sims = xs.shape[0]  # 并行维度，环境数量。xs, vs第一个维度， dim0 , 就是环境数量
+        if num_sims != self.sim_ids.shape[0]:
+            self.n0_ids = self.n0_ids[0].repeat(num_sims, 1)
+            self.n1_ids = self.n1_ids[0].repeat(num_sims, 1)
+            self.sim_ids = self.sim_ids[0:1] + th.arange(num_sims, dtype=self.int_type, device=self.device)[:, None]
+
+        values = xs[self.sim_ids, self.n0_ids] ^ xs[self.sim_ids, self.n1_ids]
+        if if_sum:
+            values = values.sum(1)
+        if self.if_bidirectional:
+            values = values // 2
+        return values
+
+    def generate_xs_randomly(self, num_sims):
+        xs = th.randint(0, 2, size=(num_sims, self.num_nodes), dtype=th.bool, device=self.device)
+        xs[:, 0] = 0
+        return xs

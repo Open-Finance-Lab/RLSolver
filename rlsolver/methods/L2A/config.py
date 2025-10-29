@@ -1,5 +1,5 @@
 import os
-from rlsolver.methods.util_read_data import GraphList, obtain_num_nodes
+from rlsolver.methods.util_read_data import MyGraph, calc_num_nodes_in_mygraph
 
 ModelDir = './model'  # FIXME plan to cancel
 
@@ -9,8 +9,8 @@ DEVICE = calc_device(GPU_ID)
 
 
 class ConfigGraph:
-    def __init__(self, graph_list: GraphList = None, graph_type: str = 'max_cut', num_nodes: int = 0):
-        num_nodes = num_nodes if num_nodes > 0 else obtain_num_nodes(graph_list=graph_list)
+    def __init__(self, mygraph: MyGraph = None, graph_type: str = 'max_cut', num_nodes: int = 0):
+        num_nodes = num_nodes if num_nodes > 0 else calc_num_nodes_in_mygraph(mygraph=mygraph)
 
         self.graph_type = graph_type
         self.num_nodes = num_nodes
@@ -40,8 +40,8 @@ class ConfigGraph:
 
 
 class ConfigPolicy:
-    def __init__(self, graph_list: GraphList = None, graph_type: str = 'max_cut', num_nodes: int = 0):
-        num_nodes = num_nodes if num_nodes > 0 else obtain_num_nodes(graph_list=graph_list)
+    def __init__(self, mygraph: MyGraph = None, graph_type: str = 'max_cut', num_nodes: int = 0):
+        num_nodes = num_nodes if num_nodes > 0 else calc_num_nodes_in_mygraph(mygraph=mygraph)
 
         self.graph_type = graph_type
         self.num_nodes = num_nodes
@@ -97,8 +97,8 @@ class ConfigPolicy:
 
 
 class ConfigPolicyL2A:
-    def __init__(self, graph_list: GraphList = None, graph_type: str = 'max_cut', num_nodes: int = 0):
-        num_nodes = num_nodes if num_nodes > 0 else obtain_num_nodes(graph_list=graph_list)
+    def __init__(self, mygraph: MyGraph = None, graph_type: str = 'max_cut', num_nodes: int = 0):
+        num_nodes = num_nodes if num_nodes > 0 else calc_num_nodes_in_mygraph(mygraph=mygraph)
 
         self.graph_type = graph_type
         self.num_nodes = num_nodes

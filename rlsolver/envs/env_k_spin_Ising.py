@@ -1,27 +1,30 @@
 import os
 import torch as th
 from typing import List, Union, Tuple
-from rlsolver.methods.util import obtain_num_nodes
+from rlsolver.methods.util import calc_num_nodes_in_mygraph
 TEN = th.Tensor
 INT = th.IntTensor
 TEN = th.Tensor
-GraphList = List[Tuple[int, int, int]]
-IndexList = List[List[int]]
 
-from rlsolver.methods.config import DIRECTORY_DATA, GRAPH_TYPE, GRAPH_TYPES
+from rlsolver.methods.config import MyGraph
+from rlsolver.methods.config import MyNeighbor
+from rlsolver.methods.config import DIRECTORY_DATA
+from rlsolver.methods.config import GRAPH_TYPES
+from rlsolver.methods.util_generate import generate_mygraph
+
 DataDir = DIRECTORY_DATA
 
 from rlsolver.methods.util import convert_matrix_to_vector
 from typing import List, Union, Tuple
 import torch as th
 from torch import Tensor
-from rlsolver.methods.util_read_data import read_nxgraph
+from rlsolver.methods.util_read_data import read_nxgraph, read_mygraph
 import networkx as nx
 from rlsolver.methods.util import build_adjacency_matrix
 from rlsolver.methods.util import build_adjacency_indies_auto
 from rlsolver.methods.util import build_adjacency_matrix_auto
-from rlsolver.methods.util import obtain_num_nodes
-from rlsolver.methods.util import GraphList
+from rlsolver.methods.util import calc_num_nodes_in_mygraph
+from rlsolver.methods.util import MyGraph
 from rlsolver.methods.util import calc_device
 
 try:
@@ -33,42 +36,30 @@ except ImportError:
 TEN = th.Tensor
 INT = th.IntTensor
 
-def load_graph(graph_name: str):
-    data_dir = DIRECTORY_DATA
-    graph_types = GRAPH_TYPES
-    if os.path.exists(f"{data_dir}/{graph_name}.txt"):
-        txt_path = f"{data_dir}/{graph_name}.txt"
-        graph, num_nodes, num_edges = load_graph_from_txt(txt_path=txt_path)
-    elif graph_name.split('_')[0] in graph_types:
-        g_type, num_nodes = graph_name.split('_')
-        num_nodes = int(num_nodes)
-        graph, num_nodes, num_edges = generate_graph(num_nodes=num_nodes, g_type=g_type)
-    else:
-        raise ValueError(f"graph_name {graph_name}")
-    return graph, num_nodes, num_edges
+
 
 def load_graph_auto(graph_name: str):
     import random
     graph_types = GRAPH_TYPES
     if os.path.exists(f"{DataDir}/{graph_name}.txt"):
         txt_path = f"{DataDir}/{graph_name}.txt"
-        graph = load_graph_from_txt(txt_path=txt_path)
+        graph = read_mygraph(txt_path=txt_path)
     elif graph_name.split('_')[0] in graph_types and len(graph_name.split('_')) == 3:
         graph_type, num_nodes, valid_i = graph_name.split('_')
         num_nodes = int(num_nodes)
         valid_i = int(valid_i[len('ID'):])
         random.seed(valid_i)
-        graph = generate_graph(num_nodes=num_nodes, graph_type=graph_type)
+        graph = generate_mygraph(graph_type, num_nodes)
         random.seed()
     elif graph_name.split('_')[0] in graph_types and len(graph_name.split('_')) == 2:
         graph_type, num_nodes = graph_name.split('_')
         num_nodes = int(num_nodes)
-        graph = generate_graph(num_nodes=num_nodes, graph_type=graph_type)
+        graph = generate_mygraph(graph_type, num_nodes)
     else:
         raise ValueError(f"DataDir {DataDir} | graph_name {graph_name}")
     return graph
 
-class MaxcutSimulator:  # Markov Chain Monte Carlo Simulator
+class SimulatorMaxcut:  # Markov Chain Monte Carlo Simulator
     def __init__(self, graph_name: str = 'powerlaw_64', gpu_id: int = -1, graph_tuple=None):
         device = calc_device(gpu_id)
         int_type = th.int32
@@ -78,7 +69,7 @@ class MaxcutSimulator:  # Markov Chain Monte Carlo Simulator
         if graph_tuple:
             graph, num_nodes, num_edges = graph_tuple
         else:
-            graph, num_nodes, num_edges = load_graph(graph_name=graph_name)
+            graph, num_nodes, num_edges = load_mygraph(DIRECTORY_DATA, graph_name=graph_name)
 
         # 建立邻接矩阵，不预先保存索引的邻接矩阵不适合GPU并行
         '''
@@ -224,7 +215,7 @@ class MaxcutSimulator:  # Markov Chain Monte Carlo Simulator
         return p0s > thresh
 
 
-class MaxcutSimulatorAutoregressive:
+class SimulatorMaxcutAutoregressive:
     def __init__(self, graph_name: str, device=th.device('cpu'), if_bidirectional: bool = False):
         self.device = device
         self.sim_name = graph_name
@@ -232,13 +223,13 @@ class MaxcutSimulatorAutoregressive:
         self.if_bidirectional = if_bidirectional
 
         '''load graph'''
-        [graph, self.num_nodes, self.num_edges] = load_graph_auto(graph_name=graph_name)
+        [mygraph, self.num_nodes, self.num_edges] = load_graph_auto(graph_name=graph_name)
 
         '''建立邻接矩阵'''
-        self.adjacency_matrix = build_adjacency_matrix_auto(graph=graph, if_bidirectional=if_bidirectional).to(device)
+        self.adjacency_matrix = build_adjacency_matrix_auto(mygraph=mygraph, if_bidirectional=if_bidirectional).to(device)
 
         '''建立邻接索引'''
-        n0_to_n1s, n0_to_dts = build_adjacency_indies_auto(graph=graph, if_bidirectional=if_bidirectional)
+        n0_to_n1s, n0_to_dts = build_adjacency_indies_auto(graph=mygraph, if_bidirectional=if_bidirectional)
         n0_to_n1s = [t.to(int_type).to(device) for t in n0_to_n1s]
         # self.num_nodes = obtain_num_nodes(graph)
         # self.num_edges = len(graph)
@@ -287,18 +278,18 @@ class MaxcutSimulatorAutoregressive:
 
 
 class MaxcutSimulatorReinforce:
-    def __init__(self, graph: GraphList, device=th.device('cpu'), if_bidirectional: bool = False):
+    def __init__(self, graph: MyGraph, device=th.device('cpu'), if_bidirectional: bool = False):
         self.device = device
         self.int_type = int_type = th.long
         self.if_bidirectional = if_bidirectional
 
         '''建立邻接矩阵'''
-        self.adjacency_matrix = build_adjacency_matrix_auto(graph=graph, if_bidirectional=if_bidirectional).to(device)
+        self.adjacency_matrix = build_adjacency_matrix_auto(mygraph=graph, if_bidirectional=if_bidirectional).to(device)
 
         '''建立邻接索引'''
         n0_to_n1s, n0_to_dts = build_adjacency_indies_auto(graph=graph, if_bidirectional=if_bidirectional)
         n0_to_n1s = [t.to(int_type).to(device) for t in n0_to_n1s]
-        self.num_nodes = obtain_num_nodes(graph)
+        self.num_nodes = calc_num_nodes_in_mygraph(graph)
         self.num_edges = len(graph)
         self.adjacency_indies = n0_to_n1s
 
@@ -344,7 +335,7 @@ class MaxcutSimulatorReinforce:
         return solutions
 
 
-class MCMCSim():
+class EnvMaxcut():
     def __init__(self, filename: str, num_samples=128, device=th.device("cuda:0"), episode_length=6):
         self.graph = read_nxgraph(filename)
         self.num_nodes = self.graph.number_of_nodes()
@@ -450,71 +441,14 @@ class MCMCSim():
 下一次 PR 需要把它们放到合适位置
 """
 
-GraphList = List[Tuple[int, int, int]]
-IndexList = List[List[int]]
+
+from rlsolver.methods.config import MyGraph
+from rlsolver.methods.config import MyNeighbor
+from rlsolver.methods.util_read_data import load_mygraph
 DataDir = './data/gset'
 
 
-def load_graph_from_txt(txt_path: str = 'G14.txt') -> GraphList:
-    with open(txt_path, 'r') as file:
-        lines = file.readlines()
-        lines = [[int(i1) for i1 in i0.split()] for i0 in lines]
-    num_nodes, num_edges = lines[0]
-    graph = [(n0 - 1, n1 - 1, dt) for n0, n1, dt in lines[1:]]  # 将node_id 由“从1开始”改为“从0开始”
-
-    assert num_nodes == obtain_num_nodes(graph)
-    assert num_edges == len(graph)
-    return graph
-
-
-def generate_graph(graph_type: str, num_nodes: int) -> GraphList:
-    graph_types = ['erdos_renyi', 'powerlaw', 'barabasi_albert']
-    assert graph_type in graph_types
-
-    if graph_type == 'erdos_renyi':
-        g = nx.erdos_renyi_graph(n=num_nodes, p=0.15)
-    elif graph_type == 'powerlaw':
-        g = nx.powerlaw_cluster_graph(n=num_nodes, m=4, p=0.05)
-    elif graph_type == 'barabasi_albert':
-        g = nx.barabasi_albert_graph(n=num_nodes, m=4)
-    else:
-        raise ValueError(f"g_type {graph_type} should in {graph_types}")
-
-    distance = 1
-    graph = [(node0, node1, distance) for node0, node1 in g.edges]
-    return graph
-
-
-def load_graph(graph_name: str):
-    import random
-    graph_types = ['erdos_renyi', 'powerlaw', 'barabasi_albert']
-
-    if os.path.exists(f"{DataDir}/{graph_name}.txt"):
-        txt_path = f"{DataDir}/{graph_name}.txt"
-        graph = load_graph_from_txt(txt_path=txt_path)
-    elif graph_name.split('_')[0] in graph_types and len(graph_name.split('_')) == 3:
-        graph_type, num_nodes, valid_i = graph_name.split('_')
-        num_nodes = int(num_nodes)
-        valid_i = int(valid_i[len('ID'):])
-        random.seed(valid_i)
-        graph = generate_graph(num_nodes=num_nodes, graph_type=graph_type)
-        random.seed()
-    elif graph_name.split('_')[0] in graph_types and len(graph_name.split('_')) == 2:
-        graph_type, num_nodes = graph_name.split('_')
-        num_nodes = int(num_nodes)
-        graph = generate_graph(num_nodes=num_nodes, graph_type=graph_type)
-    elif os.path.isfile(graph_name):
-        txt_path = graph_name
-        graph = load_graph_from_txt(txt_path=txt_path)
-    else:
-        raise ValueError(f"DataDir {DataDir} | graph_name {graph_name}")
-    return graph
-
-
-
-
-
-def build_adjacency_indies(graph: GraphList, if_bidirectional: bool = False) -> (IndexList, IndexList):
+def build_adjacency_indies(graph: MyGraph, if_bidirectional: bool = False) -> (MyNeighbor, MyNeighbor):
     """
     用二维列表list2d表示这个图：
     [
@@ -537,7 +471,7 @@ def build_adjacency_indies(graph: GraphList, if_bidirectional: bool = False) -> 
     0, 2, 1
     2, 3, 1
     """
-    num_nodes = obtain_num_nodes(graph)
+    num_nodes = calc_num_nodes_in_mygraph(graph)
 
     n0_to_n1s = [[] for _ in range(num_nodes)]  # 将 node0_id 映射到 node1_id
     n0_to_dts = [[] for _ in range(num_nodes)]  # 将 mode0_id 映射到 node1_id 与 node0_id 的距离
@@ -561,7 +495,7 @@ def build_adjacency_indies(graph: GraphList, if_bidirectional: bool = False) -> 
 
 
 class SimulatorGraphMaxCut:
-    def __init__(self, sim_name: str = 'max_cut', graph: GraphList = (),
+    def __init__(self, sim_name: str = 'max_cut', graph: MyGraph = (),
                  device=th.device('cpu'), if_bidirectional: bool = False):
         self.device = device
         self.sim_name = sim_name
@@ -569,7 +503,7 @@ class SimulatorGraphMaxCut:
         self.if_bidirectional = if_bidirectional
 
         '''load graph'''
-        graph: GraphList = graph if graph else load_graph(graph_name=sim_name)
+        graph: MyGraph = graph if graph else load_mygraph(DIRECTORY_DATA, graph_name=sim_name)
 
         '''建立邻接矩阵'''
         self.adjacency_matrix = build_adjacency_matrix(graph=graph, if_bidirectional=True).to(device)
@@ -577,7 +511,7 @@ class SimulatorGraphMaxCut:
         '''建立邻接索引'''
         n0_to_n1s, n0_to_dts = build_adjacency_indies(graph=graph, if_bidirectional=if_bidirectional)
         n0_to_n1s = [t.to(int_type).to(device) for t in n0_to_n1s]
-        self.num_nodes = obtain_num_nodes(graph)
+        self.num_nodes = calc_num_nodes_in_mygraph(graph)
         self.num_edges = len(graph)
         self.adjacency_indies = n0_to_n1s
 

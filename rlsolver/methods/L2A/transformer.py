@@ -10,10 +10,10 @@ from graph_embedding_pretrain import sort_adj_bools
 from network import GraphTRS
 from network import create_mask
 from rlsolver.methods.util_evaluator import Evaluator
-from rlsolver.methods.util_read_data import load_graph_list
+from rlsolver.methods.util_read_data import load_mygraph2
 from rlsolver.methods.util_read_data import update_xs_by_vs
 from rlsolver.methods.util_read_data import pick_xs_by_vs
-from rlsolver.methods.util_read_data import GraphList
+from rlsolver.methods.util_read_data import MyGraph
 from rlsolver.methods.util import build_adjacency_bool
 from rlsolver.envs.env_L2A import EnvMaxcut
 
@@ -163,19 +163,19 @@ def check_policy_trs_layer():
     graph_name = f'{graph_type}_{num_nodes}_ID{graph_id}'
     # graph_type, num_nodes, graph_id = 'gset_14', 800, 0
     # graph_name = graph_type
-    graph_list = load_graph_list(graph_name=graph_name)
+    mygraph = load_mygraph2(graph_name=graph_name)
 
     '''simulator'''
-    sim = EnvMaxcut(graph_list=graph_list, device=device, if_bidirectional=True)
+    sim = EnvMaxcut(mygraph=mygraph, device=device, if_bidirectional=True)
     # if_max = sim.if_maximize
 
     '''seq_adj_float'''
-    adj_bool = build_adjacency_bool(graph_list=graph_list, num_nodes=num_nodes, if_bidirectional=True).to(device)
+    adj_bool = build_adjacency_bool(mygraph=mygraph, num_nodes=num_nodes, if_bidirectional=True).to(device)
     seq_adj_float = adj_bool[:, None, :].float()  # input tensor, sequence of adjacency_bool
     seq_mask_bool = create_mask(seq_len=num_nodes, mask_type='eye').to(device).detach()
 
     """get seq_graph"""
-    args_graph = ConfigGraph(graph_list=graph_list, graph_type=graph_type)
+    args_graph = ConfigGraph(mygraph=mygraph, graph_type=graph_type)
     '''build graph_embedding_net'''
     graph_embed_net = GraphTRS(
         inp_dim=args_graph.inp_dim,
@@ -301,7 +301,7 @@ def get_advantages(rewards: TEN, values: TEN, lambda_gae_adv: float = 0.98) -> T
     return advantages
 
 
-def get_seq_graph(graph_list: GraphList, args_graph: ConfigGraph, args_policy: ConfigPolicy, device: th.device,
+def get_seq_graph(mygraph: MyGraph, args_graph: ConfigGraph, args_policy: ConfigPolicy, device: th.device,
                   graph_embed_net):
 
     '''config'''
@@ -310,11 +310,11 @@ def get_seq_graph(graph_list: GraphList, args_graph: ConfigGraph, args_policy: C
     num_sims = args_policy.num_sims
     save_dir = f"./{graph_type}_{num_nodes}"  # TODO wait for adding to ConfigPolicy
 
-    sim = EnvMaxcut(graph_list=graph_list, device=device, if_bidirectional=True)
+    sim = EnvMaxcut(mygraph=mygraph, device=device, if_bidirectional=True)
     if_max = sim.if_maximize
 
     '''seq_adj_float'''
-    adj_bool = build_adjacency_bool(graph_list=graph_list, num_nodes=num_nodes, if_bidirectional=True).to(device)
+    adj_bool = build_adjacency_bool(mygraph=mygraph, num_nodes=num_nodes, if_bidirectional=True).to(device)
     adj_bool = sort_adj_bools(adj_bools=adj_bool.unsqueeze(0)).squeeze(0)  # TODO sort
     seq_adj_float = adj_bool[:, None, :].float()  # input tensor, sequence of adjacency_bool
 

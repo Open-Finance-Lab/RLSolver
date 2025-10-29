@@ -14,7 +14,7 @@ from config import ConfigGraph, ConfigPolicy
 from rlsolver.methods.util_evaluator import Evaluator
 from transformer import TrsCell, Buffer, convert_solution_to_prob, sub_set_sampling, get_advantages
 from network import GraphTRS, create_mask
-from rlsolver.methods.util_read_data import load_graph_list, GraphTypes, update_xs_by_vs, pick_xs_by_vs, GraphList
+from rlsolver.methods.util_read_data import load_mygraph2, GraphTypes, update_xs_by_vs, pick_xs_by_vs, MyGraph
 from rlsolver.methods.util import build_adjacency_bool
 
 from rlsolver.methods.util import gpu_info_str
@@ -23,7 +23,7 @@ from rlsolver.envs.env_L2A import EnvMaxcut
 
 
 def solve_single_graph_problem_using_trs(
-        graph_list: GraphList,
+        mygraph: MyGraph,
         args_graph: ConfigGraph,
         args_policy: ConfigPolicy,
         gpu_id: int = 0
@@ -31,7 +31,6 @@ def solve_single_graph_problem_using_trs(
     # graph_type, num_nodes, graph_id = 'PowerLaw', 100, 0
     # graph_name = f'{graph_type}_{num_nodes}_ID{graph_id}'
     # graph_type, num_nodes, graph_id = 'gset_14', 800, 0
-    # args_graph = ConfigGraph(graph_list=graph_list, graph_type=graph_type)
     device = th.device(f'cuda:{gpu_id}' if th.cuda.is_available() and gpu_id >= 0 else 'cpu')
 
     '''config'''
@@ -39,11 +38,11 @@ def solve_single_graph_problem_using_trs(
     num_nodes = args_graph.num_nodes
 
     '''simulator'''
-    sim = EnvMaxcut(graph_list=graph_list, device=device, if_bidirectional=True)
+    sim = EnvMaxcut(mygraph=mygraph, device=device, if_bidirectional=True)
     if_max = sim.if_maximize
 
     '''seq_adj_float'''
-    adj_bool = build_adjacency_bool(graph_list=graph_list, num_nodes=num_nodes, if_bidirectional=True).to(device)
+    adj_bool = build_adjacency_bool(mygraph=mygraph, num_nodes=num_nodes, if_bidirectional=True).to(device)
     seq_adj_float = adj_bool[:, None, :].float()  # input tensor, sequence of adjacency_bool
     seq_mask_bool = create_mask(seq_len=num_nodes, mask_type='eye').to(device).detach()
 
@@ -63,7 +62,7 @@ def solve_single_graph_problem_using_trs(
         if graph_type in GraphTypes:
             train_graph_net_in_graph_distribution(args=args_graph, net_path=net_path)
         else:
-            train_graph_net_in_a_single_graph(args=args_graph, graph_list=graph_list, net_path=net_path, gpu_id=gpu_id)
+            train_graph_net_in_a_single_graph(args=args_graph, mygraph=mygraph, net_path=net_path, gpu_id=gpu_id)
 
     import warnings
     warnings.filterwarnings("ignore", category=UserWarning, message=".*FlashAttention.*")
@@ -280,79 +279,79 @@ def solve_single_graph_problem_using_trs(
 
 
 def run_graph_set_14_15(graph_type: str = 'gset_14', gpu_id: int = 0):
-    graph_list = load_graph_list(dataDir=DataDir, graph_name=graph_type)
+    mygraph = load_mygraph2(dataDir=DataDir, graph_name=graph_type)
 
-    args_graph = ConfigGraph(graph_list=graph_list, graph_type=graph_type)
+    args_graph = ConfigGraph(mygraph=mygraph, graph_type=graph_type)
     args_graph.batch_size = 2 ** 5
     args_graph.train_times = 2 ** 10
     args_graph.show_gap = 2 ** 2
 
-    args_policy = ConfigPolicy(graph_list=graph_list, graph_type=graph_type)
+    args_policy = ConfigPolicy(mygraph=mygraph, graph_type=graph_type)
 
     '''run'''
     # net_path = f'./model/graph_trs_{graph_type}_{args_graph.num_nodes}.pth'
-    # train_graph_trs_net_in_a_single_graph(args=args_graph, graph_list=graph_list, net_path=net_path, gpu_id=gpu_id)
-    solve_single_graph_problem_using_trs(graph_list, args_graph, args_policy, gpu_id=gpu_id)
+    # train_graph_trs_net_in_a_single_graph(args=args_graph, mygraph=mygraph, net_path=net_path, gpu_id=gpu_id)
+    solve_single_graph_problem_using_trs(mygraph, args_graph, args_policy, gpu_id=gpu_id)
 
 
 def run_graph_set_22_23(graph_type: str = 'G22', gpu_id: int = 0):
-    graph_list = load_graph_list(graph_name=graph_type)
+    mygraph = load_mygraph2(graph_name=graph_type)
 
-    args_graph = ConfigGraph(graph_list=graph_list, graph_type=graph_type)
+    args_graph = ConfigGraph(mygraph=mygraph, graph_type=graph_type)
     args_graph.batch_size = 2 ** 3
     args_graph.train_times = 2 ** 10
 
-    args_policy = ConfigPolicy(graph_list=graph_list, graph_type=graph_type)
+    args_policy = ConfigPolicy(mygraph=mygraph, graph_type=graph_type)
 
     '''run'''
     # net_path = f'./model/graph_trs_{graph_type}_{args_graph.num_nodes}.pth'
-    # train_graph_trs_net_in_a_single_graph(args=args_graph, graph_list=graph_list, net_path=net_path, gpu_id=gpu_id)
-    solve_single_graph_problem_using_trs(graph_list, args_graph, args_policy, gpu_id=gpu_id)
+    # train_graph_trs_net_in_a_single_graph(args=args_graph, mygraph=mygraph, net_path=net_path, gpu_id=gpu_id)
+    solve_single_graph_problem_using_trs(mygraph, args_graph, args_policy, gpu_id=gpu_id)
 
 
 def run_graph_set_55_58(graph_type: str = 'G55', gpu_id: int = 0):
-    graph_list = load_graph_list(graph_name=graph_type)
+    mygraph = load_mygraph2(graph_name=graph_type)
 
-    args_graph = ConfigGraph(graph_list=graph_list, graph_type=graph_type)
+    args_graph = ConfigGraph(mygraph=mygraph, graph_type=graph_type)
     args_graph.batch_size = 2 ** 3
     args_graph.train_times = 2 ** 9
 
-    args_policy = ConfigPolicy(graph_list=graph_list, graph_type=graph_type)
+    args_policy = ConfigPolicy(mygraph=mygraph, graph_type=graph_type)
 
     '''run'''
     # net_path = f'./model/graph_trs_{graph_type}_{args_graph.num_nodes}.pth'
-    # train_graph_trs_net_in_a_single_graph(args=args_graph, graph_list=graph_list, net_path=net_path, gpu_id=gpu_id)
-    solve_single_graph_problem_using_trs(graph_list, args_graph, args_policy, gpu_id=gpu_id)
+    # train_graph_trs_net_in_a_single_graph(args=args_graph, mygraph=mygraph, net_path=net_path, gpu_id=gpu_id)
+    solve_single_graph_problem_using_trs(mygraph, args_graph, args_policy, gpu_id=gpu_id)
 
 
 def run_graph_set_63(graph_type: str = 'G63', gpu_id: int = 0):
-    graph_list = load_graph_list(graph_name=graph_type)
+    mygraph = load_mygraph2(graph_name=graph_type)
 
-    args_graph = ConfigGraph(graph_list=graph_list, graph_type=graph_type)
+    args_graph = ConfigGraph(mygraph=mygraph, graph_type=graph_type)
     args_graph.batch_size = 2 ** 2
     args_graph.train_times = 2 ** 8
 
-    args_policy = ConfigPolicy(graph_list=graph_list, graph_type=graph_type)
+    args_policy = ConfigPolicy(mygraph=mygraph, graph_type=graph_type)
 
     '''run'''
     # net_path = f'./model/graph_trs_{graph_type}_{args_graph.num_nodes}.pth'
-    # train_graph_trs_net_in_a_single_graph(args=args_graph, graph_list=graph_list, net_path=net_path, gpu_id=gpu_id)
-    solve_single_graph_problem_using_trs(graph_list, args_graph, args_policy, gpu_id=gpu_id)
+    # train_graph_trs_net_in_a_single_graph(args=args_graph, mygraph=mygraph, net_path=net_path, gpu_id=gpu_id)
+    solve_single_graph_problem_using_trs(mygraph, args_graph, args_policy, gpu_id=gpu_id)
 
 
 def run_graph_set_70(graph_type: str = 'G70', gpu_id: int = 0):
-    graph_list = load_graph_list(graph_name=graph_type)
+    mygraph = load_mygraph2(graph_name=graph_type)
 
-    args_graph = ConfigGraph(graph_list=graph_list, graph_type=graph_type)
+    args_graph = ConfigGraph(mygraph=mygraph, graph_type=graph_type)
     args_graph.batch_size = 2 ** 1
     args_graph.train_times = 2 ** 8
 
-    args_policy = ConfigPolicy(graph_list=graph_list, graph_type=graph_type)
+    args_policy = ConfigPolicy(mygraph=mygraph, graph_type=graph_type)
 
     '''run'''
     # net_path = f'./model/graph_trs_{graph_type}_{args_graph.num_nodes}.pth'
-    # train_graph_trs_net_in_a_single_graph(args=args_graph, graph_list=graph_list, net_path=net_path, gpu_id=gpu_id)
-    solve_single_graph_problem_using_trs(graph_list, args_graph, args_policy, gpu_id=gpu_id)
+    # train_graph_trs_net_in_a_single_graph(args=args_graph, mygraph=mygraph, net_path=net_path, gpu_id=gpu_id)
+    solve_single_graph_problem_using_trs(mygraph, args_graph, args_policy, gpu_id=gpu_id)
 
 
 if __name__ == '__main__':
