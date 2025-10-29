@@ -36,7 +36,7 @@ Welcome to RLSolver!
    :caption: Tutorials
 
    tutorial/ECO-DQN
-   tutorial/s2v-DQN
+   tutorial/S2V-DQN
    tutorial/MCPG
 
 .. toctree::

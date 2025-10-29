@@ -15,7 +15,7 @@ import tqdm
 from rlsolver.methods.util_write_read_result import write_graph_result
 
 
-# The results are written in this directory: 'rlsolver/result/maxcut_iSCO'
+# The results are written in this directory: 'rlsolver/result/maxcut_ISCO'
 def main(_):
     params_dict = load_data(DATAPATH)
     sampler = ISCO_MIS(params_dict)

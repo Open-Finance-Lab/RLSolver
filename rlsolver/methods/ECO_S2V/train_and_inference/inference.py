@@ -45,7 +45,7 @@ def run(save_loc="BA_40spin/eco",
     # SET UP ENVIRONMENTAL AND VARIABLES
     ####################################################
 
-    if ALG in [Alg.s2v]:
+    if ALG in [Alg.S2V]:
         env_args = {'observables': [Observable.SPIN_STATE],
                     'reward_signal': RewardSignal.DENSE,
                     'extra_action': ExtraAction.NONE,

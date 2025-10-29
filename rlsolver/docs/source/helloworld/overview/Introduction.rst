@@ -29,7 +29,7 @@ Key Technologies
 ----------------
 
 - **GPU-based massively parallel environments** for Markov chain Monte Carlo (MCMC) simulations on thousands of CUDA cores and tensor cores.  
-- **Distribution-wise training** is orders of magnitude faster than instance-wise methods (e.g., MCPG, iSCO), since inference can be done directly on batched instances.
+- **Distribution-wise training** is orders of magnitude faster than instance-wise methods (e.g., MCPG, ISCO), since inference can be done directly on batched instances.
 
 
 .. raw:: html

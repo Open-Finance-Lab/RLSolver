@@ -1,7 +1,7 @@
 from rlsolver.methods.ECO_S2V.rl4co.envs.common.base import RL4COEnvBase
 from rlsolver.methods.ECO_S2V.rl4co.models.rl import REINFORCE
 from rlsolver.methods.ECO_S2V.rl4co.models.rl.reinforce.baselines import REINFORCEBaseline
-from rlsolver.methods.ECO_S2V.rl4co.models.zoo.s2v.policy import S2VModelPolicy
+from rlsolver.methods.ECO_S2V.rl4co.models.zoo.S2V.policy import S2VModelPolicy
 
 
 class S2VModel(REINFORCE):

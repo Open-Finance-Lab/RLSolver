@@ -24,7 +24,7 @@ RLSolver has three layers:
 
 Key Technologies
 -**GPU-based Massively parallel environments** of Markov chain Monte Carlo (MCMC) simulations on GPU using thousands of CUDA cores and tensor cores.
--**Distribution-wise** is **much much faster** than the instance-wise methods, such as MCPG and iSCO, since we can obtain the results directly by inference.
+-**Distribution-wise** is **much much faster** than the instance-wise methods, such as MCPG and ISCO, since we can obtain the results directly by inference.
 
 Why Use GPU-based Massively Parallel Environments?
 

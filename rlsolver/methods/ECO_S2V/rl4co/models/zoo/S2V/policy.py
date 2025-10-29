@@ -3,8 +3,8 @@ from typing import Callable
 import torch.nn as nn
 
 from rlsolver.methods.ECO_S2V.rl4co.models.common.constructive.autoregressive.policy import AutoregressivePolicy
-from rlsolver.methods.ECO_S2V.rl4co.models.zoo.s2v.decoder import S2VModelDecoder
-from rlsolver.methods.ECO_S2V.rl4co.models.zoo.s2v.encoder import S2VModelEncoder
+from rlsolver.methods.ECO_S2V.rl4co.models.zoo.S2V.decoder import S2VModelDecoder
+from rlsolver.methods.ECO_S2V.rl4co.models.zoo.S2V.encoder import S2VModelEncoder
 
 
 class S2VModelPolicy(AutoregressivePolicy):

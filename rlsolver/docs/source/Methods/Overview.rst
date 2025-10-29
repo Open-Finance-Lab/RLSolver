@@ -28,17 +28,17 @@ Overview
    * - S2V-DQN
      - RL
      - I
-     - `code <https://github.com/Open-Finance-Lab/RLSolver/blob/master/rlsolver/methods/eco_s2v/train_and_inference/train_s2v.py>`_
+     - `code <https://github.com/Open-Finance-Lab/RLSolver/blob/master/rlsolver/methods/ECO_S2V/train_and_inference/train_S2V.py>`_
      - `code <https://github.com/zhumingpassional/RLSolver/blob/master/rlsolver/envs/env_S2V.py>`_
    * - ECO-DQN
      - RL
      - I
-     - `code <https://github.com/zhumingpassional/RLSolver/blob/master/rlsolver/methods/eco_s2v/train_and_inference/train_eco.py>`_
+     - `code <https://github.com/zhumingpassional/RLSolver/blob/master/rlsolver/methods/ECO_S2V/train_and_inference/train_ECO.py>`_
      - `code <https://github.com/zhumingpassional/RLSolver/blob/master/rlsolver/envs/env_ECO.py>`_
    * - Jumanji
      - RL
      - I
-     - `code <https://github.com/zhumingpassional/RLSolver/tree/master/rlsolver/methods/eco_s2v/jumanji>`_
+     - `code <https://github.com/zhumingpassional/RLSolver/tree/master/rlsolver/methods/ECO_S2V/jumanji>`_
      - `code <https://github.com/zhumingpassional/RLSolver/blob/master/rlsolver/envs/env_Jumanji.py>`_
    * - PI-GNN
      - RL
@@ -50,7 +50,7 @@ Overview
      - I
      - `code <https://github.com/zhumingpassional/RLSolver/tree/master/rlsolver/methods/RUNCSP>`_
      - `code <https://github.com/zhumingpassional/RLSolver/blob/master/rlsolver/envs/env_RUNCSP.py>`_
-   * - iSCO
+   * - ISCO
      - RL
      - II
      - `code <https://github.com/Open-Finance-Lab/RLSolver/tree/master/rlsolver/methods/ISCO>`_

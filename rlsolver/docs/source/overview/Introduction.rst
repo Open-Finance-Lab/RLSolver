@@ -29,7 +29,7 @@ Key Technologies
 ----------------
 
 - **GPU-based massively parallel environments** for Markov chain Monte Carlo (MCMC) simulations on thousands of CUDA cores and tensor cores.  
-- **Distribution-wise training** is orders of magnitude faster than instance-wise methods (e.g., MCPG, iSCO), since inference can be done directly on batched instances.
+- **Distribution-wise training** is orders of magnitude faster than instance-wise methods (e.g., MCPG, ISCO), since inference can be done directly on batched instances.
 
 
 .. raw:: html
@@ -108,7 +108,7 @@ Comparison of libraries
 
    Jumanji, A2C,I II, Y, N, Y, N, Y, N, N, N
    RL4CO, A2C PPO reinforce, I, Y, Only reinforce, Y, N, Y, N, N, N
-   RLSolver (Ours), S2V-DQN ECO-DQN S2V-PPO MCPG dREINFORCE iSCO PI-GNN RUN-CSP etc, I II, Y, Y , Y, Y, Y, Y, Y, Y 
+   RLSolver (Ours), S2V-DQN ECO-DQN S2V-PPO MCPG dREINFORCE ISCO PI-GNN RUN-CSP etc, I II, Y, Y , Y, Y, Y, Y, Y, Y
 
 .. raw:: html
 
@@ -121,7 +121,7 @@ Comparison of libraries
 
 The differences bewteen Jumanji, RL4CO, and RLSolver are as follows. 
 
-1) RLSolver supports more methods than Jumanji and RL4CO, including S2V-DQN, ECO-DQN, S2V-PPO, MCPG, dREINFORCE, iSCO, PI-GNN, RUN-CSP, etc. Jumanji only supports A2C methods. RL4CO only supports three methods: A2C, PPO, and reinforce. 
+1) RLSolver supports more methods than Jumanji and RL4CO, including S2V-DQN, ECO-DQN, S2V-PPO, MCPG, dREINFORCE, ISCO, PI-GNN, RUN-CSP, etc. Jumanji only supports A2C methods. RL4CO only supports three methods: A2C, PPO, and reinforce.
 
 2) RLSolver supports two patterns. Jumanji also supports two patterns. But RL4CO only supports one pattern.
 

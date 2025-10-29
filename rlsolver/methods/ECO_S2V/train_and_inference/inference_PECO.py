@@ -11,7 +11,7 @@ import networkx as nx
 from rlsolver.methods.ECO_S2V.src.envs.inference_network_env import SpinSystemFactory
 from rlsolver.methods.ECO_S2V.util import peco_test_network
 from rlsolver.methods.util_read_data import read_nxgraph
-from rlsolver.methods.ECO_S2V.src.envs.util_envs_peco import SetGraphGenerator
+from rlsolver.methods.ECO_S2V.src.envs.util_envs_PECO import SetGraphGenerator
 
 from rlsolver.methods.ECO_S2V.src.envs.util_envs import RewardSignal
 from rlsolver.methods.ECO_S2V.src.envs.util_envs import ExtraAction
@@ -47,7 +47,7 @@ def run(graph_folder="../../data/syn_BA",
         param.requires_grad = False
     network.eval()
 
-    if ALG == Alg.peco:
+    if ALG == Alg.PECO:
         env_args = {
             'observables': DEFAULT_OBSERVABLES,
             'reward_signal': RewardSignal.BLS,

@@ -1,8 +1,8 @@
 import rlsolver.methods.ECO_S2V.src.envs.core as ising_env
 from rlsolver.methods.ECO_S2V.config import *
-from rlsolver.methods.ECO_S2V.src.agents.dqn_peco import DQN
+from rlsolver.methods.ECO_S2V.src.agents.dqn_PECO import DQN
 from rlsolver.methods.ECO_S2V.src.agents.util import TestMetric
-from rlsolver.methods.ECO_S2V.src.envs.util_envs_peco import (RandomBarabasiAlbertGraphGenerator,
+from rlsolver.methods.ECO_S2V.src.envs.util_envs_PECO import (RandomBarabasiAlbertGraphGenerator,
                                                               RandomErdosRenyiGraphGenerator, ValidationGraphGenerator,
                                                               )
 from rlsolver.methods.ECO_S2V.src.envs.util_envs import (EdgeType, RewardSignal, ExtraAction,

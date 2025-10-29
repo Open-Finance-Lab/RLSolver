@@ -15,7 +15,7 @@ from rlsolver.methods.util_write_read_result import write_graph_result
 import torch.nn.functional as F
 from rlsolver.methods.ISCO.util_maxcut import *
 
-# The results are written in this directory: 'rlsolver/result/maxcut_iSCO'
+# The results are written in this directory: 'rlsolver/result/maxcut_ISCO'
 def main(_):
     params_dict = load_data(DATAPATH)
     sampler = PISCO_maxcut(params_dict)

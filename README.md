@@ -24,7 +24,7 @@ RLSolver has three layers:
 
 # Key Technologies
 - **GPU-based Massively parallel environments** of Markov chain Monte Carlo (MCMC) simulations on GPU using thousands of CUDA cores and tensor cores.
-- **Distribution-wise** is __much much faster__ than the instance-wise methods (such as MCPG and iSCO), since we can obtain the results directly by inference.
+- **Distribution-wise** is __much much faster__ than the instance-wise methods (such as MCPG and ISCO), since we can obtain the results directly by inference.
 
 # Why Use GPU-based Massively Parallel Environments?
 
@@ -67,7 +67,7 @@ GPU-based parallel environments can significantly improve the quality of solutio
 |--------|-----------|------------|-------------|--------|---------|-------------------------|---------|------------|---------|------------|--------|
 | Jumanji   | A2C    | I, II      | Y     | N| Y |N |Y |N |N |N |N |
 | RL4CO    | A2C, PPO, reinforce    | I    | Y      | Only reinforce |   Y |N |Y |N |N |N |N |
-| RLSolver (Ours)| PPO, S2V-DQN, ECO-DQN, MCPG, dREINFORCE, iSCO, PI-GNN,  etc    | I, II     | Y      | Y | Y |Y |Y |Y |Y |Y |Y |
+| RLSolver (Ours)| PPO, S2V-DQN, ECO-DQN, MCPG, dREINFORCE, ISCO, PI-GNN,  etc    | I, II     | Y      | Y | Y |Y |Y |Y |Y |Y |Y |
 
 RLSolver crosses two domains: operations research (OR) and RL. Commercial solver-based OR methods use Gurobi (or SCIP) based on ILP or QUBO/Ising models. RLSolver supports the integration of OR and RL, e.g., RL for branching, cutting plane, or column generation (CG).
 
@@ -126,20 +126,20 @@ RLSolver provides a diverse range of methods for large-scale combinatorial optim
 problems.
 
 
-| Method        | Category     | Pattern | Source                                                                                                                                                                    | Parallel environments                                                                         |
-|---------------|--------------|---------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------|
-| Gurobi (QUBO) | Conventional | -       | [code](https://github.com/zhumingpassional/RLSolver/blob/master/rlsolver/methods/gurobi.py)                                                                               | -                                                                                             |
-| Greedy        | Conventional | -       | [code](https://github.com/zhumingpassional/RLSolver/blob/master/rlsolver/methods/greedy.py)                                                                               | -                                                                                             |
-| SDP           | Conventional | -       | [code](https://github.com/zhumingpassional/RLSolver/blob/master/rlsolver/methods/sdp.py)                                                                                  | -                                                                                             |
-| S2V-DQN       | RL           | I       | [code](https://github.com/zhumingpassional/RLSolver/blob/master/rlsolver/methods/eco_s2v/train_and_inference/train_s2v.py)                                                | [code](https://github.com/zhumingpassional/RLSolver/blob/master/rlsolver/envs/env_S2V.py)     | 
-| ECO-DQN       | RL           | I       | [code](https://github.com/zhumingpassional/RLSolver/blob/master/rlsolver/methods/eco_s2v/train_and_inference/train_eco.py)                                                | [code](https://github.com/zhumingpassional/RLSolver/blob/master/rlsolver/envs/env_ECO.py)     | 
-| Jumanji       | RL           | I       | [code](https://github.com/zhumingpassional/RLSolver/tree/master/rlsolver/methods/eco_s2v/jumanji)                                                                         | [code](https://github.com/zhumingpassional/RLSolver/blob/master/rlsolver/envs/env_Jumanji.py) |
-| PI-GNN        | RL           | I       | [code](https://github.com/zhumingpassional/RLSolver/tree/master/rlsolver/methods/PIGNN)                                                                                  | [code](https://github.com/zhumingpassional/RLSolver/blob/master/rlsolver/envs/env_PIGNN.py)  |
-| RUN-CSP       | RL           | I       | [code](https://github.com/zhumingpassional/RLSolver/tree/master/rlsolver/methods/RUNCSP)                                                                                 | [code](https://github.com/zhumingpassional/RLSolver/blob/master/rlsolver/envs/env_RUNCSP.py) |
-| iSCO          | RL           | II      | [code](https://github.com/zhumingpassional/RLSolver/tree/master/rlsolver/methods/ISCO)                                                                                    | [code](https://github.com/zhumingpassional/RLSolver/blob/master/rlsolver/envs/env_ISCO.py)    |
-| seq2seq       | RL           | II      | [code](https://github.com/zhumingpassional/RLSolver/tree/master/rlsolver/methods/seq2seq)                                                                                 | [code](https://github.com/zhumingpassional/RLSolver/blob/master/rlsolver/envs/env_seq2seq.py) |
-| MCPG          | RL           | II      | [code](https://github.com/zhumingpassional/RLSolver/blob/master/rlsolver/methods/mcpg.py)                                                                                 | [code](https://github.com/zhumingpassional/RLSolver/blob/master/rlsolver/envs/env_mcpg.py)    |
-| dREINFORCE    | RL           | II      | [code](https://github.com/zhumingpassional/RLSolver/tree/master/rlsolver/methods/L2A)                                                                                     | [code](https://github.com/zhumingpassional/RLSolver/blob/master/rlsolver/envs/env_L2A.py)     |
+| Method        | Category     | Pattern | Source                                                                                                                     | Parallel environments                                                                         |
+|---------------|--------------|---------|----------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------|
+| Gurobi (QUBO) | Conventional | -       | [code](https://github.com/zhumingpassional/RLSolver/blob/master/rlsolver/methods/gurobi.py)                                | -                                                                                             |
+| Greedy        | Conventional | -       | [code](https://github.com/zhumingpassional/RLSolver/blob/master/rlsolver/methods/greedy.py)                                | -                                                                                             |
+| SDP           | Conventional | -       | [code](https://github.com/zhumingpassional/RLSolver/blob/master/rlsolver/methods/sdp.py)                                   | -                                                                                             |
+| S2V-DQN       | RL           | I       | [code](https://github.com/zhumingpassional/RLSolver/blob/master/rlsolver/methods/ECO_S2V/train_and_inference/train_S2V.py) | [code](https://github.com/zhumingpassional/RLSolver/blob/master/rlsolver/envs/env_S2V.py)     | 
+| ECO-DQN       | RL           | I       | [code](https://github.com/zhumingpassional/RLSolver/blob/master/rlsolver/methods/ECO_S2V/train_and_inference/train_ECO.py) | [code](https://github.com/zhumingpassional/RLSolver/blob/master/rlsolver/envs/env_ECO.py)     | 
+| Jumanji       | RL           | I       | [code](https://github.com/zhumingpassional/RLSolver/tree/master/rlsolver/methods/ECO_S2V/jumanji)                          | [code](https://github.com/zhumingpassional/RLSolver/blob/master/rlsolver/envs/env_Jumanji.py) |
+| PI-GNN        | RL           | I       | [code](https://github.com/zhumingpassional/RLSolver/tree/master/rlsolver/methods/PIGNN)                                    | [code](https://github.com/zhumingpassional/RLSolver/blob/master/rlsolver/envs/env_PIGNN.py)   |
+| RUN-CSP       | RL           | I       | [code](https://github.com/zhumingpassional/RLSolver/tree/master/rlsolver/methods/RUNCSP)                                   | [code](https://github.com/zhumingpassional/RLSolver/blob/master/rlsolver/envs/env_RUNCSP.py)  |
+| ISCO          | RL           | II      | [code](https://github.com/zhumingpassional/RLSolver/tree/master/rlsolver/methods/ISCO)                                     | [code](https://github.com/zhumingpassional/RLSolver/blob/master/rlsolver/envs/env_ISCO.py)    |
+| seq2seq       | RL           | II      | [code](https://github.com/zhumingpassional/RLSolver/tree/master/rlsolver/methods/seq2seq)                                  | [code](https://github.com/zhumingpassional/RLSolver/blob/master/rlsolver/envs/env_seq2seq.py) |
+| MCPG          | RL           | II      | [code](https://github.com/zhumingpassional/RLSolver/blob/master/rlsolver/methods/MCPG.py)                                  | [code](https://github.com/zhumingpassional/RLSolver/blob/master/rlsolver/envs/env_MCPG.py)    |
+| dREINFORCE    | RL           | II      | [code](https://github.com/zhumingpassional/RLSolver/tree/master/rlsolver/methods/L2A)                                      | [code](https://github.com/zhumingpassional/RLSolver/blob/master/rlsolver/envs/env_L2A.py)     |
 
 
 
@@ -179,16 +179,16 @@ rlsolver
     └──Env_S2V.py
 └──methods # generic RL methods, i.e., one method can solver multiple problems
     └──attention_model
-    └──eco_s2v
-          └──eco
-          └──s2v
+    └──ECO_S2V
+          └──ECO
+          └──S2V
           └──jumanji
           └──rl4co
-    └──iSCO
+    └──ISCO
     └──L2A (ours)
     └──PI-GNN
     └──RUN-CSP
-    └──s2v_ppo
+    └──S2V_PPO
     └──config.py
     └──genetic_algorithm.py
     └──greedy.py
@@ -277,7 +277,7 @@ python methods/greedy.py  # run greedy
 python methods/gurobiy.py  # run gurobi
 python methods/simulated_annealing.py  # run simulated_annealing
 python methods/mcpg.py  # run mcpg
-python methods/iSCO/main.py  # run iSCO
+python methods/ISCO/main.py  # run ISCO
 python methods/PI-GNN/main.py  # run PI-GNN
 ```
 ```
@@ -312,7 +312,7 @@ python methods/L2A/main.py  # ours
 
 * Discrete sampling
 
-[code](https://github.com/zhumingpassional/RLSolver/tree/master/methods/iSCO) (iSCO) 2023 ICML Revisiting Sampling for Combinatorial Optimization
+[code](https://github.com/zhumingpassional/RLSolver/tree/master/methods/ISCO) (ISCO) 2023 ICML Revisiting Sampling for Combinatorial Optimization
   
 * Learning to branch
   
@@ -338,7 +338,7 @@ In the following experiments, we used GPU during training by default. The best-k
 
 We use the instance-wise version of L2A, i.e., end to end, in the dataset [Gset](https://web.stanford.edu/~yyye/yyye/Gset/), which is opened by Stanford university. 
 
-| Graph | Nodes| Edges | BLS | DSDP    | KHLWG     | RUN-CSP| PI-GNN| Gurobi (1 h)  |Gap         | Obj bound |iSCO   | MCPG     | Ours | Improvement |  
+| Graph | Nodes| Edges | BLS | DSDP    | KHLWG     | RUN-CSP| PI-GNN| Gurobi (1 h)  |Gap         | Obj bound |ISCO   | MCPG     | Ours | Improvement |  
 |--- |------|----  |---        |-----    |-----    |--------|-------| ---           | ---        | ----      | ----  | ----     | ---- | ----|
 |    |      |  |       |  |    |                            |Pattern I|         |                |           | Pattern II| Pattern II| Pattern II|   |
 |G14 | 800  | 4694 | __3064__  |         | 2922    | 3061   | 2943  |3037           | 4.28\%     |3167       |  3056 |__3064__  | __3064__ | +0\%|
@@ -351,10 +351,10 @@ We use the instance-wise version of L2A, i.e., end to end, in the dataset [Gset]
 
 2) Distribution-wise (synthetic data)
 
-We use the distribution-wise version of L2A in the synthetic datasets in 3 distributions: barabasi albert (BA), erdos renyi (ER), and powerlaw (PL). That is, after training, we test the instances by inferring the neural networks. The distribution-wise version of L2A is __much much faster__ than the instance-wise methods (such as MCPG and iSCO), since we can obtain the results directly by inference. For graphs with $n ~ (100 \leq 1000)$ nodes, there are 10 datasets, and we calcualte the average of the obtained objective values. 
+We use the distribution-wise version of L2A in the synthetic datasets in 3 distributions: barabasi albert (BA), erdos renyi (ER), and powerlaw (PL). That is, after training, we test the instances by inferring the neural networks. The distribution-wise version of L2A is __much much faster__ than the instance-wise methods (such as MCPG and ISCO), since we can obtain the results directly by inference. For graphs with $n ~ (100 \leq 1000)$ nodes, there are 10 datasets, and we calcualte the average of the obtained objective values. 
 
 Results on the BA distribution.
-|Nodes | Greedy | SDP  | SA       | GA     | Gurobi (1 h)|Obj bound | PI-GNN | iSCO   | MCPG   | Ours  | 
+|Nodes | Greedy | SDP  | SA       | GA     | Gurobi (1 h)|Obj bound | PI-GNN | ISCO   | MCPG   | Ours  | 
 |----------|-------|------| -------- |--------|--------  | ------   | ------ |------  |--------|------ |
 ||||  ||     | | Pattern I |Pattern II  |Pattern II| Pattern II |
 |100   |272.1  |272.5 | 272.3  |__284.1__ |__284.1__     | 284.1 | 273.0  |__284.1__|__284.1__| __284.1__|

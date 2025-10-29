@@ -6,7 +6,7 @@ import numpy as np
 import torch
 import torch.multiprocessing as mp
 
-from rlsolver.methods.ECO_S2V.src.envs.util_envs_peco import HistoryBuffer
+from rlsolver.methods.ECO_S2V.src.envs.util_envs_PECO import HistoryBuffer
 from rlsolver.methods.ECO_S2V.src.envs.util_envs import (Observable,
                                                          RewardSignal, ExtraAction,
                                                          OptimisationTarget, SpinBasis,
