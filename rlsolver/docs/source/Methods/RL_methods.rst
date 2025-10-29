@@ -18,7 +18,7 @@ To train S2V-DQN on a distribution of graphs:
 
 .. code-block:: bash
 
-   python methods/eco_s2v/main.py  # train S2V-DQN on distribution-wise maxcut instances
+   python methods/ECO_S2V/main.py  # train S2V-DQN on distribution-wise maxcut instances
 
 Once trained, inference can be run by setting `TRAIN_INFERENCE = 1` in `config.py` and re-running the same script.
 
@@ -26,9 +26,9 @@ MCPG
 -----
 MCPG (Monte Carlo Policy Gradient) estimates the gradient of expected reward by running full Monte Carlo rollouts under the current policy. Each complete-solution sample is scored, and the policy network is updated by back-propagating the reward signal through the sampled trajectories, effectively performing on-policy policy gradient updates.
 
-iSCO
+ISCO
 ----
-iSCO (improved Sampling algorithm for Combinatorial Optimization) instantiates the generic sampling framework with efficiency and parallelism enhancements.  
+ISCO (improved Sampling algorithm for Combinatorial Optimization) instantiates the generic sampling framework with efficiency and parallelism enhancements.
 It leverages discrete‐space Markov Chain Monte Carlo (MCMC) moves together with just‐in‐time compilation for accelerators, achieving faster convergence on high‐quality solutions across diverse combinatorial instances.
 
 Jumanji

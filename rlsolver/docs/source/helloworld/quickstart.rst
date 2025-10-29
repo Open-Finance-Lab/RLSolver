@@ -65,7 +65,7 @@ Through repeated trial and reward, it gradually learns a general strategy that c
 
 2.1. **Set basic config**:
 
-   Edit `rlsolver/methods/eco_s2v/config.py <https://github.com/Open-Finance-Lab/RLSolver/blob/master/rlsolver/methods/eco_s2v/config.py>`_.  
+   Edit `rlsolver/methods/ECO_S2V/config.py <https://github.com/Open-Finance-Lab/RLSolver/blob/master/rlsolver/methods/ECO_S2V/config.py>`_.
   .. code-block:: python
 
       ALG = Alg.s2v                                   # select s2v as the RL method
@@ -75,11 +75,11 @@ Through repeated trial and reward, it gradually learns a general strategy that c
 
 2.2. **Run training**:
 
-  Run `rlsolver/methods/eco_s2v/main.py <https://github.com/Open-Finance-Lab/RLSolver/blob/master/rlsolver/methods/eco_s2v/main.py>`_.
+  Run `rlsolver/methods/ECO_S2V/main.py <https://github.com/Open-Finance-Lab/RLSolver/blob/master/rlsolver/methods/ECO_S2V/main.py>`_.
 
    .. code-block:: text
 
-      python rlsolver/methods/eco_s2v/main.py 
+      python rlsolver/methods/ECO_S2V/main.py
 
    This will generate a folder:  rlsolver/trained_agent/tmp/s2v_BA_20spin_b/
 
@@ -89,7 +89,7 @@ Through repeated trial and reward, it gradually learns a general strategy that c
 
 2.3. **Select the best model from this folder**:
 
-   Edit `rlsolver/methods/eco_s2v/config.py <https://github.com/Open-Finance-Lab/RLSolver/blob/master/rlsolver/methods/eco_s2v/config.py>`_.  
+   Edit `rlsolver/methods/ECO_S2V/config.py <https://github.com/Open-Finance-Lab/RLSolver/blob/master/rlsolver/methods/ECO_S2V/config.py>`_.
 
    Find the line:
 
@@ -105,11 +105,11 @@ Through repeated trial and reward, it gradually learns a general strategy that c
       NEURAL_NETWORK_SUBFOLDER = "s2v_BA_20spin_b"
 
    Then run:  
-   `rlsolver/methods/eco_s2v/train_and_inference/select_best_neural_network.py <https://github.com/Open-Finance-Lab/RLSolver/blob/master/rlsolver/methods/eco_s2v/select_best_neural_network.py>`_.
+   `rlsolver/methods/ECO_S2V/train_and_inference/select_best_neural_network.py <https://github.com/Open-Finance-Lab/RLSolver/blob/master/rlsolver/methods/ECO_S2V/select_best_neural_network.py>`_.
 
    .. code-block:: bash
 
-      python rlsolver/methods/eco_s2v/train_and_inference/select_best_neural_network.py
+      python rlsolver/methods/ECO_S2V/train_and_inference/select_best_neural_network.py
 
    It will generate a file like: s2v_BA_20spin_1033_best.pth
 
@@ -128,7 +128,7 @@ The following steps configure and run inference using the trained model on graph
 
 3.1. **Switch to inference mode**:
 
-   Edit  `rlsolver/methods/eco_s2v/config.py <https://github.com/Open-Finance-Lab/RLSolver/blob/master/rlsolver/methods/eco_s2v/config.py>`_.  
+   Edit  `rlsolver/methods/ECO_S2V/config.py <https://github.com/Open-Finance-Lab/RLSolver/blob/master/rlsolver/methods/ECO_S2V/config.py>`_.
 
 
    .. code-block:: python
@@ -142,7 +142,7 @@ The following steps configure and run inference using the trained model on graph
 
 3.2. **Run inference**:
 
-   Run `rlsolver/methods/eco_s2v/main.py <https://github.com/Open-Finance-Lab/RLSolver/blob/master/rlsolver/methods/eco_s2v/main.py>`_.
+   Run `rlsolver/methods/ECO_S2V/main.py <https://github.com/Open-Finance-Lab/RLSolver/blob/master/rlsolver/methods/ECO_S2V/main.py>`_.
 
    This step uses the selected best model to run inference over all test instances.
 
@@ -197,7 +197,7 @@ Run method in command line:
    python methods/gurobipy.py                # run gurobi
    python methods/simulated_annealing.py     # run simulated annealing
    python methods/mcpg.py                    # run MCPG
-   python methods/iSCO/main.py               # run iSCO
+   python methods/ISCO/main.py               # run ISCO
 
 **References**
 

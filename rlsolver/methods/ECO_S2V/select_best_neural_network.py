@@ -11,7 +11,7 @@ import numpy as np
 
 from rlsolver.methods.ECO_S2V.src.envs.inference_network_env import SpinSystemFactory
 from rlsolver.methods.ECO_S2V.util import peco_test_network
-from rlsolver.methods.ECO_S2V.src.envs.util_envs_peco import (SetGraphGenerator)
+from rlsolver.methods.ECO_S2V.src.envs.util_envs_PECO import (SetGraphGenerator)
 from rlsolver.methods.ECO_S2V.src.envs.util_envs import (EdgeType, Observable,
                                                          RewardSignal, ExtraAction,
                                                          OptimisationTarget, SpinBasis,
@@ -65,7 +65,7 @@ def run(neural_network_folder, num_envs, mini_envs, num_generated_instances, alg
                     'reversible_spins': False,
                     'if_greedy': False}
     if alg == Alg.peco:
-        from rlsolver.methods.ECO_S2V.src.envs.util_envs_peco import ValidationGraphGenerator
+        from rlsolver.methods.ECO_S2V.src.envs.util_envs_PECO import ValidationGraphGenerator
         validation_graph_generator = ValidationGraphGenerator(n_spins=num_nodes, graph_type=graph_type,
                                                               edge_type=EdgeType.DISCRETE, device=INFERENCE_DEVICE,
                                                               num_envs=num_generated_instances, seed=VALIDATION_SEED)

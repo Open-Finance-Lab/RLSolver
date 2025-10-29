@@ -10,7 +10,7 @@ import torch
 import networkx as nx
 
 from rlsolver.methods.ECO_S2V.src.envs.inference_network_env import SpinSystemFactory
-from rlsolver.methods.ECO_S2V.src.envs.util_envs_peco import SetGraphGenerator
+from rlsolver.methods.ECO_S2V.src.envs.util_envs_PECO import SetGraphGenerator
 from rlsolver.methods.ECO_S2V.src.envs.util_envs import RewardSignal
 from rlsolver.methods.ECO_S2V.src.envs.util_envs import ExtraAction
 from rlsolver.methods.ECO_S2V.src.envs.util_envs import OptimisationTarget

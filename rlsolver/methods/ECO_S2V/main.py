@@ -10,13 +10,13 @@ from rlsolver.methods.ECO_S2V.config import *
 start_time = time.time()
 if TRAIN_INFERENCE == 0:
     if ALG == Alg.eco:
-        from rlsolver.methods.ECO_S2V.train_and_inference.train_eco import run
+        from rlsolver.methods.ECO_S2V.train_and_inference.train_ECO import run
     elif ALG == Alg.s2v:
-        from rlsolver.methods.ECO_S2V.train_and_inference.train_s2v import run
+        from rlsolver.methods.ECO_S2V.train_and_inference.train_S2V import run
     elif ALG == Alg.eco_torch:
-        from rlsolver.methods.ECO_S2V.train_and_inference.train_eco_torch import run
+        from rlsolver.methods.ECO_S2V.train_and_inference.train_ECO_torch import run
     elif ALG == Alg.peco:
-        from rlsolver.methods.ECO_S2V.train_and_inference.train_peco import run
+        from rlsolver.methods.ECO_S2V.train_and_inference.train_PECO import run
     elif ALG == Alg.jumanji:
         from rlsolver.methods.ECO_S2V.jumanji.train_and_inference.train import run
     elif ALG == Alg.rl4co:
@@ -27,7 +27,7 @@ if TRAIN_INFERENCE == 0:
 
 if TRAIN_INFERENCE == 1:
     if ALG == Alg.peco:
-        from rlsolver.methods.ECO_S2V.train_and_inference.inference_peco import run
+        from rlsolver.methods.ECO_S2V.train_and_inference.inference_PECO import run
 
         run(graph_folder=DATA_DIR,
             num_envs=NUM_INFERENCE_ENVS,

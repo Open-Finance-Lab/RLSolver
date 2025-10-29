@@ -15,7 +15,7 @@ from rlsolver.methods.util_write_read_result import write_graph_result
 from rlsolver.methods.ISCO.util_TSP import *
 
 
-# The results are written in this directory: 'rlsolver/result/tsp_iSCO'
+# The results are written in this directory: 'rlsolver/result/tsp_ISCO'
 def main(_):
     params_dict = load_data(DATAPATH)
     sampler = ISCO_TSP(params_dict)
