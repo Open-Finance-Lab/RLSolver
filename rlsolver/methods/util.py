@@ -8,10 +8,8 @@ sys.path.append(os.path.dirname(rlsolver_path))
 
 os.environ['KMP_DUPLICATE_LIB_OK']='True'
 import copy
-import torch as th
 from torch.autograd import Variable
 import functools
-import time
 import numpy as np
 from typing import Union, Tuple, List
 import networkx as nx
@@ -70,8 +68,6 @@ def transfer_weightmatrix_to_nxgraph(weightmatrix: List[List[int]], num_nodes: i
     for i, j, weight in weightmatrix:
         graph.add_edge(i, j, weight=weight)
     return graph
-
-
 
 def calc_file_name(front: str, id2: int, val: int, end: str):
     return front + "_" + str(id2) + "_" + str(val) + end + "pkl"
@@ -357,12 +353,65 @@ def save_graph_info_to_txt(txt_path, graph, num_nodes, num_edges):
         file.write(formatted_content)
 
 
-def build_adjacency_matrix(graph, num_nodes):
-    adjacency_matrix = np.empty((num_nodes, num_nodes))
-    adjacency_matrix[:] = -1  # 选用-1而非0表示表示两个node之间没有edge相连，避免两个节点的距离为0时出现冲突
-    for n0, n1, dt in graph:
-        adjacency_matrix[n0, n1] = dt
+def build_adjacency_matrix(graph_list: GraphList, if_bidirectional: bool = False) -> TEN:
+    """例如，无向图里：
+    - 节点0连接了节点1，边的权重为1
+    - 节点0连接了节点2，边的权重为2
+    - 节点2连接了节点3，边的权重为3
+
+    用邻接阶矩阵Ary的上三角表示这个无向图：
+      0 1 2 3
+    0 F T T F
+    1 _ F F F
+    2 _ _ F T
+    3 _ _ _ F
+
+    其中：
+    - Ary[0,1]=边的权重为1
+    - Ary[0,2]=边的权重为2
+    - Ary[2,3]=边的权重为3
+    - 其余为-1，表示False 节点之间没有连接关系
+    """
+    not_connection = -1  # 选用-1去表示表示两个node之间没有edge相连，不选用0是为了避免两个节点的距离为0时出现冲突
+    num_nodes = obtain_num_nodes(graph_list=graph_list)
+
+    adjacency_matrix = th.zeros((num_nodes, num_nodes), dtype=th.float32)
+    adjacency_matrix[:] = not_connection
+    for n0, n1, distance in graph_list:
+        adjacency_matrix[n0, n1] = distance
+        if if_bidirectional:
+            adjacency_matrix[n1, n0] = distance
     return adjacency_matrix
+
+
+def build_adjacency_bool(graph_list: GraphList, num_nodes: int = 0, if_bidirectional: bool = False) -> TEN:
+    """例如，无向图里：
+    - 节点0连接了节点1
+    - 节点0连接了节点2
+    - 节点2连接了节点3
+
+    用邻接阶矩阵Ary的上三角表示这个无向图：
+      0 1 2 3
+    0 F T T F
+    1 _ F F F
+    2 _ _ F T
+    3 _ _ _ F
+
+    其中：
+    - Ary[0,1]=True
+    - Ary[0,2]=True
+    - Ary[2,3]=True
+    - 其余为False
+    """
+    if num_nodes == 0:
+        num_nodes = obtain_num_nodes(graph_list=graph_list)
+
+    adjacency_bool = th.zeros((num_nodes, num_nodes), dtype=th.bool)
+    node0s, node1s = list(zip(*graph_list))[:2]
+    adjacency_bool[node0s, node1s] = True
+    if if_bidirectional:
+        adjacency_bool = th.logical_or(adjacency_bool, adjacency_bool.T)
+    return adjacency_bool
 
 def build_adjacency_matrix_auto(graph: GraphList, if_bidirectional: bool = False):
     """例如，无向图里：

@@ -8,7 +8,8 @@ from torch.nn.utils import clip_grad_norm_
 from config import ConfigGraph, GraphList
 from network import GraphTRS, create_mask
 from rlsolver.methods.util_evaluator import Recorder
-from rlsolver.methods.util_read_data import build_adjacency_bool, load_graph_list
+from rlsolver.methods.util import build_adjacency_bool
+from rlsolver.methods.util_read_data import load_graph_list
 from rlsolver.methods.util import get_hot_image_of_graph, get_adjacency_distance_matrix
 from rlsolver.methods.util_generate import generate_graph_list
 

@@ -30,6 +30,7 @@ GraphTypes = ['BA', 'ER', 'PL']
 TEN = th.Tensor
 
 from rlsolver.methods.util import calc_txt_files_with_prefixes
+from rlsolver.methods.util import build_adjacency_bool
 from rlsolver.methods.util_generate import generate_graph_list
 
 # read graph file, e.g., gset_14.txt, as networkx.Graph
@@ -111,68 +112,6 @@ def load_graph_list_from_txt(txt_path: str = 'G14.txt') -> GraphList:
     assert num_nodes == obtain_num_nodes(graph_list=graph_list)
     assert num_edges == len(graph_list)
     return graph_list
-
-
-
-def build_adjacency_matrix(graph_list: GraphList, if_bidirectional: bool = False) -> TEN:
-    """例如，无向图里：
-    - 节点0连接了节点1，边的权重为1
-    - 节点0连接了节点2，边的权重为2
-    - 节点2连接了节点3，边的权重为3
-
-    用邻接阶矩阵Ary的上三角表示这个无向图：
-      0 1 2 3
-    0 F T T F
-    1 _ F F F
-    2 _ _ F T
-    3 _ _ _ F
-
-    其中：
-    - Ary[0,1]=边的权重为1
-    - Ary[0,2]=边的权重为2
-    - Ary[2,3]=边的权重为3
-    - 其余为-1，表示False 节点之间没有连接关系
-    """
-    not_connection = -1  # 选用-1去表示表示两个node之间没有edge相连，不选用0是为了避免两个节点的距离为0时出现冲突
-    num_nodes = obtain_num_nodes(graph_list=graph_list)
-
-    adjacency_matrix = th.zeros((num_nodes, num_nodes), dtype=th.float32)
-    adjacency_matrix[:] = not_connection
-    for n0, n1, distance in graph_list:
-        adjacency_matrix[n0, n1] = distance
-        if if_bidirectional:
-            adjacency_matrix[n1, n0] = distance
-    return adjacency_matrix
-
-
-def build_adjacency_bool(graph_list: GraphList, num_nodes: int = 0, if_bidirectional: bool = False) -> TEN:
-    """例如，无向图里：
-    - 节点0连接了节点1
-    - 节点0连接了节点2
-    - 节点2连接了节点3
-
-    用邻接阶矩阵Ary的上三角表示这个无向图：
-      0 1 2 3
-    0 F T T F
-    1 _ F F F
-    2 _ _ F T
-    3 _ _ _ F
-
-    其中：
-    - Ary[0,1]=True
-    - Ary[0,2]=True
-    - Ary[2,3]=True
-    - 其余为False
-    """
-    if num_nodes == 0:
-        num_nodes = obtain_num_nodes(graph_list=graph_list)
-
-    adjacency_bool = th.zeros((num_nodes, num_nodes), dtype=th.bool)
-    node0s, node1s = list(zip(*graph_list))[:2]
-    adjacency_bool[node0s, node1s] = True
-    if if_bidirectional:
-        adjacency_bool = th.logical_or(adjacency_bool, adjacency_bool.T)
-    return adjacency_bool
 
 
 def build_graph_list(adjacency_bool: TEN) -> GraphList:

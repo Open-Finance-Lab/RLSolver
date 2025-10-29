@@ -6,7 +6,10 @@ rlsolver_path = os.path.join(cur_path, '../../../rlsolver')
 sys.path.append(os.path.dirname(rlsolver_path))
 
 from rlsolver.methods.util_read_data import load_graph_list, GraphList
-from rlsolver.methods.util_read_data import build_adjacency_bool, build_adjacency_indies, obtain_num_nodes, update_xs_by_vs
+from rlsolver.methods.util import build_adjacency_bool
+from rlsolver.methods.util_read_data import build_adjacency_indies
+from rlsolver.methods.util_read_data import obtain_num_nodes
+from rlsolver.methods.util_read_data import update_xs_by_vs
 from rlsolver.methods.util import gpu_info_str, evolutionary_replacement
 from rlsolver.methods.L2A.TNCO_simulator import *
 from rlsolver.methods.L2A.TNCO_local_search import *

@@ -5,12 +5,15 @@ cur_path = os.path.dirname(os.path.abspath(__file__))
 rlsolver_path = os.path.join(cur_path, '../../rlsolver')
 sys.path.append(os.path.dirname(rlsolver_path))
 
-from rlsolver.methods.util_read_data import (load_graph_list, GraphList,
-                                             build_adjacency_bool,
-                                             build_adjacency_indies,
-                                             obtain_num_nodes,
-                                             update_xs_by_vs, )
-from rlsolver.methods.util import gpu_info_str, evolutionary_replacement
+from rlsolver.methods.util_read_data import load_graph_list
+from rlsolver.methods.util_read_data import GraphList
+from rlsolver.methods.util_read_data import build_adjacency_indies
+from rlsolver.methods.util_read_data import obtain_num_nodes
+from rlsolver.methods.util_read_data import update_xs_by_vs
+
+from rlsolver.methods.util import build_adjacency_bool
+from rlsolver.methods.util import gpu_info_str
+from rlsolver.methods.util import evolutionary_replacement
 from rlsolver.methods.config import *
 
 TEN = th.Tensor

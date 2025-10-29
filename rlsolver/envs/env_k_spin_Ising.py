@@ -15,10 +15,13 @@ from rlsolver.methods.util import convert_matrix_to_vector
 from typing import List, Union, Tuple
 import torch as th
 from torch import Tensor
-# from functorch import vmap
 from rlsolver.methods.util_read_data import read_nxgraph
 import networkx as nx
-from rlsolver.methods.util import build_adjacency_matrix_auto, build_adjacency_indies_auto, obtain_num_nodes_auto, GraphList, calc_device
+from rlsolver.methods.util import build_adjacency_matrix
+from rlsolver.methods.util import build_adjacency_matrix_auto
+from rlsolver.methods.util import obtain_num_nodes_auto
+from rlsolver.methods.util import GraphList
+from rlsolver.methods.util import calc_device
 
 try:
     import matplotlib as mpl
@@ -508,35 +511,6 @@ def load_graph(graph_name: str):
 
 
 
-def build_adjacency_matrix(graph: GraphList, if_bidirectional: bool = False):
-    """例如，无向图里：
-    - 节点0连接了节点1
-    - 节点0连接了节点2
-    - 节点2连接了节点3
-
-    用邻接阶矩阵Ary的上三角表示这个无向图：
-      0 1 2 3
-    0 F T T F
-    1 _ F F F
-    2 _ _ F T
-    3 _ _ _ F
-
-    其中：
-    - Ary[0,1]=True
-    - Ary[0,2]=True
-    - Ary[2,3]=True
-    - 其余为False
-    """
-    not_connection = -1  # 选用-1去表示表示两个node之间没有edge相连，不选用0是为了避免两个节点的距离为0时出现冲突
-    num_nodes = obtain_num_nodes(graph)
-
-    adjacency_matrix = th.zeros((num_nodes, num_nodes), dtype=th.float32)
-    adjacency_matrix[:] = not_connection
-    for n0, n1, distance in graph:
-        adjacency_matrix[n0, n1] = distance
-        if if_bidirectional:
-            adjacency_matrix[n1, n0] = distance
-    return adjacency_matrix
 
 
 def build_adjacency_indies(graph: GraphList, if_bidirectional: bool = False) -> (IndexList, IndexList):

@@ -13,6 +13,7 @@ IndexList = List[List[int]]
 # DataDir = './data/graph_max_cut'
 DataDir = '../../data/gset/'
 from rlsolver.methods.util import obtain_num_nodes
+from rlsolver.methods.util import build_adjacency_matrix
 
 def load_graph_from_txt(txt_path: str = 'G14.txt') -> GraphList:
     with open(txt_path, 'r') as file:
@@ -67,39 +68,6 @@ def load_graph(graph_name: str):
         raise ValueError(f"DataDir {DataDir} | graph_name {graph_name}")
     return graph
 
-
-
-
-
-def build_adjacency_matrix(graph: GraphList, if_bidirectional: bool = False):
-    """例如，无向图里：
-    - 节点0连接了节点1
-    - 节点0连接了节点2
-    - 节点2连接了节点3
-
-    用邻接阶矩阵Ary的上三角表示这个无向图：
-      0 1 2 3
-    0 F T T F
-    1 _ F F F
-    2 _ _ F T
-    3 _ _ _ F
-
-    其中：
-    - Ary[0,1]=True
-    - Ary[0,2]=True
-    - Ary[2,3]=True
-    - 其余为False
-    """
-    not_connection = -1  # 选用-1去表示表示两个node之间没有edge相连，不选用0是为了避免两个节点的距离为0时出现冲突
-    num_nodes = obtain_num_nodes(graph)
-
-    adjacency_matrix = th.zeros((num_nodes, num_nodes), dtype=th.float32)
-    adjacency_matrix[:] = not_connection
-    for n0, n1, distance in graph:
-        adjacency_matrix[n0, n1] = distance
-        if if_bidirectional:
-            adjacency_matrix[n1, n0] = distance
-    return adjacency_matrix
 
 
 def build_adjacency_indies(graph: GraphList, if_bidirectional: bool = False) -> (IndexList, IndexList):

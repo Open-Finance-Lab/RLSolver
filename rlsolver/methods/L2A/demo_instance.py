@@ -1,6 +1,8 @@
 import os
 import sys
 
+from rlsolver.methods.L2A.graph_util import DataDir
+
 cur_path = os.path.dirname(os.path.abspath(__file__))
 rlsolver_path = os.path.join(cur_path, '../../../rlsolver')
 sys.path.append(os.path.dirname(rlsolver_path))
@@ -13,7 +15,9 @@ from config import ConfigGraph, ConfigPolicy
 from rlsolver.methods.util_evaluator import Evaluator
 from transformer import TrsCell, Buffer, convert_solution_to_prob, sub_set_sampling, get_advantages
 from network import GraphTRS, create_mask
-from rlsolver.methods.util_read_data import load_graph_list, GraphTypes, update_xs_by_vs, pick_xs_by_vs, GraphList, build_adjacency_bool
+from rlsolver.methods.util_read_data import load_graph_list, GraphTypes, update_xs_by_vs, pick_xs_by_vs, GraphList
+from rlsolver.methods.util import build_adjacency_bool
+
 from rlsolver.methods.util import gpu_info_str
 from graph_embedding_pretrain import train_graph_net_in_a_single_graph, train_graph_net_in_graph_distribution
 from rlsolver.envs.env_L2A import EnvMaxcut
@@ -277,7 +281,7 @@ def solve_single_graph_problem_using_trs(
 
 
 def run_graph_set_14_15(graph_type: str = 'gset_14', gpu_id: int = 0):
-    graph_list = load_graph_list(graph_name=graph_type)
+    graph_list = load_graph_list(dataDir=DataDir, graph_name=graph_type)
 
     args_graph = ConfigGraph(graph_list=graph_list, graph_type=graph_type)
     args_graph.batch_size = 2 ** 5

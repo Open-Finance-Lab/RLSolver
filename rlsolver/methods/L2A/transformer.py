@@ -7,9 +7,14 @@ import torch.nn as nn
 
 from config import ConfigGraph, ConfigPolicy
 from graph_embedding_pretrain import sort_adj_bools
-from network import GraphTRS, create_mask
+from network import GraphTRS
+from network import create_mask
 from rlsolver.methods.util_evaluator import Evaluator
-from rlsolver.methods.util_read_data import load_graph_list, update_xs_by_vs, pick_xs_by_vs, GraphList, build_adjacency_bool
+from rlsolver.methods.util_read_data import load_graph_list
+from rlsolver.methods.util_read_data import update_xs_by_vs
+from rlsolver.methods.util_read_data import pick_xs_by_vs
+from rlsolver.methods.util_read_data import GraphList
+from rlsolver.methods.util import build_adjacency_bool
 from rlsolver.envs.env_L2A import EnvMaxcut
 
 TEN = th.Tensor

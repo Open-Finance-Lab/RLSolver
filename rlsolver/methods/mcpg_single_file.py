@@ -10,6 +10,7 @@ from typing import List, Tuple, Union
 import networkx as nx
 import numpy as np
 from rlsolver.methods.util_read_data import load_graph_list
+from rlsolver.methods.util import build_adjacency_bool
 
 fix_seed = False
 if fix_seed:
@@ -101,34 +102,6 @@ class SolverLocalSearch:
         num_update = update_xs_by_vs(self.good_xs, self.good_vs, prev_xs, prev_vs)
         return self.good_xs, self.good_vs, num_update
 
-def build_adjacency_bool(graph_list: GraphList, num_nodes: int = 0, if_bidirectional: bool = False) -> TEN:
-    """例如，无向图里：
-    - 节点0连接了节点1
-    - 节点0连接了节点2
-    - 节点2连接了节点3
-
-    用邻接阶矩阵Ary的上三角表示这个无向图：
-      0 1 2 3
-    0 F T T F
-    1 _ F F F
-    2 _ _ F T
-    3 _ _ _ F
-
-    其中：
-    - Ary[0,1]=True
-    - Ary[0,2]=True
-    - Ary[2,3]=True
-    - 其余为False
-    """
-    if num_nodes == 0:
-        num_nodes = obtain_num_nodes(graph_list=graph_list)
-
-    adjacency_bool = th.zeros((num_nodes, num_nodes), dtype=th.bool)
-    node0s, node1s = list(zip(*graph_list))[:2]
-    adjacency_bool[node0s, node1s] = True
-    if if_bidirectional:
-        adjacency_bool = th.logical_or(adjacency_bool, adjacency_bool.T)
-    return adjacency_bool
 
 def build_adjacency_indies(graph_list: GraphList, if_bidirectional: bool = False) -> (IndexList, IndexList):
     """
@@ -558,7 +531,7 @@ def run():
     # graph_name = f"{graph_type}_{num_nodes}_ID{graph_id}"
     #path = f'temp_{graph_name}.txt'
     graph_name = "gset_14"
-    save_graph_list_to_txt(graph_list=load_graph_list(graph_name=graph_name), txt_path=path)
+    save_graph_list_to_txt(graph_list=load_graph_list(dataDir=DataDir, graph_name=graph_name), txt_path=path)
 
     # num_ls = 6
     # reset_epoch_num = 192

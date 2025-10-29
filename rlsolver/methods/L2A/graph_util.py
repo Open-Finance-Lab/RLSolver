@@ -12,69 +12,8 @@ GraphList = List[Tuple[int, int, int]]  # 每条边两端点的索引以及边�
 IndexList = List[List[int]]  # 按索引顺序记录每个点的所有邻居节点 IndexList[Node0ID] = [Node1ID, ...]
 DataDir = '../../data/gset'  # 保存图最大割的txt文件的目录，txt数据以稀疏的方式记录了GraphList，可以重建图的邻接矩阵
 
-
-
-
-
-def build_adjacency_matrix(graph_list: GraphList, if_bidirectional: bool = False) -> TEN:
-    """例如，无向图里：
-    - 节点0连接了节点1，边的权重为1
-    - 节点0连接了节点2，边的权重为2
-    - 节点2连接了节点3，边的权重为3
-
-    用邻接阶矩阵Ary的上三角表示这个无向图：
-      0 1 2 3
-    0 F T T F
-    1 _ F F F
-    2 _ _ F T
-    3 _ _ _ F
-
-    其中：
-    - Ary[0,1]=边的权重为1
-    - Ary[0,2]=边的权重为2
-    - Ary[2,3]=边的权重为3
-    - 其余为-1，表示False 节点之间没有连接关系
-    """
-    not_connection = -1  # 选用-1去表示表示两个node之间没有edge相连，不选用0是为了避免两个节点的距离为0时出现冲突
-    num_nodes = obtain_num_nodes(graph_list=graph_list)
-
-    adjacency_matrix = th.zeros((num_nodes, num_nodes), dtype=th.float32)
-    adjacency_matrix[:] = not_connection
-    for n0, n1, distance in graph_list:
-        adjacency_matrix[n0, n1] = distance
-        if if_bidirectional:
-            adjacency_matrix[n1, n0] = distance
-    return adjacency_matrix
-
-
-def build_adjacency_bool(graph_list: GraphList, num_nodes: int = 0, if_bidirectional: bool = False) -> TEN:
-    """例如，无向图里：
-    - 节点0连接了节点1
-    - 节点0连接了节点2
-    - 节点2连接了节点3
-
-    用邻接阶矩阵Ary的上三角表示这个无向图：
-      0 1 2 3
-    0 F T T F
-    1 _ F F F
-    2 _ _ F T
-    3 _ _ _ F
-
-    其中：
-    - Ary[0,1]=True
-    - Ary[0,2]=True
-    - Ary[2,3]=True
-    - 其余为False
-    """
-    if num_nodes == 0:
-        num_nodes = obtain_num_nodes(graph_list=graph_list)
-
-    adjacency_bool = th.zeros((num_nodes, num_nodes), dtype=th.bool)
-    node0s, node1s = list(zip(*graph_list))[:2]
-    adjacency_bool[node0s, node1s] = True
-    if if_bidirectional:
-        adjacency_bool = th.logical_or(adjacency_bool, adjacency_bool.T)
-    return adjacency_bool
+from rlsolver.methods.util import build_adjacency_matrix
+from rlsolver.methods.util import build_adjacency_bool
 
 
 def build_graph_list(adjacency_bool: TEN) -> GraphList:
@@ -99,54 +38,6 @@ def check_convert_between_graph_list_and_adjacency_bool():
     graph_list = build_graph_list(adjacency_bool)
     print("Converted graph list:", graph_list)
 
-
-def build_adjacency_indies(graph_list: GraphList, if_bidirectional: bool = False) -> (IndexList, IndexList):
-    """
-    用二维列表list2d表示这个图：
-    [
-        [1, 2],
-        [],
-        [3],
-        [],
-    ]
-    其中：
-    - list2d[0] = [1, 2]
-    - list2d[2] = [3]
-
-    对于稀疏的矩阵，可以直接记录每条边两端节点的序号，用shape=(2,N)的二维列表 表示这个图：
-    0, 1
-    0, 2
-    2, 3
-    如果条边的长度为1，那么表示为shape=(2,N)的二维列表，并在第一行，写上 4个节点，3条边的信息，帮助重建这个图，然后保存在txt里：
-    4, 3
-    0, 1, 1
-    0, 2, 1
-    2, 3, 1
-    """
-    num_nodes = obtain_num_nodes(graph_list=graph_list)
-
-    n0_to_n1s = [[] for _ in range(num_nodes)]  # 将 node0_id 映射到 node1_id
-    n0_to_dts = [[] for _ in range(num_nodes)]  # 将 mode0_id 映射到 node1_id 与 node0_id 的距离
-    for n0, n1, distance in graph_list:
-        n0_to_n1s[n0].append(n1)
-        n0_to_dts[n0].append(distance)
-        if if_bidirectional:
-            n0_to_n1s[n1].append(n0)
-            n0_to_dts[n1].append(distance)
-    n0_to_n1s = [th.tensor(node1s) for node1s in n0_to_n1s]
-    n0_to_dts = [th.tensor(node1s) for node1s in n0_to_dts]
-    assert num_nodes == len(n0_to_n1s)
-    assert num_nodes == len(n0_to_dts)
-
-    '''sort'''
-    for i, node1s in enumerate(n0_to_n1s):
-        sort_ids = th.argsort(node1s)
-        n0_to_n1s[i] = n0_to_n1s[i][sort_ids]
-        n0_to_dts[i] = n0_to_dts[i][sort_ids]
-    return n0_to_n1s, n0_to_dts
-
-
-'''get_hot_tensor_of_graph'''
 
 
 def show_array2d(ary, title='array2d', if_save=False):
