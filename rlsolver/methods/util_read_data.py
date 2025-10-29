@@ -30,7 +30,6 @@ GraphTypes = ['BA', 'ER', 'PL']
 TEN = th.Tensor
 
 from rlsolver.methods.util import calc_txt_files_with_prefixes
-from rlsolver.methods.util import build_adjacency_bool
 from rlsolver.methods.util_generate import generate_graph_list
 
 # read graph file, e.g., gset_14.txt, as networkx.Graph
@@ -114,27 +113,7 @@ def load_graph_list_from_txt(txt_path: str = 'G14.txt') -> GraphList:
     return graph_list
 
 
-def build_graph_list(adjacency_bool: TEN) -> GraphList:
-    num_nodes = adjacency_bool.shape[0]
 
-    graph_list = []
-    for node_i in range(1, num_nodes):
-        for node_j in range(node_i):
-            edge_weight = int(adjacency_bool[node_i, node_j])
-            if edge_weight > 0:
-                graph_list.append((node_i, node_j, edge_weight))
-    return graph_list
-
-
-def check_convert_between_graph_list_and_adjacency_bool():
-    num_nodes = 8
-    adjacency_bool = th.tril(th.randint(0, 2, size=(num_nodes, num_nodes), dtype=th.bool))
-
-    graph_list = build_graph_list(adjacency_bool)
-    print("Original  graph list:", graph_list)
-    adjacency_bool = build_adjacency_bool(graph_list, num_nodes, if_bidirectional=True)
-    graph_list = build_graph_list(adjacency_bool)
-    print("Converted graph list:", graph_list)
 
 
 def build_adjacency_indies(graph_list: GraphList, if_bidirectional: bool = False) -> (IndexList, IndexList):

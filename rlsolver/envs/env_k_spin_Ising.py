@@ -18,8 +18,9 @@ from torch import Tensor
 from rlsolver.methods.util_read_data import read_nxgraph
 import networkx as nx
 from rlsolver.methods.util import build_adjacency_matrix
+from rlsolver.methods.util import build_adjacency_indies_auto
 from rlsolver.methods.util import build_adjacency_matrix_auto
-from rlsolver.methods.util import obtain_num_nodes_auto
+from rlsolver.methods.util import obtain_num_nodes
 from rlsolver.methods.util import GraphList
 from rlsolver.methods.util import calc_device
 
@@ -239,7 +240,7 @@ class MaxcutSimulatorAutoregressive:
         '''建立邻接索引'''
         n0_to_n1s, n0_to_dts = build_adjacency_indies_auto(graph=graph, if_bidirectional=if_bidirectional)
         n0_to_n1s = [t.to(int_type).to(device) for t in n0_to_n1s]
-        # self.num_nodes = obtain_num_nodes_auto(graph)
+        # self.num_nodes = obtain_num_nodes(graph)
         # self.num_edges = len(graph)
         self.adjacency_indies = n0_to_n1s
 
@@ -297,7 +298,7 @@ class MaxcutSimulatorReinforce:
         '''建立邻接索引'''
         n0_to_n1s, n0_to_dts = build_adjacency_indies_auto(graph=graph, if_bidirectional=if_bidirectional)
         n0_to_n1s = [t.to(int_type).to(device) for t in n0_to_n1s]
-        self.num_nodes = obtain_num_nodes_auto(graph)
+        self.num_nodes = obtain_num_nodes(graph)
         self.num_edges = len(graph)
         self.adjacency_indies = n0_to_n1s
 

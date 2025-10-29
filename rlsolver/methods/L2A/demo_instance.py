@@ -1,8 +1,7 @@
 import os
 import sys
 
-from rlsolver.methods.L2A.graph_util import DataDir
-
+DataDir = '../../data/gset'
 cur_path = os.path.dirname(os.path.abspath(__file__))
 rlsolver_path = os.path.join(cur_path, '../../../rlsolver')
 sys.path.append(os.path.dirname(rlsolver_path))

@@ -11,6 +11,7 @@ import networkx as nx
 import numpy as np
 from rlsolver.methods.util_read_data import load_graph_list
 from rlsolver.methods.util import build_adjacency_bool
+from rlsolver.methods.util import obtain_num_nodes
 
 fix_seed = False
 if fix_seed:
@@ -257,9 +258,6 @@ class SimulatorGraphMaxCut:
 
             update_xs_by_vs(good_xs, good_vs, xs1, vs1, if_maximize=self.if_maximize)
         return good_xs, good_vs
-
-def obtain_num_nodes(graph_list: GraphList) -> int:
-    return max([max(n0, n1) for n0, n1, distance in graph_list]) + 1
 
 
 

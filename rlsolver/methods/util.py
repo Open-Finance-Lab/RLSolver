@@ -434,7 +434,7 @@ def build_adjacency_matrix_auto(graph: GraphList, if_bidirectional: bool = False
     """
     not_connection = -1  # 选用-1去表示表示两个node之间没有edge相连，不选用0是为了避免两个节点的距离为0时出现冲突
     print(f"graph before enter: {graph}")
-    num_nodes = obtain_num_nodes_auto(graph=graph)
+    num_nodes = obtain_num_nodes(graph)
 
     adjacency_matrix = th.zeros((num_nodes, num_nodes), dtype=th.float32)
     adjacency_matrix[:] = not_connection
@@ -467,7 +467,7 @@ def build_adjacency_indies_auto(graph, if_bidirectional: bool = False) -> (Index
     0, 2, 1
     2, 3, 1
     """
-    num_nodes = obtain_num_nodes_auto(graph=graph)
+    num_nodes = obtain_num_nodes(graph)
 
     n0_to_n1s = [[] for _ in range(num_nodes)]  # 将 node0_id 映射到 node1_id
     n0_to_dts = [[] for _ in range(num_nodes)]  # 将 mode0_id 映射到 node1_id 与 node0_id 的距离
@@ -489,8 +489,7 @@ def build_adjacency_indies_auto(graph, if_bidirectional: bool = False) -> (Index
         n0_to_dts[i] = n0_to_dts[i][sort_ids]
     return n0_to_n1s, n0_to_dts
 
-def obtain_num_nodes_auto(graph: GraphList) -> int:
-    return max([max(n0, n1) for n0, n1, distance in graph]) + 1
+
 
 
 def convert_matrix_to_vector(matrix):
@@ -498,7 +497,27 @@ def convert_matrix_to_vector(matrix):
     return th.hstack(vector)
 
 
+def build_graph_list(adjacency_bool: TEN) -> GraphList:
+    num_nodes = adjacency_bool.shape[0]
 
+    graph_list = []
+    for node_i in range(1, num_nodes):
+        for node_j in range(node_i):
+            edge_weight = int(adjacency_bool[node_i, node_j])
+            if edge_weight > 0:
+                graph_list.append((node_i, node_j, edge_weight))
+    return graph_list
+
+
+def check_convert_between_graph_list_and_adjacency_bool():
+    num_nodes = 8
+    adjacency_bool = th.tril(th.randint(0, 2, size=(num_nodes, num_nodes), dtype=th.bool))
+
+    graph_list = build_graph_list(adjacency_bool)
+    print("Original  graph list:", graph_list)
+    adjacency_bool = build_adjacency_bool(graph_list, num_nodes, if_bidirectional=True)
+    graph_list = build_graph_list(adjacency_bool)
+    print("Converted graph list:", graph_list)
 
 
 def read_solution(filename: str):
@@ -628,6 +647,93 @@ def save_graph_list_to_txt(graph_list: GraphList, txt_path: str):
     with open(txt_path, 'w') as file:
         file.writelines(lines)
 
+def show_array2d(ary, title='array2d', if_save=False):
+    import matplotlib.pyplot as plt
+
+    if isinstance(ary, th.Tensor):
+        ary = ary.cpu().data.numpy()
+    # assert isinstance(show_array, np.ndarray)
+
+    plt.cla()
+    plt.imshow(ary, cmap='hot', interpolation='nearest')
+    plt.colorbar(label='hot map')
+    plt.title(title)
+    plt.tight_layout()
+
+    if if_save:
+        plt.savefig(f"hot_image_{title}.jpg", dpi=400)
+        plt.close('all')
+    else:
+        plt.show()
+
+
+def get_hot_image_of_graph(adj_bool, hot_type):
+    if hot_type == 'avg':
+        adj_matrix = adj_bool.float() / adj_bool.shape[0]
+    elif hot_type == 'sum':
+        adj_matrix = adj_bool.float()
+        adj_matrix /= adj_matrix.sum(dim=1, keepdim=True).clip(1, None)
+        adj_matrix /= adj_matrix.sum(dim=0, keepdim=True).clip(1, None)
+        adj_matrix = adj_matrix * 0.25
+    else:
+        raise ValueError(f"| get_hot_image_of_graph() hot_type {hot_type} should in ['avg', 'sum']")
+
+    num_nodes = adj_matrix.size(0)
+    num_iters = int(th.tensor(num_nodes).log().item() + 1) * 2
+    device = adj_matrix.device
+    break_thresh = 2 ** -10
+
+    log_matrix = None
+
+    hot_matrix = adj_matrix.clone()
+    adjust_eye = th.eye(num_nodes, device=device)
+    prev_diff = 0
+    for i in range(num_iters):
+        hot_matrix = th.matmul(hot_matrix + adjust_eye, adj_matrix)
+        hot_matrix = hot_matrix + hot_matrix.t()
+
+        log_matrix = th.log(hot_matrix.clip(1e-12, 1e+12))
+
+        curr_diff = log_matrix.std()
+        if abs(prev_diff - curr_diff) < (prev_diff + curr_diff) * break_thresh:
+            break
+        # print(f';;; {num_iters:6} {i:6}  {curr_diff:9.3e}')
+        prev_diff = curr_diff
+
+    return (log_matrix - log_matrix.mean()) / (log_matrix.std() * 3)
+
+
+
+def check_get_hot_tenor_of_graph():
+    gpu_id = int(sys.argv[1]) if len(sys.argv) > 1 else 0
+    device = th.device(f'cuda:{gpu_id}' if th.cuda.is_available() and gpu_id >= 0 else 'cpu')
+
+    if_save = True
+
+    graph_names = []
+    for graph_type in ['ErdosRenyi', 'PowerLaw', 'BarabasiAlbert']:
+        for num_nodes in (128, 1024):
+            for seed_id in range(2):
+                graph_names.append(f'{graph_type}_{num_nodes}_ID{seed_id}')
+    for gset_id in (14, 15, 49, 50, 22, 55, 70):  # todo
+        graph_names.append(f"gset_{gset_id}")
+
+    for graph_name in graph_names:
+        graph_list: GraphList = load_graph_list(dataDir=DataDir, graph_name=graph_name)
+
+        graph = nx.Graph()
+        for n0, n1, weight in graph_list:
+            graph.add_edge(n0, n1, weight=weight)
+
+        for hot_type in ('avg', 'sum'):
+            adj_bool = build_adjacency_bool(graph_list=graph_list, if_bidirectional=True).to(device)
+            hot_array = get_hot_image_of_graph(adj_bool=adj_bool, hot_type=hot_type).cpu().data.numpy()
+            title = f"{hot_type}_{graph_name}_N{graph.number_of_nodes()}_E{graph.number_of_edges()}"
+            show_array2d(ary=hot_array, title=title, if_save=if_save)
+            print(f"title {title}")
+
+    print()
+
 if __name__ == '__main__':
     s = "// time_limit: ('TIME_LIMIT', <class 'float'>, 36.0, 0.0, inf, inf)"
     val = obtain_first_number(s)
@@ -652,7 +758,7 @@ if __name__ == '__main__':
     # to_extension = '.txt'
     # transfer_write_solver_results(directory_result, prefixes, time_limits, from_extension, to_extension)
 
-
+    check_get_hot_tenor_of_graph()
 
 
     print()

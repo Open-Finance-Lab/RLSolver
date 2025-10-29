@@ -28,6 +28,7 @@ from typing import List, Tuple, Union
 import networkx as nx
 import numpy as np
 from rlsolver.methods.util import build_adjacency_bool
+from rlsolver.methods.util import obtain_num_nodes
 fix_seed = True
 if fix_seed:
     seed = 74
@@ -324,10 +325,6 @@ class SimulatorGraphMaxCut:
 
             update_xs_by_vs(good_xs, good_vs, xs1, vs1, if_maximize=self.if_maximize)
         return good_xs, good_vs
-
-
-def obtain_num_nodes(graph_list: GraphList) -> int:
-    return max([max(n0, n1) for n0, n1, distance in graph_list]) + 1
 
 
 def metro_sampling(probs, start_status, max_transfer_time, device=None):

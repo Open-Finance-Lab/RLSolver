@@ -3,7 +3,10 @@ from rlsolver.methods.util_read_data import GraphList, obtain_num_nodes
 
 ModelDir = './model'  # FIXME plan to cancel
 
-from rlsolver.methods.config import GPU_ID, DEVICE
+from rlsolver.methods.config import GPU_ID, DEVICE, calc_device
+GPU_ID = 0
+DEVICE = calc_device(GPU_ID)
+
 
 class ConfigGraph:
     def __init__(self, graph_list: GraphList = None, graph_type: str = 'max_cut', num_nodes: int = 0):
