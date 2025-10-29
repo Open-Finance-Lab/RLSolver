@@ -12,7 +12,7 @@ from rlsolver.methods.util import build_adjacency_bool
 from rlsolver.methods.util_read_data import load_mygraph2
 from rlsolver.methods.util import get_hot_image_of_graph, get_adjacency_distance_matrix
 from rlsolver.methods.util_generate import generate_mygraph
-
+from rlsolver.methods.config import GPU_ID
 TEN = th.Tensor
 
 
@@ -21,8 +21,8 @@ def generate_adjacency_seq(num_sims, graph_type, num_nodes, if_tqdm=False):
 
     i_iteration = tqdm.trange(num_sims, ascii=True) if if_tqdm else range(num_sims)
     for i in i_iteration:
-        graph_list = generate_mygraph(graph_type=graph_type, num_nodes=num_nodes)
-        adjacency_seq[:, i, :] = build_adjacency_bool(mygraph=graph_list, if_bidirectional=True)
+        mygraph = generate_mygraph(graph_type=graph_type, num_nodes=num_nodes)
+        adjacency_seq[:, i, :] = build_adjacency_bool(mygraph=mygraph, if_bidirectional=True)
     return adjacency_seq
 
 
@@ -102,7 +102,7 @@ def sort_adj_bools(adj_bools: TEN) -> TEN:
 '''run'''
 
 
-def train_graph_net_in_a_single_graph(graph_list: MyGraph, args: ConfigGraph, net_path: str, gpu_id: int = 0):
+def train_graph_net_in_a_single_graph(mygraph: MyGraph, args: ConfigGraph, net_path: str, gpu_id: int = 0):
     device = th.device(f'cuda:{gpu_id}' if th.cuda.is_available() and gpu_id >= 0 else 'cpu')
 
     '''config'''
@@ -121,7 +121,7 @@ def train_graph_net_in_a_single_graph(graph_list: MyGraph, args: ConfigGraph, ne
     learning_rate = args.learning_rate
 
     '''graph'''
-    adj_bool = build_adjacency_bool(mygraph=graph_list, num_nodes=num_nodes, if_bidirectional=True).to(device)
+    adj_bool = build_adjacency_bool(mygraph=mygraph, num_nodes=num_nodes, if_bidirectional=True).to(device)
 
     '''model'''
     net = GraphTRS(inp_dim=inp_dim, mid_dim=mid_dim, out_dim=out_dim,
@@ -134,12 +134,12 @@ def train_graph_net_in_a_single_graph(graph_list: MyGraph, args: ConfigGraph, ne
     criterion = nn.MSELoss()
 
     '''loop'''
-    print(f"| {args.graph_type}  Nodes {num_nodes}  Edges {len(graph_list)}", flush=True)
+    print(f"| {args.graph_type}  Nodes {num_nodes}  Edges {len(mygraph)}", flush=True)
     mask = create_mask(seq_len=num_nodes, mask_type='eye').to(device)
 
     recorder = Recorder()
     for repeat_id in range(train_times):
-        '''序号为0的固定为原始图graph_list，在训练中对原始图graph_list随机添加边edge，生成相近的图graph 作为其他序号的值'''
+        '''序号为0的固定为原始图mygraph，在训练中对原始图mygraph随机添加边edge，生成相近的图graph 作为其他序号的值'''
         adj_bools = th.zeros((num_nodes, batch_size, num_nodes), dtype=th.float32, device=device)
 
         _adj_bool = adj_bool.clone()
@@ -177,16 +177,15 @@ def train_graph_net_in_a_single_graph(graph_list: MyGraph, args: ConfigGraph, ne
 
 def check_train_graph_trs_net_in_a_single_graph():
     gpu_id = GPU_ID
-
     graph_type, num_nodes, graph_id = 'PowerLaw', 100, 0
-    graph_list = load_mygraph2(f"{graph_type}_{num_nodes}_ID{graph_id}")
+    mygraph = load_mygraph2(f"{graph_type}_{num_nodes}_ID{graph_id}")
     net_path = f'./model/graph_trs_{graph_type}_{num_nodes}_ID{graph_id}.pth'
-    args = ConfigGraph(graph_list=graph_list, graph_type=graph_type, num_nodes=num_nodes)
+    args = ConfigGraph(mygraph=mygraph, graph_type=graph_type, num_nodes=num_nodes)
 
     args.train_times = 2 ** 6
     args.show_gap = 2 ** 5
 
-    train_graph_net_in_a_single_graph(graph_list=graph_list, args=args, net_path=net_path, gpu_id=gpu_id)
+    train_graph_net_in_a_single_graph(mygraph=mygraph, args=args, net_path=net_path, gpu_id=gpu_id)
 
 
 def train_graph_net_in_graph_distribution(args: ConfigGraph, net_path: str, gpu_id: int = 0):

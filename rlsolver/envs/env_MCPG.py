@@ -8,7 +8,7 @@ sys.path.append(os.path.dirname(rlsolver_path))
 from rlsolver.methods.util_read_data import load_mygraph2
 from rlsolver.methods.util_read_data import MyGraph
 from rlsolver.methods.util_read_data import build_adjacency_indies
-from rlsolver.methods.util_read_data import obtain_num_nodes
+from rlsolver.methods.util_read_data import calc_num_nodes_in_mygraph
 from rlsolver.methods.util_read_data import update_xs_by_vs
 
 from rlsolver.methods.util import build_adjacency_bool
@@ -23,7 +23,7 @@ from rlsolver.envs.env_MCPG import EnvMaxcut
 from rlsolver.methods.util_read_data import read_mygraph
 
 class EnvMaxcut:
-    def __init__(self, sim_name: str = 'max_cut', graph_list: MyGraph = [],
+    def __init__(self, sim_name: str = 'max_cut', mygraph: MyGraph = [],
                  device=calc_device(GPU_ID), if_bidirectional: bool = False):
         self.device = device
         self.sim_name = sim_name
@@ -32,17 +32,16 @@ class EnvMaxcut:
         self.if_bidirectional = if_bidirectional
 
         '''load graph'''
-        graph_list: MyGraph = graph_list if graph_list else load_mygraph2(graph_name=sim_name)
+        mygraph: MyGraph = mygraph if mygraph else load_mygraph2(graph_name=sim_name)
 
         '''建立邻接矩阵'''
-        # self.adjacency_matrix = build_adjacency_matrix(graph_list=graph_list, if_bidirectional=True).to(device)
-        self.adjacency_bool = build_adjacency_bool(mygraph=graph_list, if_bidirectional=True).to(device)
+        self.adjacency_bool = build_adjacency_bool(mygraph=mygraph, if_bidirectional=True).to(device)
 
         '''建立邻接索引'''
-        n0_to_n1s, n0_to_dts = build_adjacency_indies(mygraph=graph_list, if_bidirectional=if_bidirectional)
+        n0_to_n1s, n0_to_dts = build_adjacency_indies(mygraph=mygraph, if_bidirectional=if_bidirectional)
         n0_to_n1s = [t.to(int_type).to(device) for t in n0_to_n1s]
-        self.num_nodes = obtain_num_nodes(graph_list)
-        self.num_edges = len(graph_list)
+        self.num_nodes = calc_num_nodes_in_mygraph(mygraph)
+        self.num_edges = len(mygraph)
         self.adjacency_indies = n0_to_n1s
 
         '''基于邻接索引，建立基于边edge的索引张量：(n0_ids, n1_ids)是所有边(第0个, 第1个)端点的索引'''
@@ -140,7 +139,7 @@ def find_best_num_sims():
 
     graph = load_mygraph2(graph_name=graph_name)
     device = th.device(f'cuda:{gpu_id}' if th.cuda.is_available() and gpu_id >= 0 else 'cpu')
-    simulator = EnvMaxcut(sim_name=graph_name, graph_list=graph, device=device, if_bidirectional=False)
+    simulator = EnvMaxcut(sim_name=graph_name, mygraph=graph, device=device, if_bidirectional=False)
 
     print('find the best num_sims')
     from math import ceil
@@ -168,7 +167,7 @@ def check_simulator():
 
     graph = load_mygraph2(graph_name=graph_name)
     device = th.device(f'cuda:{gpu_id}' if th.cuda.is_available() and gpu_id >= 0 else 'cpu')
-    simulator = EnvMaxcut(sim_name=graph_name, graph_list=graph, device=device)
+    simulator = EnvMaxcut(sim_name=graph_name, mygraph=graph, device=device)
 
     for i in range(8):
         xs = simulator.generate_xs_randomly(num_sims=num_sims)
@@ -182,8 +181,8 @@ def check_local_search():
     device = th.device(f'cuda:{gpu_id}' if th.cuda.is_available() and gpu_id >= 0 else 'cpu')
 
     graph_type = 'gset_14'
-    graph_list = load_mygraph2(graph_name=graph_type)
-    num_nodes = obtain_num_nodes(graph_list)
+    mygraph = load_mygraph2(graph_name=graph_type)
+    num_nodes = calc_num_nodes_in_mygraph(mygraph)
 
     show_gap = 4
 
@@ -197,7 +196,7 @@ def check_local_search():
         num_iters = 2 ** 5
 
     '''simulator'''
-    sim = EnvMaxcut(graph_list=graph_list, device=device, if_bidirectional=True)
+    sim = EnvMaxcut(mygraph=mygraph, device=device, if_bidirectional=True)
     if_maximize = sim.if_maximize
 
     '''evaluator'''
@@ -500,7 +499,7 @@ def search_and_evaluate_local_search():
 def check_solution_x():
     filename = '../data/syn_BA/BA_100_ID0.txt'
     graph = read_mygraph(filename)
-    simulator = EnvMaxcut(sim_name=filename, graph_list=graph)
+    simulator = EnvMaxcut(sim_name=filename, mygraph=graph)
 
     x_str = X_G14
     num_nodes = simulator.num_nodes

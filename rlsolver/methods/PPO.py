@@ -94,8 +94,8 @@ if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() and Config.cuda else "cpu")
     graph_type, num_nodes, graph_id = 'PowerLaw', Config.num_nodes, 0
     graph_name = f'{graph_type}_{num_nodes}_ID{graph_id}'
-    graph_list = load_mygraph2(graph_name=graph_name)
-    envs = EnvMaxcut(args=Config, graph_list=graph_list, device=device, if_bidirectional=True)
+    mygraph = load_mygraph2(graph_name=graph_name)
+    envs = EnvMaxcut(args=Config, mygraph=mygraph, device=device, if_bidirectional=True)
 
     agent = Agent(envs).to(device)
     optimizer = optim.Adam(agent.parameters(), lr=Config.learning_rate, eps=1e-5)

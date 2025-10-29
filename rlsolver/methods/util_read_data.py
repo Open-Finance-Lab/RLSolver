@@ -23,7 +23,7 @@ except ImportError:
     plt = None
 import torch as th
 import random
-from rlsolver.methods.util import obtain_num_nodes
+from rlsolver.methods.util import calc_num_nodes_in_mygraph
 from rlsolver.methods.util import build_adjacency_bool
 from rlsolver.methods.util import get_hot_image_of_graph
 from rlsolver.methods.util import show_array2d
@@ -107,23 +107,23 @@ def load_mygraph(DataDir, graph_name: str):
 def load_mygraph2(dataDir='./data/syn_'+GRAPH_TYPE.value, graph_name: str= ""):
     if os.path.exists(f"{dataDir}/{graph_name}.txt"):
         txt_path = f"{dataDir}/{graph_name}.txt"
-        graph_list = read_mygraph(filename=txt_path)
+        mygraph = read_mygraph(filename=txt_path)
     elif os.path.isfile(graph_name) and os.path.splitext(graph_name)[-1] == '.txt':
         txt_path = graph_name
-        graph_list = read_mygraph(filename=txt_path)
+        mygraph = read_mygraph(filename=txt_path)
     elif GRAPH_TYPE and graph_name.find('ID') == -1:
         num_nodes = int(graph_name.split('_')[-1])
-        graph_list, _, _ = generate_mygraph(num_nodes=num_nodes, graph_type=GRAPH_TYPE)
+        mygraph, _, _ = generate_mygraph(num_nodes=num_nodes, graph_type=GRAPH_TYPE)
     elif GRAPH_TYPE and graph_name.find('ID') >= 0:
         num_nodes, valid_i = graph_name.split('_')[-2:]
         num_nodes = int(num_nodes)
         valid_i = int(valid_i[len('ID'):])
         random.seed(valid_i)
-        graph_list, _, _ = generate_mygraph(num_nodes=num_nodes, graph_type=GRAPH_TYPE)
+        mygraph, _, _ = generate_mygraph(num_nodes=num_nodes, graph_type=GRAPH_TYPE)
         random.seed()
     else:
         raise ValueError(f"DataDir {dataDir} | graph_name {graph_name} txt_path {dataDir}/{graph_name}.txt")
-    return graph_list
+    return mygraph
 
 
 
@@ -150,7 +150,7 @@ def build_adjacency_indies(mygraph: MyGraph, if_bidirectional: bool = False) -> 
     0, 2, 1
     2, 3, 1
     """
-    num_nodes = obtain_num_nodes(graph_list=mygraph)
+    num_nodes = calc_num_nodes_in_mygraph(mygraph=mygraph)
 
     n0_to_n1s = [[] for _ in range(num_nodes)]  # 将 node0_id 映射到 node1_id
     n0_to_dts = [[] for _ in range(num_nodes)]  # 将 mode0_id 映射到 node1_id 与 node0_id 的距离
@@ -298,14 +298,14 @@ def check_get_hot_tenor_of_graph():
     DataDir = "../../data/syn_BA"
     graph_names = ["BA_100_ID0"]
     for graph_name in graph_names:
-        graph_list: MyGraph = load_mygraph2(dataDir=DataDir, graph_name=graph_name)
+        mygraph: MyGraph = load_mygraph2(dataDir=DataDir, graph_name=graph_name)
 
         graph = nx.Graph()
-        for n0, n1, weight in graph_list:
+        for n0, n1, weight in mygraph:
             graph.add_edge(n0, n1, weight=weight)
 
         for hot_type in ('avg', 'sum'):
-            adj_bool = build_adjacency_bool(mygraph=graph_list, if_bidirectional=True).to(device)
+            adj_bool = build_adjacency_bool(mygraph=mygraph, if_bidirectional=True).to(device)
             hot_array = get_hot_image_of_graph(adj_bool=adj_bool, hot_type=hot_type).cpu().data.numpy()
             title = f"{hot_type}_{graph_name}_N{graph.number_of_nodes()}_E{graph.number_of_edges()}"
             show_array2d(ary=hot_array, title=title, if_save=if_save)

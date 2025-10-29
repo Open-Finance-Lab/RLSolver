@@ -11,9 +11,9 @@ from rlsolver.methods.config import MyGraph
 from rlsolver.methods.config import MyNeighbor
 DataDir = './data/graph_max_cut'  # 保存图最大割的txt文件的目录，txt数据以稀疏的方式记录了GraphList，可以重建图的邻接矩阵
 
-from rlsolver.methods.util import obtain_num_nodes
+from rlsolver.methods.util import calc_num_nodes_in_mygraph
 
-def build_adjacency_indies(graph_list: MyGraph, if_bidirectional: bool = False) -> (MyNeighbor, MyNeighbor):
+def build_adjacency_indies(mygraph: MyGraph, if_bidirectional: bool = False) -> (MyNeighbor, MyNeighbor):
     """
     用二维列表list2d表示这个图：
     [
@@ -36,11 +36,11 @@ def build_adjacency_indies(graph_list: MyGraph, if_bidirectional: bool = False) 
     0, 2, 1
     2, 3, 1
     """
-    num_nodes = obtain_num_nodes(graph_list=graph_list)
+    num_nodes = calc_num_nodes_in_mygraph(mygraph=mygraph)
 
     n0_to_n1s = [[] for _ in range(num_nodes)]  # 将 node0_id 映射到 node1_id
     n0_to_dts = [[] for _ in range(num_nodes)]  # 将 mode0_id 映射到 node1_id 与 node0_id 的距离
-    for n0, n1, distance in graph_list:
+    for n0, n1, distance in mygraph:
         n0_to_n1s[n0].append(n1)
         n0_to_dts[n0].append(distance)
         if if_bidirectional:
@@ -61,7 +61,7 @@ def build_adjacency_indies(graph_list: MyGraph, if_bidirectional: bool = False) 
 
 
 class EnvMaxcut:
-    def __init__(self, args, graph_list: MyGraph = (),
+    def __init__(self, args, mygraph: MyGraph = (),
                  device=th.device('cpu'), if_bidirectional: bool = False):
         self.device = device
         self.int_type = int_type = th.long
@@ -73,9 +73,9 @@ class EnvMaxcut:
         self.last_reward = None
         self.num_steps = args.num_steps
 
-        n0_to_n1s, n0_to_dts = build_adjacency_indies(graph_list=graph_list, if_bidirectional=if_bidirectional)
+        n0_to_n1s, n0_to_dts = build_adjacency_indies(mygraph=mygraph, if_bidirectional=if_bidirectional)
         n0_to_n1s = [t.to(int_type).to(device) for t in n0_to_n1s]
-        self.num_edges = len(graph_list)
+        self.num_edges = len(mygraph)
         n0_to_n0s = [(th.zeros_like(n1s) + i) for i, n1s in enumerate(n0_to_n1s)]
         self.n0_ids = th.hstack(n0_to_n0s)[None, :]
         self.n1_ids = th.hstack(n0_to_n1s)[None, :]

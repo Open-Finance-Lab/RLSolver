@@ -9,7 +9,7 @@ from rlsolver.methods.util_read_data import load_mygraph2
 from rlsolver.methods.util_read_data import MyGraph
 from rlsolver.methods.util import build_adjacency_bool
 from rlsolver.methods.util_read_data import build_adjacency_indies
-from rlsolver.methods.util_read_data import obtain_num_nodes
+from rlsolver.methods.util_read_data import calc_num_nodes_in_mygraph
 from rlsolver.methods.util_read_data import update_xs_by_vs
 from rlsolver.methods.util import gpu_info_str, evolutionary_replacement
 from rlsolver.methods.L2A.TNCO_simulator import *
@@ -34,13 +34,12 @@ class EnvMaxcut:
         mygraph: MyGraph = mygraph if mygraph else load_mygraph2(graph_name=sim_name)
 
         '''建立邻接矩阵'''
-        # self.adjacency_matrix = build_adjacency_matrix(graph_list=graph_list, if_bidirectional=True).to(device)
         self.adjacency_bool = build_adjacency_bool(mygraph=mygraph, if_bidirectional=True).to(device)
 
         '''建立邻接索引'''
         n0_to_n1s, n0_to_dts = build_adjacency_indies(mygraph=mygraph, if_bidirectional=if_bidirectional)
         n0_to_n1s = [t.to(int_type).to(device) for t in n0_to_n1s]
-        self.num_nodes = obtain_num_nodes(mygraph)
+        self.num_nodes = calc_num_nodes_in_mygraph(mygraph)
         self.num_edges = len(mygraph)
         self.adjacency_indies = n0_to_n1s
 
@@ -181,8 +180,8 @@ def check_local_search_maxcut():
     device = th.device(f'cuda:{gpu_id}' if th.cuda.is_available() and gpu_id >= 0 else 'cpu')
 
     graph_type = 'gset_14'
-    graph_list = load_mygraph2(graph_name=graph_type)
-    num_nodes = obtain_num_nodes(graph_list)
+    mygraph = load_mygraph2(graph_name=graph_type)
+    num_nodes = calc_num_nodes_in_mygraph(mygraph)
 
     show_gap = 4
 
@@ -196,7 +195,7 @@ def check_local_search_maxcut():
         num_iters = 2 ** 5
 
     '''simulator'''
-    sim = EnvMaxcut(mygraph=graph_list, device=device, if_bidirectional=True)
+    sim = EnvMaxcut(mygraph=mygraph, device=device, if_bidirectional=True)
     if_maximize = sim.if_maximize
 
     '''evaluator'''

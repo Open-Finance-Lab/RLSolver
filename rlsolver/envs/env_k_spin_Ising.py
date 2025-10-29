@@ -1,7 +1,7 @@
 import os
 import torch as th
 from typing import List, Union, Tuple
-from rlsolver.methods.util import obtain_num_nodes
+from rlsolver.methods.util import calc_num_nodes_in_mygraph
 TEN = th.Tensor
 INT = th.IntTensor
 TEN = th.Tensor
@@ -23,7 +23,7 @@ import networkx as nx
 from rlsolver.methods.util import build_adjacency_matrix
 from rlsolver.methods.util import build_adjacency_indies_auto
 from rlsolver.methods.util import build_adjacency_matrix_auto
-from rlsolver.methods.util import obtain_num_nodes
+from rlsolver.methods.util import calc_num_nodes_in_mygraph
 from rlsolver.methods.util import MyGraph
 from rlsolver.methods.util import calc_device
 
@@ -289,7 +289,7 @@ class MaxcutSimulatorReinforce:
         '''建立邻接索引'''
         n0_to_n1s, n0_to_dts = build_adjacency_indies_auto(graph=graph, if_bidirectional=if_bidirectional)
         n0_to_n1s = [t.to(int_type).to(device) for t in n0_to_n1s]
-        self.num_nodes = obtain_num_nodes(graph)
+        self.num_nodes = calc_num_nodes_in_mygraph(graph)
         self.num_edges = len(graph)
         self.adjacency_indies = n0_to_n1s
 
@@ -471,7 +471,7 @@ def build_adjacency_indies(graph: MyGraph, if_bidirectional: bool = False) -> (M
     0, 2, 1
     2, 3, 1
     """
-    num_nodes = obtain_num_nodes(graph)
+    num_nodes = calc_num_nodes_in_mygraph(graph)
 
     n0_to_n1s = [[] for _ in range(num_nodes)]  # 将 node0_id 映射到 node1_id
     n0_to_dts = [[] for _ in range(num_nodes)]  # 将 mode0_id 映射到 node1_id 与 node0_id 的距离
@@ -511,7 +511,7 @@ class SimulatorGraphMaxCut:
         '''建立邻接索引'''
         n0_to_n1s, n0_to_dts = build_adjacency_indies(graph=graph, if_bidirectional=if_bidirectional)
         n0_to_n1s = [t.to(int_type).to(device) for t in n0_to_n1s]
-        self.num_nodes = obtain_num_nodes(graph)
+        self.num_nodes = calc_num_nodes_in_mygraph(graph)
         self.num_edges = len(graph)
         self.adjacency_indies = n0_to_n1s
 

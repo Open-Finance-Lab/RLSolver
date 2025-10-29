@@ -23,7 +23,7 @@ from rlsolver.methods.config import GRAPH_TYPE, NUM_TRAIN_NODES, NUM_INFERENCE_N
 DataDir = '../../data/syn_' + GRAPH_TYPE.value
 
 def solve_graph_distribution_problem_using_trs(
-        graph_list: MyGraph,
+        mygraph: MyGraph,
         args_graph: ConfigGraph,
         args_policy: ConfigPolicy,
         gpu_id: int = 0
@@ -38,13 +38,12 @@ def solve_graph_distribution_problem_using_trs(
     num_nodes = args_graph.num_nodes
 
     num_graphs = 1
-    # graph_lists = [load_mygraph3(dataDir=DataDir, graph_name=f"{graph_type.value}_{num_nodes}_ID{graph_id}", if_force_exist=True) for graph_id in range(num_graphs)]
     # txt_path = f"{DataDir}/{graph_type.value}_{num_nodes}_ID{graph_id}.txt"
-    graph_lists = [read_mygraph(f"{DataDir}/{graph_type.value}_{num_nodes}_ID{graph_id}.txt") for graph_id in range(num_graphs)]
+    mygraphs = [read_mygraph(f"{DataDir}/{graph_type.value}_{num_nodes}_ID{graph_id}.txt") for graph_id in range(num_graphs)]
     # 加载测试集的30个实例，用于训练中打印出策略模型学习曲线
 
     '''simulator'''
-    sim = EnvMaxcut(mygraph=graph_list, device=device, if_bidirectional=True)
+    sim = EnvMaxcut(mygraph=mygraph, device=device, if_bidirectional=True)
     if_max = sim.if_maximize
 
     """get seq_graph"""
@@ -110,9 +109,9 @@ def solve_graph_distribution_problem_using_trs(
 
     seq_graphs = []
     evaluators = []
-    for graph_id, graph_list in enumerate(graph_lists):
+    for graph_id, mygraph in enumerate(mygraphs):
         seq_graph, sim, evaluator, best_xs, best_vs = get_seq_graph(
-            graph_list=graph_list,
+            mygraph=mygraph,
             args_graph=args_graph,
             args_policy=args_policy,
             graph_embed_net=graph_embed_net,
@@ -124,7 +123,7 @@ def solve_graph_distribution_problem_using_trs(
     # 提前计算好测试集的30个实例的嵌入特征，避免在训练过程中重复计算
 
     seq_graph, sim, evaluator, best_xs, best_vs = get_seq_graph(
-        graph_list=load_mygraph2(dataDir=DataDir, graph_name=f"{graph_type}_{num_nodes}"),
+        mygraph=load_mygraph2(dataDir=DataDir, graph_name=f"{graph_type}_{num_nodes}"),
         args_graph=args_graph,
         args_policy=args_policy,
         graph_embed_net=graph_embed_net,
@@ -303,7 +302,7 @@ def solve_graph_distribution_problem_using_trs(
             graph_id = th.randint(num_instances, 2 ** 24, size=(1,)).item()
             # 重新从图分布里采样新的图，用于训练。避免抽取到训练集的图。
             seq_graph, sim, evaluator, best_xs, best_vs = get_seq_graph(
-                graph_list=load_mygraph2(dataDir=DataDir, graph_name=f"{graph_type}_{num_nodes}_ID{graph_id}"),
+                mygraph=load_mygraph2(dataDir=DataDir, graph_name=f"{graph_type}_{num_nodes}_ID{graph_id}"),
                 args_graph=args_graph,
                 args_policy=args_policy,
                 graph_embed_net=graph_embed_net,
@@ -314,30 +313,30 @@ def solve_graph_distribution_problem_using_trs(
                 _evaluator = evaluators[_graph_id]
                 _seq_graph = seq_graphs[_graph_id].to(device)
 
-                _graph_list = graph_lists[_graph_id]
-                _sim = EnvMaxcut(mygraph=_graph_list, device=device, if_bidirectional=True)
+                _mygraph = mygraphs[_graph_id]
+                _sim = EnvMaxcut(mygraph=_mygraph, device=device, if_bidirectional=True)
                 valid_net(sim=_sim, net=net, evaluator=_evaluator, seq_graph=_seq_graph, iter_i=iter_i,
                           num_sims=num_sims, graph_id=_graph_id,
                           seq_len=seq_len, num_repeats=num_repeats, top_k=top_k, num_searchers=num_searchers)
 
-            valid_graph_lists_write_into_log(evaluators=evaluators, log_path=f"{policy_net_path}.txt")
+            valid_mygraphs_write_into_log(evaluators=evaluators, log_path=f"{policy_net_path}.txt")
             th.save(net.state_dict(), policy_net_path)
 
     for _graph_id in range(num_instances):
         _evaluator = evaluators[_graph_id]
         _seq_graph = seq_graphs[_graph_id].to(device)
 
-        _graph_list = graph_lists[_graph_id]
-        _sim = EnvMaxcut(mygraph=graph_list, device=device, if_bidirectional=True)
+        _mygraph = mygraphs[_graph_id]
+        _sim = EnvMaxcut(mygraph=mygraph, device=device, if_bidirectional=True)
         valid_net(sim=_sim, net=net, evaluator=_evaluator, seq_graph=_seq_graph, iter_i=-1,
                   num_sims=num_sims, graph_id=_graph_id,
                   seq_len=seq_len, num_repeats=num_repeats, top_k=top_k, num_searchers=num_searchers)
 
-    valid_graph_lists_write_into_log(evaluators=evaluators, log_path=f"{policy_net_path}.txt")
+    valid_mygraphs_write_into_log(evaluators=evaluators, log_path=f"{policy_net_path}.txt")
     th.save(net.state_dict(), policy_net_path)
 
 
-def valid_graph_lists_write_into_log(evaluators, log_path: str):
+def valid_mygraphs_write_into_log(evaluators, log_path: str):
     print("|||")
     with open(file=log_path, mode='a') as log_file:
         for _graph_id, _evaluator in enumerate(evaluators):
@@ -490,7 +489,6 @@ def run_graph_distribution_num_nodes():
 
     assert args_graph.embed_dim == args_policy.embed_dim
     assert args_graph.mid_dim == args_policy.mid_dim
-    # solve_single_graph_problem_using_trs(graph_list, args_graph=args_graph, args_policy=args_policy, gpu_id=gpu_id)
     solve_graph_distribution_problem_using_trs(mygraph, args_graph=args_graph, args_policy=args_policy, gpu_id=gpu_id)
 
 

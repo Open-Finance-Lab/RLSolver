@@ -18,17 +18,13 @@ import os, random
 import torch
 import sys
 from torch_geometric.data import Data
-# from evaluator import EncoderBase64
-# from graph_max_cut_simulator import SimulatorGraphMaxCut, load_graph_list
 import time
 import torch as th
 from typing import List, Tuple, Union
-# from graph_max_cut_simulator import SimulatorGraphMaxCut
-# from graph_max_cut_local_search import SolverLocalSearch
 import networkx as nx
 import numpy as np
 from rlsolver.methods.util import build_adjacency_bool
-from rlsolver.methods.util import obtain_num_nodes
+from rlsolver.methods.util import calc_num_nodes_in_mygraph
 fix_seed = True
 if fix_seed:
     seed = 74
@@ -169,7 +165,7 @@ class SolverLocalSearch:
 
 
 
-def build_adjacency_indies(graph_list: MyGraph, if_bidirectional: bool = False) -> (MyNeighbor, MyNeighbor):
+def build_adjacency_indies(mygraph: MyGraph, if_bidirectional: bool = False) -> (MyNeighbor, MyNeighbor):
     """
     用二维列表list2d表示这个图：
     [
@@ -192,11 +188,11 @@ def build_adjacency_indies(graph_list: MyGraph, if_bidirectional: bool = False) 
     0, 2, 1
     2, 3, 1
     """
-    num_nodes = obtain_num_nodes(graph_list=graph_list)
+    num_nodes = calc_num_nodes_in_mygraph(mygraph=mygraph)
 
     n0_to_n1s = [[] for _ in range(num_nodes)]  # 将 node0_id 映射到 node1_id
     n0_to_dts = [[] for _ in range(num_nodes)]  # 将 mode0_id 映射到 node1_id 与 node0_id 的距离
-    for n0, n1, distance in graph_list:
+    for n0, n1, distance in mygraph:
         n0_to_n1s[n0].append(n1)
         n0_to_dts[n0].append(distance)
         if if_bidirectional:
@@ -231,7 +227,7 @@ def update_xs_by_vs(xs0, vs0, xs1, vs1, if_maximize: bool = True):
 
 
 class SimulatorGraphMaxCut:
-    def __init__(self, sim_name: str = 'max_cut', graph_list: MyGraph = (),
+    def __init__(self, sim_name: str = 'max_cut', mygraph: MyGraph = (),
                  device=device, if_bidirectional: bool = False):
         self.device = device
         self.sim_name = sim_name
@@ -240,17 +236,16 @@ class SimulatorGraphMaxCut:
         self.if_bidirectional = if_bidirectional
 
         '''load graph'''
-        graph_list: MyGraph = graph_list if graph_list else load_mygraph2(graph_name=sim_name)
+        mygraph: MyGraph = mygraph if mygraph else load_mygraph2(graph_name=sim_name)
 
         '''建立邻接矩阵'''
-        # self.adjacency_matrix = build_adjacency_matrix(graph_list=graph_list, if_bidirectional=True).to(device)
-        self.adjacency_bool = build_adjacency_bool(mygraph=graph_list, if_bidirectional=True).to(device)
+        self.adjacency_bool = build_adjacency_bool(mygraph=mygraph, if_bidirectional=True).to(device)
 
         '''建立邻接索引'''
-        n0_to_n1s, n0_to_dts = build_adjacency_indies(graph_list=graph_list, if_bidirectional=if_bidirectional)
+        n0_to_n1s, n0_to_dts = build_adjacency_indies(mygraph=mygraph, if_bidirectional=if_bidirectional)
         n0_to_n1s = [t.to(int_type).to(device) for t in n0_to_n1s]
-        self.num_nodes = obtain_num_nodes(graph_list)
-        self.num_edges = len(graph_list)
+        self.num_nodes = calc_num_nodes_in_mygraph(mygraph)
+        self.num_edges = len(mygraph)
         self.adjacency_indies = n0_to_n1s
 
         '''基于邻接索引，建立基于边edge的索引张量：(n0_ids, n1_ids)是所有边(第0个, 第1个)端点的索引'''
@@ -581,7 +576,7 @@ def run():
     # path = f'temp_{graph_name}.txt'
     # graph_name = "barabasi_albert_1000_ID0"
     # graph_name = "gset_55"
-    # save_graph_list_to_txt(graph_list=load_graph_list(graph_name=graph_name), txt_path=path)
+    # save_mygraph_to_txt(mygraph=load_mygraph(graph_name=graph_name), txt_path=path)
 
     # num_ls = 6
     # reset_epoch_num = 192

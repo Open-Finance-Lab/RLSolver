@@ -32,9 +32,9 @@ def plot_nxgraph(g: nx.Graph(), fig_filename='.result/fig.png'):
     plt.savefig(fig_filename)
     plt.show()
 
-def obtain_num_nodes(graph_list: MyGraph) -> int:
+def calc_num_nodes_in_mygraph(mygraph: MyGraph) -> int:
     s: set = set()
-    for n0, n1, distance in graph_list:
+    for n0, n1, distance in mygraph:
         s.add(n0)
         s.add(n1)
     return len(s)
@@ -131,9 +131,7 @@ def get_hot_image_of_graph(adj_bool, hot_type):
 
 def get_adjacency_distance_matrix(adj_bool_ary):
     graph = nx.from_numpy_array(adj_bool_ary)
-    # '''graph_list -> graph'''
     # graph = nx.Graph()
-    # for n0, n1, distance in graph_list:
     #     graph.add_edge(n0, n1, weight=distance)
 
     dist_matrix = nx.floyd_warshall_numpy(graph)
@@ -311,7 +309,7 @@ def save_graph_info_to_txt(txt_path, graph, num_nodes, num_edges):
         file.write(formatted_content)
 
 
-def build_adjacency_matrix(graph_list: MyGraph, if_bidirectional: bool = False) -> TEN:
+def build_adjacency_matrix(mygraph: MyGraph, if_bidirectional: bool = False) -> TEN:
     """例如，无向图里：
     - 节点0连接了节点1，边的权重为1
     - 节点0连接了节点2，边的权重为2
@@ -331,11 +329,11 @@ def build_adjacency_matrix(graph_list: MyGraph, if_bidirectional: bool = False) 
     - 其余为-1，表示False 节点之间没有连接关系
     """
     not_connection = -1  # 选用-1去表示表示两个node之间没有edge相连，不选用0是为了避免两个节点的距离为0时出现冲突
-    num_nodes = obtain_num_nodes(graph_list=graph_list)
+    num_nodes = calc_num_nodes_in_mygraph(mygraph=mygraph)
 
     adjacency_matrix = th.zeros((num_nodes, num_nodes), dtype=th.float32)
     adjacency_matrix[:] = not_connection
-    for n0, n1, distance in graph_list:
+    for n0, n1, distance in mygraph:
         adjacency_matrix[n0, n1] = distance
         if if_bidirectional:
             adjacency_matrix[n1, n0] = distance
@@ -362,7 +360,7 @@ def build_adjacency_bool(mygraph: MyGraph, num_nodes: int = 0, if_bidirectional:
     - 其余为False
     """
     if num_nodes == 0:
-        num_nodes = obtain_num_nodes(graph_list=mygraph)
+        num_nodes = calc_num_nodes_in_mygraph(mygraph=mygraph)
 
     adjacency_bool = th.zeros((num_nodes, num_nodes), dtype=th.bool)
     node0s, node1s = list(zip(*mygraph))[:2]
@@ -392,7 +390,7 @@ def build_adjacency_matrix_auto(mygraph: MyGraph, if_bidirectional: bool = False
     """
     not_connection = -1  # 选用-1去表示表示两个node之间没有edge相连，不选用0是为了避免两个节点的距离为0时出现冲突
     print(f"graph before enter: {mygraph}")
-    num_nodes = obtain_num_nodes(mygraph)
+    num_nodes = calc_num_nodes_in_mygraph(mygraph)
 
     adjacency_matrix = th.zeros((num_nodes, num_nodes), dtype=th.float32)
     adjacency_matrix[:] = not_connection
@@ -425,7 +423,7 @@ def build_adjacency_indies_auto(graph, if_bidirectional: bool = False) -> (MyNei
     0, 2, 1
     2, 3, 1
     """
-    num_nodes = obtain_num_nodes(graph)
+    num_nodes = calc_num_nodes_in_mygraph(graph)
 
     n0_to_n1s = [[] for _ in range(num_nodes)]  # 将 node0_id 映射到 node1_id
     n0_to_dts = [[] for _ in range(num_nodes)]  # 将 mode0_id 映射到 node1_id 与 node0_id 的距离
@@ -455,27 +453,27 @@ def convert_matrix_to_vector(matrix):
     return th.hstack(vector)
 
 
-def build_graph_list(adjacency_bool: TEN) -> MyGraph:
+def build_mygraph(adjacency_bool: TEN) -> MyGraph:
     num_nodes = adjacency_bool.shape[0]
 
-    graph_list = []
+    mygraph = []
     for node_i in range(1, num_nodes):
         for node_j in range(node_i):
             edge_weight = int(adjacency_bool[node_i, node_j])
             if edge_weight > 0:
-                graph_list.append((node_i, node_j, edge_weight))
-    return graph_list
+                mygraph.append((node_i, node_j, edge_weight))
+    return mygraph
 
 
-def check_convert_between_graph_list_and_adjacency_bool():
+def check_convert_between_mygraph_and_adjacency_bool():
     num_nodes = 8
     adjacency_bool = th.tril(th.randint(0, 2, size=(num_nodes, num_nodes), dtype=th.bool))
 
-    graph_list = build_graph_list(adjacency_bool)
-    print("Original  graph list:", graph_list)
-    adjacency_bool = build_adjacency_bool(graph_list, num_nodes, if_bidirectional=True)
-    graph_list = build_graph_list(adjacency_bool)
-    print("Converted graph list:", graph_list)
+    mygraph = build_mygraph(adjacency_bool)
+    print("Original  graph list:", mygraph)
+    adjacency_bool = build_adjacency_bool(mygraph, num_nodes, if_bidirectional=True)
+    mygraph = build_mygraph(adjacency_bool)
+    print("Converted graph list:", mygraph)
 
 
 def read_solution(filename: str):
@@ -595,12 +593,12 @@ def show_gpu_memory(device):
 
 
 
-def save_graph_list_to_txt(graph_list: MyGraph, txt_path: str):
-    num_nodes = obtain_num_nodes(graph_list=graph_list)
-    num_edges = len(graph_list)
+def save_mygraph_to_txt(mygraph: MyGraph, txt_path: str):
+    num_nodes = calc_num_nodes_in_mygraph(mygraph=mygraph)
+    num_edges = len(mygraph)
 
     lines = [f"{num_nodes} {num_edges}", ]
-    lines.extend([f"{n0 + 1} {n1 + 1} {distance}" for n0, n1, distance in graph_list])
+    lines.extend([f"{n0 + 1} {n1 + 1} {distance}" for n0, n1, distance in mygraph])
     lines = [line + '\n' for line in lines]
     with open(txt_path, 'w') as file:
         file.writelines(lines)
