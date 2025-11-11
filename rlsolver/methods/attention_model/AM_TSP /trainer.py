@@ -344,10 +344,6 @@ class DistributedPOMOTrainer:
             print(f"\nPOMO Training Configuration (Gradient Checkpointing):")
             print(f"  POMO size: {self.pomo_size}")
             print(f"  Total batch size: {self.args.BATCH_SIZE}")
-            print(f"  Batch size per GPU: {batch_size_per_gpu}")
-            print(f"  TSP instances per GPU: {batch_size_per_gpu}")
-            print(f"  Trajectories per GPU: {batch_size_per_gpu * self.pomo_size}")
-            print(f"  Total trajectories per step: {self.args.BATCH_SIZE * self.pomo_size}")
             print()
 
         for epoch in range(self.args.NUM_EPOCHS):
