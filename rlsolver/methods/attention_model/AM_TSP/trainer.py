@@ -110,7 +110,10 @@ class DistributedPOMOTrainer:
         else:
             self.gpu_id = rank
         
-        self.pomo_size = args.NUM_TRAIN_ENVS
+        self.pomo_size = args.NUM_POMO
+        self.num_envs_per_gpu = args.NUM_ENVS // world_size
+        self.batch_size = args.BATCH_SIZE
+        self.accumulation_steps = (self.num_envs_per_gpu + self.batch_size - 1) // self.batch_size
         
         self.optimizer = optim.Adam(model.parameters(), lr=args.LR)
         self.scheduler = CosineAnnealingLR(
@@ -203,7 +206,7 @@ class DistributedPOMOTrainer:
         return self._compute_loss_core(nodes, self.model_module, self.pomo_size)
 
     def train_epoch(self, train_loader, epoch):
-        """Train for one epoch with gradient checkpointing."""
+        """Train for one epoch with gradient accumulation."""
         self.model.train()
         train_loader.sampler.set_epoch(epoch)
         
@@ -214,20 +217,38 @@ class DistributedPOMOTrainer:
         
         for batch_idx, (indices, batch) in enumerate(iterator):
             batch = batch.cuda(self.gpu_id)
-            batch_size = batch.size(0)
-
-            with autocast('cuda'):
-                loss, rewards = self.compute_loss_vmap_pomo(batch)
-
+            num_envs = batch.size(0)
+            
             self.optimizer.zero_grad()
-            self.scaler.scale(loss).backward()
+            
+            # Split into micro-batches for gradient accumulation
+            total_loss = 0.0
+            total_rewards = []
+            
+            for start_idx in range(0, num_envs, self.batch_size):
+                end_idx = min(start_idx + self.batch_size, num_envs)
+                micro_batch = batch[start_idx:end_idx]
+                micro_batch_size = micro_batch.size(0)
+                
+                with autocast('cuda'):
+                    loss, rewards = self.compute_loss_vmap_pomo(micro_batch)
+                    # Scale loss by the proportion of this micro-batch
+                    loss = loss * (micro_batch_size / num_envs)
+                
+                self.scaler.scale(loss).backward()
+                total_loss += loss.item() * (num_envs / micro_batch_size)
+                total_rewards.append(rewards)
+            
+            # Gradient clipping and optimization step
             self.scaler.unscale_(self.optimizer)
             clip_grad_norm(self.model.parameters(), self.args.GRAD_CLIP)
             self.scaler.step(self.optimizer)
             self.scaler.update()
-
-            loss_meter.update(loss.item(), batch_size)
-            reward_meter.update(rewards.min(dim=1)[0].mean().item(), batch_size)
+            
+            # Aggregate metrics
+            all_rewards = torch.cat(total_rewards, dim=0)
+            loss_meter.update(total_loss, num_envs)
+            reward_meter.update(all_rewards.min(dim=1)[0].mean().item(), num_envs)
 
         return loss_meter.avg, reward_meter.avg
 
@@ -272,17 +293,18 @@ class DistributedPOMOTrainer:
                     'C': self.model_module.network.C,
                 },
                 'training_config': {
-                    'algorithm': 'POMO with gradient checkpointing',
+                    'algorithm': 'POMO with gradient checkpointing and accumulation',
                     'pomo_size': self.pomo_size,
-                    'num_train_envs': self.args.NUM_TRAIN_ENVS,
+                    'num_envs': self.args.NUM_ENVS,
+                    'batch_size': self.batch_size,
+                    'num_envs_per_gpu': self.num_envs_per_gpu,
+                    'accumulation_steps': self.accumulation_steps,
                     'lr': self.args.LR,
                     'lr_min': self.args.LR * 0.01,
                     'num_epochs': self.args.NUM_EPOCHS,
                     'grad_clip': self.args.GRAD_CLIP,
-                    'batch_size': self.args.BATCH_SIZE,
-                    'batch_size_per_gpu': self.args.BATCH_SIZE // self.world_size,
                     'world_size': self.world_size,
-                    'memory_optimization': 'gradient checkpointing on encoder and decoder',
+                    'memory_optimization': 'gradient checkpointing + gradient accumulation',
                 },
                 'timestamp': datetime.now().isoformat(),
             }
@@ -340,10 +362,11 @@ class DistributedPOMOTrainer:
                 heuristic_distances = torch.tensor(heuristic_distances)
 
         if self.rank == 0:
-            batch_size_per_gpu = self.args.BATCH_SIZE // self.world_size
-            print(f"\nPOMO Training Configuration (Gradient Checkpointing):")
+            print(f"\nPOMO Training Configuration:")
             print(f"  POMO size: {self.pomo_size}")
-            print(f"  Total batch size: {self.args.BATCH_SIZE}")
+            print(f"  Total NUM_ENVS: {self.args.NUM_ENVS}")
+            print(f"  NUM_ENVS per GPU: {self.num_envs_per_gpu}")
+            print(f"  Gradient batch size: {self.batch_size}")
             print()
 
         for epoch in range(self.args.NUM_EPOCHS):

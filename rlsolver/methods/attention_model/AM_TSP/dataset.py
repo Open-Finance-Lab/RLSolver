@@ -54,11 +54,11 @@ def create_distributed_data_loaders(args, rank, world_size):
         shuffle=True
     )
 
-    per_gpu_batch_size = args.BATCH_SIZE // world_size
-    if per_gpu_batch_size < 1:
-        per_gpu_batch_size = 1
+    per_gpu_num_envs = args.NUM_ENVS // world_size
+    if per_gpu_num_envs < 1:
+        per_gpu_num_envs = 1
         if rank == 0:
-            print(f"Warning: Batch size {args.BATCH_SIZE} too small for {world_size} GPUs, using 1 per GPU")
+            print(f"Warning: NUM_ENVS {args.NUM_ENVS} too small for {world_size} GPUs, using 1 per GPU")
 
     common_kwargs = {
         "pin_memory": True,
@@ -71,7 +71,7 @@ def create_distributed_data_loaders(args, rank, world_size):
 
     train_loader = DataLoader(
         train_dataset,
-        batch_size=per_gpu_batch_size,
+        batch_size=per_gpu_num_envs,
         sampler=train_sampler,
         drop_last=True,
         **common_kwargs
@@ -79,7 +79,7 @@ def create_distributed_data_loaders(args, rank, world_size):
 
     test_loader = DataLoader(
         test_dataset,
-        batch_size=args.BATCH_SIZE,
+        batch_size=args.INFERENCE_BATCH_SIZE,
         shuffle=False,
         **common_kwargs
     )

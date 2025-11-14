@@ -75,11 +75,6 @@ def main_worker(rank, world_size):
         total_params = sum(p.numel() for p in model.parameters())
         trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
         print(f"Model parameters: {total_params:,} total, {trainable_params:,} trainable")
-        print(f"\nPOMO Algorithm:")
-        print(f"  - Each TSP instance generates {args.NUM_TRAIN_ENVS} parallel rollouts")
-        print(f"  - Each rollout starts from a different node (0 to {args.NUM_NODES-1})")
-        print(f"  - Shared baseline = mean reward of all {args.NUM_TRAIN_ENVS} rollouts")
-        print(f"  - This encourages exploration of multiple optimal solutions")
         print()
 
     trainer = DistributedPOMOTrainer(model, args, rank, world_size)

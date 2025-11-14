@@ -15,16 +15,17 @@ NUM_TE_DATASET = 10
 
 # ================== Training Configuration ==================
 NUM_EPOCHS = 1000
-BATCH_SIZE = 4096
+NUM_ENVS = 1024  # Number of TSP instances to sample per training step
+BATCH_SIZE = 4096  # Batch size for gradient computation 
 LR = 0.0002
 GRAD_CLIP = 1.5
 
 # POMO specific - Training
-NUM_TRAIN_ENVS = NUM_NODES  # Number of parallel rollouts during training
+NUM_POMO = NUM_NODES  # Number of POMO rollouts per instance (equals NUM_NODES)
 
 # ================== Inference Configuration ==================
 INFERENCE_BATCH_SIZE = 4096
-NUM_INFERENCE_ENVS = NUM_NODES  # Number of parallel rollouts during inference
+NUM_INFERENCE_POMO = NUM_NODES  # Number of POMO rollouts per instance during inference
 NUM_TEST_SAMPLES = 1000
 TEST_SEED = 1234
 COMPUTE_HEURISTIC_GAP = True

@@ -69,7 +69,7 @@ def run_inference(model_path=None, num_nodes=None):
     print(f"  Number of nodes: {num_nodes}")
     print(f"  Number of test samples: {args.NUM_TEST_SAMPLES}")
     print(f"  Batch size: {args.INFERENCE_BATCH_SIZE}")
-    print(f"  POMO size: {args.NUM_INFERENCE_ENVS}")
+    print(f"  POMO size: {args.NUM_INFERENCE_POMO}")
     print(f"  Device: {device}")
     print(f"  Model path: {model_path}")
     print()
@@ -95,7 +95,7 @@ def run_inference(model_path=None, num_nodes=None):
 
         batch_start_time = time.time()
         tour_lengths, _, actions = rollout_episode_pomo_structured(
-            model, batch_nodes, args.NUM_INFERENCE_ENVS, device
+            model, batch_nodes, args.NUM_INFERENCE_POMO, device
         )
         best_lengths = tour_lengths.min(dim=1)[0]
         batch_time = time.time() - batch_start_time
@@ -121,7 +121,7 @@ def run_inference(model_path=None, num_nodes=None):
 
     print(f"\nInference completed in {total_inference_time:.2f} seconds")
     print(f"Average time per instance (last {num_samples_for_timing} samples): {avg_time_per_sample*1000:.2f} ms")
-    print(f"\nResults (best of {args.NUM_INFERENCE_ENVS} POMO rollouts):")
+    print(f"\nResults (best of {args.NUM_INFERENCE_POMO} POMO rollouts):")
     print(f"  Mean tour length: {mean_length:.4f}")
     print(f"  Std tour length: {std_length:.4f}")
     print(f"  Min tour length: {min_length:.4f}")
@@ -153,7 +153,7 @@ def run_inference(model_path=None, num_nodes=None):
                 "num_nodes": num_nodes,
                 "num_test_samples": args.NUM_TEST_SAMPLES,
                 "batch_size": args.INFERENCE_BATCH_SIZE,
-                "pomo_size": args.NUM_INFERENCE_ENVS,
+                "pomo_size": args.NUM_INFERENCE_POMO,
                 "model_path": model_path,
             },
             "results": {

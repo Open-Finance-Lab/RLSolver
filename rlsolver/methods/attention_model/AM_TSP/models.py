@@ -130,7 +130,12 @@ class TSPActor(nn.Module):
         self.network = AutoregressiveTSP(embedding_size, hidden_size, seq_len, n_head, C)
 
     def forward(self, observation):
+        """Get action distribution.
         
+        Returns:
+            dist: Categorical distribution
+            logits: Raw logits [batch_size, pomo_size, seq_len]
+        """
         logits = self.network(observation)
         batch_size, pomo_size, seq_len = logits.shape
         logits_flat = logits.view(batch_size * pomo_size, seq_len)
@@ -138,7 +143,12 @@ class TSPActor(nn.Module):
         return dist, logits
 
     def get_action(self, observation, deterministic=False):
+        """Sample or select action.
         
+        Returns:
+            action: [batch_size, pomo_size]
+            log_prob: [batch_size, pomo_size]
+        """
         dist, logits = self.forward(observation)
         batch_size, pomo_size, seq_len = logits.shape
         if deterministic:
