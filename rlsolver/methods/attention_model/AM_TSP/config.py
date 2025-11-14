@@ -1,70 +1,66 @@
+# config.py
+
 import torch
-from rlsolver.methods.util import calc_device
+
 # ================== Model Configuration ==================
 EMBEDDING_SIZE = 128
 HIDDEN_SIZE = 128
 N_HEAD = 8
 C = 15.0
-
-TRAIN_INFERENCE = 0  # 0: train, 1: inference
-assert TRAIN_INFERENCE in [0, 1]
 NUM_NODES = 20  # TSP problem size
 
 # ================== Dataset Configuration ==================
 NUM_TR_DATASET = 100000
-NUM_TE_DATASET = 200
-NUM_TEST_SAMPLES = 1000  # For inference testing
-TEST_SEED = 222  # Different seed for test set
+NUM_TE_DATASET = 10
 
 # ================== Training Configuration ==================
-NUM_EPOCHS = 10
-BATCH_SIZE = 256
+NUM_EPOCHS = 1000
+NUM_ENVS = 1024  # Number of TSP instances to sample per training step
+BATCH_SIZE = 4096  # Batch size for gradient computation 
 LR = 0.0002
 GRAD_CLIP = 1.5
-BETA = 0.9  # Legacy, kept for compatibility
 
 # POMO specific - Training
-NUM_TRAIN_ENVS = NUM_NODES  # Number of parallel rollouts during training (POMO uses problem size)
+NUM_POMO = NUM_NODES  # Number of POMO rollouts per instance (equals NUM_NODES)
 
 # ================== Inference Configuration ==================
-INFERENCE_BATCH_SIZE = 64  # Batch size for inference
-NUM_INFERENCE_ENVS = NUM_NODES  # Number of parallel rollouts during inference
-COMPUTE_HEURISTIC_GAP = True  # Whether to compute gap vs heuristic solver
-SAVE_RESULTS = True  # Whether to save inference results
+INFERENCE_BATCH_SIZE = 4096
+NUM_INFERENCE_POMO = NUM_NODES  # Number of POMO rollouts per instance during inference
+NUM_TEST_SAMPLES = 1000
+TEST_SEED = 1234
+COMPUTE_HEURISTIC_GAP = True
+SAVE_RESULTS = True
 
+# ================== Paths ==================
+MODEL_PATH = "model.pth"
+CHECKPOINT_DIR = "checkpoints"
+RESULTS_DIR = "results"
 
+# ================== System Configuration ==================
+NUM_WORKERS = 0
+SEED = 111
 
+# ================== GPU Configuration ==================
 # Training
-MULTI_GPU_MODE = False  # Whether to use all available GPUs
+MULTI_GPU_MODE = True  # Whether to use all available GPUs
 TRAIN_GPU_ID = 0  # GPU ID when not using multi-GPU mode
-TRAIN_DEVICE = calc_device(TRAIN_GPU_ID)
+TRAIN_DEVICE = torch.device(f'cuda:{TRAIN_GPU_ID}' if torch.cuda.is_available() else 'cpu')
 
 # Inference
 INFERENCE_GPU_ID = 0  # GPU for inference/evaluation
-INFERENCE_DEVICE = calc_device(INFERENCE_GPU_ID)
-
-# ================== Paths ==================
-# Model paths
-MODEL_PATH = "model.pth"  # Path to trained model for inference
-CHECKPOINT_DIR = "checkpoints"
-
-# Results paths
-RESULTS_DIR = "results"
-RESULTS_FILENAME = "inference_results.json"
-
-# ================== System Configuration ==================
-NUM_WORKERS = 0  # DataLoader workers (increase based on CPU cores)
-SEED = 111
+INFERENCE_DEVICE = torch.device(f'cuda:{INFERENCE_GPU_ID}' if torch.cuda.is_available() else 'cpu')
 
 # ================== Distributed Training ==================
 MASTER_ADDR = 'localhost'
 MASTER_PORT = '12355'
 
-# ================== Device Mapping ==================
-
-
-def get_num_gpus(use_cuda: bool):
+# ================== Helper Functions ==================
+def get_num_gpus():
     """Get number of available GPUs."""
-    if not use_cuda:
-        return 0
     return torch.cuda.device_count()
+
+def get_world_size():
+    """Get world size for distributed training."""
+    if MULTI_GPU_MODE:
+        return get_num_gpus()
+    return 1
