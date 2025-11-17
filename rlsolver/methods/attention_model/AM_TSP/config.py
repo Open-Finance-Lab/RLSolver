@@ -41,26 +41,15 @@ NUM_WORKERS = 0
 SEED = 111
 
 # ================== GPU Configuration ==================
-# Training
-MULTI_GPU_MODE = True  # Whether to use all available GPUs
-TRAIN_GPU_ID = 0  # GPU ID when not using multi-GPU mode
-TRAIN_DEVICE = torch.device(f'cuda:{TRAIN_GPU_ID}' if torch.cuda.is_available() else 'cpu')
+# Training GPU IDs - list of GPU IDs to use for training
+# Single GPU: TRAIN_GPU_IDS = [0]
+# Multi-GPU:  TRAIN_GPU_IDS = [0, 1, 2, 3]
+TRAIN_GPU_IDS = [0]
 
 # Inference
-INFERENCE_GPU_ID = 0  # GPU for inference/evaluation
+INFERENCE_GPU_ID = 0
 INFERENCE_DEVICE = torch.device(f'cuda:{INFERENCE_GPU_ID}' if torch.cuda.is_available() else 'cpu')
 
 # ================== Distributed Training ==================
 MASTER_ADDR = 'localhost'
 MASTER_PORT = '12355'
-
-# ================== Helper Functions ==================
-def get_num_gpus():
-    """Get number of available GPUs."""
-    return torch.cuda.device_count()
-
-def get_world_size():
-    """Get world size for distributed training."""
-    if MULTI_GPU_MODE:
-        return get_num_gpus()
-    return 1

@@ -104,12 +104,7 @@ class DistributedPOMOTrainer:
         self.args = args
         self.rank = rank
         self.world_size = world_size
-        
-        if world_size == 1:
-            self.gpu_id = args.TRAIN_GPU_ID
-        else:
-            self.gpu_id = rank
-        
+        self.gpu_id = args.TRAIN_GPU_IDS[rank]
         self.pomo_size = args.NUM_POMO
         self.num_envs_per_gpu = args.NUM_ENVS // world_size
         self.batch_size = args.BATCH_SIZE
