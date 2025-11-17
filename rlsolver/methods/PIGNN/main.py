@@ -6,13 +6,14 @@ import numpy as np
 from tqdm import tqdm
 from time import time
 from torch_geometric.loader import DataLoader
-from lightning import Trainer
-from lightning.pytorch.callbacks.early_stopping import EarlyStopping
+from pytorch_lightning import Trainer
+from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 
-from data import DRegDataset
-from model import PIGNN
-from util import eval_maxcut, eval_MIS
-from config import *
+# Use new unified environment structure
+from rlsolver.methods.PIGNN.data import DRegDataset
+from rlsolver.methods.PIGNN.model import PIGNN
+from rlsolver.methods.PIGNN.util import eval_maxcut, eval_MIS
+from rlsolver.methods.PIGNN.config import *
 
 def run(args):
     # Seed
