@@ -23,27 +23,23 @@ def setup_ddp(rank, world_size):
     """Initialize distributed training."""
     os.environ['MASTER_ADDR'] = args.MASTER_ADDR
     os.environ['MASTER_PORT'] = args.MASTER_PORT
-    if world_size == 1:
-        gpu_id = args.TRAIN_GPU_ID
-    else:
-        gpu_id = rank
+    gpu_id = args.TRAIN_GPU_IDS[rank]
     torch.cuda.set_device(gpu_id)
-    dist.init_process_group("nccl", rank=rank, world_size=world_size)
+    if world_size > 1:
+        dist.init_process_group("nccl", rank=rank, world_size=world_size)
 
 
-def cleanup():
+def cleanup(world_size):
     """Clean up distributed training."""
-    dist.destroy_process_group()
+    if world_size > 1:
+        dist.destroy_process_group()
 
 
 def main_worker(rank, world_size):
     """Main worker function for each GPU."""
     setup_ddp(rank, world_size)
     
-    if world_size == 1:
-        gpu_id = args.TRAIN_GPU_ID
-    else:
-        gpu_id = rank
+    gpu_id = args.TRAIN_GPU_IDS[rank]
     
     torch.manual_seed(args.SEED + rank)
     torch.cuda.manual_seed(args.SEED + rank)
@@ -69,7 +65,8 @@ def main_worker(rank, world_size):
         C=args.C
     ).cuda(gpu_id)
 
-    model = DDP(model, device_ids=[gpu_id], find_unused_parameters=False)
+    if world_size > 1:
+        model = DDP(model, device_ids=[gpu_id], find_unused_parameters=False)
 
     if rank == 0:
         total_params = sum(p.numel() for p in model.parameters())
@@ -83,21 +80,18 @@ def main_worker(rank, world_size):
     if rank == 0:
         print("\nTraining with POMO completed!")
 
-    cleanup()
+    cleanup(world_size)
 
 
 def main():
     """Main entry point."""
-    if args.MULTI_GPU_MODE:
-        world_size = args.get_num_gpus()
-        if world_size == 0:
-            raise RuntimeError("No GPUs available for training")
-        print(f"Starting POMO distributed training on {world_size} GPUs")
-        mp.spawn(main_worker, args=(world_size,), nprocs=world_size, join=True)
-    else:
-        print(f"Starting POMO training on GPU {args.TRAIN_GPU_ID}")
+    world_size = len(args.TRAIN_GPU_IDS)
+    if world_size == 1:
+        print(f"Starting POMO training on GPU {args.TRAIN_GPU_IDS[0]}")
         main_worker(0, 1)
-        cleanup()
+    else:
+        print(f"Starting POMO distributed training on GPUs {args.TRAIN_GPU_IDS}")
+        mp.spawn(main_worker, args=(world_size,), nprocs=world_size, join=True)
 
 
 if __name__ == '__main__':
