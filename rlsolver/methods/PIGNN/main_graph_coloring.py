@@ -2,7 +2,6 @@
 
 import os
 import random
-import argparse
 import torch
 import torch.nn.functional as F
 import numpy as np
@@ -21,8 +20,11 @@ from rlsolver.methods.PIGNN.model import PIGNN
 from rlsolver.methods.PIGNN.util import eval_graph_coloring
 from rlsolver.methods.PIGNN.config import *
 
+# Import Graph Coloring environment from unified env file
+from rlsolver.envs.env_PIGNN import PIGNNGraphColoringEnv
+
 # Set up matplotlib for font support
-plt.rcParams['font.family'] = ['Arial Unicode MS', 'PingFang SC', 'STHeiti', 'SimHei', 'DejaVu Sans']
+plt.rcParams['font.family'] = ['Arial', 'DejaVu Sans']
 plt.rcParams['axes.unicode_minus'] = False
 plt.rcParams['font.size'] = 10
 
@@ -160,7 +162,7 @@ def greedy_baseline(edge_index, num_nodes):
     violations = torch.sum(colors[i] == colors[j]).item()
     return colors.cpu(), violations, colors.unique().numel()
 
-def create_visualization(training_losses, confidence_history, pignn_results, greedy_results, training_time, perfect_instances, config, model, dataset):
+def create_visualization(training_losses, confidence_history, pignn_results, greedy_results, training_time, perfect_instances, config_param, model, dataset):
     """
     Create comprehensive visualization for Graph Coloring results.
     """
@@ -362,58 +364,58 @@ def create_visualization(training_losses, confidence_history, pignn_results, gre
     plt.tight_layout()
     return plt.gcf()
 
-def run(args):
-    """主训练和评估函数。"""
+def run():
+    """Main training and evaluation function."""
     print("=" * 80)
-    print("PIGNN图着色训练")
+    print("PIGNN Graph Coloring Training")
     print("=" * 80)
 
-    # 设置随机种子
+    # Set random seeds
     os.environ["PL_GLOBAL_SEED"] = str(SEED)
     random.seed(SEED)
     np.random.seed(SEED)
     torch.manual_seed(SEED)
     torch.cuda.manual_seed_all(SEED)
 
-    # 创建图着色数据集
-    print(f"正在创建包含{args.num_graphs}个图的图着色数据集...")
+    # Create graph coloring dataset
+    print(f"Creating Graph Coloring dataset with {NUM_GRAPHS} graphs...")
     dataset = GraphColoringDataset(
-        num_graphs=args.num_graphs,
-        num_nodes=args.num_nodes,
-        num_colors=args.num_colors,
-        in_dim=16,  # 使用16个特征，如用户实现中所示
+        num_graphs=NUM_GRAPHS,
+        num_nodes=NUM_NODES,
+        num_colors=NUM_COLORS,
+        in_dim=IN_DIM,  # Feature dimension from config
         seed=SEED
     )
 
-    print(f'数据集长度: {len(dataset)}')
+    print(f'Dataset length: {len(dataset)}')
 
-    # 创建数据加载器
-    dataloader = DataLoader(dataset.data, batch_size=args.batch_size,
-                           shuffle=False, num_workers=args.num_workers)
-    print('数据加载器就绪...')
+    # Create data loader
+    dataloader = DataLoader(dataset.data, batch_size=BATCH_SIZE,
+                           shuffle=False, num_workers=NUM_WORKERS)
+    print('Data loader ready...')
 
-    # 为图着色构建模型
+    # Build model for graph coloring
     in_dim = dataset[0].x.shape[1]
     hidden_dim = in_dim // 2
 
-    # 将问题设置为图着色
+    # Set problem to graph coloring
     problem = Problem.graph_coloring
 
     model = PIGNN(
         in_dim=in_dim,
         hidden_dim=hidden_dim,
         problem=problem,
-        lr=args.learning_rate,
-        out_dim=args.num_colors,  # 图着色的多维输出
-        num_heads=args.num_heads,
+        lr=LEARNING_RATE,
+        out_dim=NUM_COLORS,  # Multi-dimensional output for graph coloring
+        num_heads=NUM_HEADS,
         layer_type=GNN_MODEL
     )
 
-    print(f'模型参数: {sum(p.numel() for p in model.parameters()):,}')
-    print(f'特征维度: {in_dim}')
-    print(f'设备: CUDA {args.gpu_num}' if torch.cuda.is_available() else '设备: CPU')
+    print(f'Model parameters: {sum(p.numel() for p in model.parameters()):,}')
+    print(f'Feature dimension: {in_dim}')
+    print(f'Device: CUDA {GPU_NUM}' if torch.cuda.is_available() else 'Device: CPU')
 
-    # 带早停的训练设置
+    # Training setup with early stopping
     early_stop_callback = EarlyStopping(
         monitor="train_loss",
         min_delta=1e-6,
@@ -424,16 +426,16 @@ def run(args):
 
     trainer = Trainer(
         callbacks=[early_stop_callback],
-        devices=[args.gpu_num] if torch.cuda.is_available() else 1,
+        devices=[GPU_NUM] if torch.cuda.is_available() else 1,
         accelerator='gpu' if torch.cuda.is_available() else 'cpu',
-        max_epochs=args.epochs,
+        max_epochs=EPOCHS,
         check_val_every_n_epoch=50,
         log_every_n_steps=10
     )
 
     start_time = time()
 
-    # 训练模型并跟踪损失
+    # Train model and track losses
     training_losses = []
     confidence_history = []
 
@@ -441,14 +443,14 @@ def run(args):
 
     class LossTrackingCallback(Callback):
         def on_train_epoch_end(self, trainer, pl_module):
-            # 从训练器获取当前损失
+            # Get current loss from trainer
             current_loss = trainer.callback_metrics.get('train_loss')
             if current_loss is not None:
                 training_losses.append(current_loss.item())
 
         def on_train_batch_end(self, trainer, pl_module, outputs, batch, batch_idx):
-            # 定期计算模型置信度
-            if batch_idx % max(1, len(dataloader) // 10) == 0:  # 每个epoch 10次
+            # Periodically calculate model confidence
+            if batch_idx % max(1, len(dataloader) // 10) == 0:  # 10 times per epoch
                 with torch.no_grad():
                     x, edge_index = batch.x, batch.edge_index
                     device = pl_module.device
@@ -457,57 +459,57 @@ def run(args):
                     confidence = torch.max(probs, dim=1)[0].mean().item()
                     confidence_history.append(confidence)
 
-    # 添加跟踪回调
+    # Add tracking callback
     loss_tracker = LossTrackingCallback()
     trainer.callbacks.append(loss_tracker)
 
-    # 训练模型
+    # Train model
     trainer.fit(model, train_dataloaders=dataloader)
 
     training_time = time() - start_time
-    print(f'\n训练完成！时间: {training_time:.1f}秒')
-    print(f'收集了{len(training_losses)}个损失值和{len(confidence_history)}个置信度测量值')
+    print(f'\nTraining completed! Time: {training_time:.1f}s')
+    print(f'Collected {len(training_losses)} loss values and {len(confidence_history)} confidence measurements')
 
-    # 最终评估，与贪心基线比较
+    # Final evaluation, compare with greedy baseline
     model.eval()
     pignn_results = []
     greedy_results = []
     perfect_instances = []
 
-    print("\n最终评估（收集着色实例）:")
+    print("\nFinal evaluation (collecting coloring instances):")
 
     with torch.no_grad():
         for i, data in enumerate(dataset):
             x = data.x.to('cuda' if torch.cuda.is_available() else 'cpu')
             edge_index = data.edge_index.to('cuda' if torch.cuda.is_available() else 'cpu')
 
-            # 获取PIGNN预测
+            # Get PIGNN predictions
             probs = model(x, edge_index)
 
-            # 应用温度采样解码
+            # Apply temperature sampling decoding
             pignn_colors, pignn_violations, pignn_used = temperature_sampling_decoding(
-                probs, edge_index, args.num_colors, temperature=1.2, trials=10
+                probs, edge_index, NUM_COLORS, temperature=TEMPERATURE, trials=TRIALS
             )
 
-            # 应用贪心基线
+            # Apply greedy baseline
             greedy_colors, greedy_violations, greedy_used = greedy_baseline(edge_index, x.shape[0])
 
             pignn_results.append((pignn_violations, pignn_used))
             greedy_results.append((greedy_violations, greedy_used))
 
-            # 收集好的比较实例
+            # Collect good comparison instances
             if len(perfect_instances) < 8 and i < 25:
-                # 转换回NetworkX用于可视化
+                # Convert back to NetworkX for visualization
                 g = nx.from_edgelist(edge_index.cpu().numpy().T.tolist())
                 perfect_instances.append((g, pignn_colors, greedy_colors, i))
 
             if i < 5:
-                print(f"图 {i}: PIGNN {pignn_violations} 个违规/{pignn_used} 种颜色, "
-                      f"Greedy {greedy_violations} 个违规/{greedy_used} 种颜色")
+                print(f"Graph {i}: PIGNN {pignn_violations} violations/{pignn_used} colors, "
+                      f"Greedy {greedy_violations} violations/{greedy_used} colors")
 
-    # 打印最终结果
+    # Print final results
     print(f"\n" + "="*80)
-    print("PIGNN图着色结果报告")
+    print("PIGNN Graph Coloring Results Report")
     print("="*80)
 
     pignn_avg_violations = np.mean([r[0] for r in pignn_results])
@@ -515,51 +517,33 @@ def run(args):
     greedy_avg_violations = np.mean([r[0] for r in greedy_results])
     greedy_avg_colors = np.mean([r[1] for r in greedy_results])
 
-    print(f"PIGNN: {pignn_avg_violations:.2f} 个违规, {pignn_avg_colors:.2f} 种颜色")
-    print(f"Greedy: {greedy_avg_violations:.2f} 个违规, {greedy_avg_colors:.2f} 种颜色")
+    print(f"PIGNN: {pignn_avg_violations:.2f} violations, {pignn_avg_colors:.2f} colors")
+    print(f"Greedy: {greedy_avg_violations:.2f} violations, {greedy_avg_colors:.2f} colors")
 
     color_gap = abs(pignn_avg_colors - greedy_avg_colors)
-    print(f"\n性能比较:")
-    print(f"  解的有效性: 100% vs 100% (相等)")
-    print(f"  颜色效率差距: {color_gap:.2f} 种颜色 (同级别)")
-    print(f"  完美实例: {len(perfect_instances)}")
-    print(f"  实例质量: PIGNN表现更好或相当")
+    print(f"\nPerformance comparison:")
+    print(f"  Solution validity: 100% vs 100% (equal)")
+    print(f"  Color efficiency gap: {color_gap:.2f} colors (same level)")
+    print(f"  Perfect instances: {len(perfect_instances)}")
+    print(f"  Instance quality: PIGNN performs better or comparable")
 
-    # 创建增强可视化
+    # Create enhanced visualization
     fig = create_visualization(
         training_losses, confidence_history, pignn_results, greedy_results, training_time,
-        perfect_instances, args, model, dataset
+        perfect_instances, None, model, dataset
     )
 
-    # 保存可视化
+    # Save visualization
     filename = 'pignn_graph_coloring_results.png'
     fig.savefig(filename, dpi=300, bbox_inches='tight', facecolor='white', pad_inches=0.3)
-    print(f"\n可视化已保存: {filename}")
+    print(f"\nVisualization saved: {filename}")
     plt.close()
 
-    print(f"\nPIGNN图着色训练成功完成！")
-    print(f"   - 集成了Potts模型哈密顿量")
-    print(f"   - 温度采样解码")
-    print(f"   - 零冲突数学保证")
-    print(f"   - 综合性能分析")
+    print(f"\nPIGNN Graph Coloring training successfully completed!")
+    print(f"   - Integrated Potts model Hamiltonian")
+    print(f"   - Temperature sampling decoding")
+    print(f"   - Zero-conflict mathematical guarantee")
+    print(f"   - Comprehensive performance analysis")
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='PIGNN图着色训练')
-
-    # 训练参数
-    parser.add_argument('--seed', type=int, default=42, help='随机种子')
-    parser.add_argument('--num_graphs', type=int, default=30, help='数据集中的图数量')
-    parser.add_argument('--num_nodes', type=int, default=25, help='每个图的节点数')
-    parser.add_argument('--num_colors', type=int, default=6, help='图着色的颜色数')
-    parser.add_argument('--batch_size', type=int, default=1, help='训练批次大小')
-    parser.add_argument('--learning_rate', type=float, default=1e-3, help='学习率')
-    parser.add_argument('--epochs', type=int, default=1000, help='最大训练轮次数')
-    parser.add_argument('--num_workers', type=int, default=6, help='数据加载器工作进程数')
-    parser.add_argument('--gpu_num', type=int, default=0, help='GPU编号（设为-1使用CPU）')
-
-    # 模型参数
-    parser.add_argument('--gnn_model', type=int, default=0, help='GNN模型类型（0: GCN, 1: GAT, 2: GATv2, 3: GraphConv）')
-    parser.add_argument('--num_heads', type=int, default=4, help='GAT/GATv2的注意力头数')
-
-    args = parser.parse_args()
-    run(args)
+    run()

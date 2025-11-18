@@ -32,3 +32,8 @@ NUM_COLORS: int = 6  # Number of colors for graph coloring problem
 LAMBDA_ENTROPY: float = 0.1  # Entropy regularization coefficient
 LAMBDA_BALANCE: float = 0.05  # Color balance regularization coefficient
 
+# Additional Graph Coloring parameters
+IN_DIM: int = 16  # Feature dimension for graph coloring
+TEMPERATURE: float = 1.2  # Temperature sampling parameter for decoding
+TRIALS: int = 10  # Number of sampling trials for temperature sampling
+
