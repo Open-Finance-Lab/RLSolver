@@ -96,23 +96,25 @@ def hamiltonian_graph_coloring(edge_index, pred, lambda_entropy=0.1, lambda_bala
 
     return hamiltonian
 
-def eval_graph_coloring(edge_index, pred, d, n, num_colors):
+def eval_graph_coloring(edge_index, assignments, num_colors, num_nodes):
     """
     Evaluate graph coloring solution.
 
     Args:
         edge_index: Tensor of shape [2, num_edges] representing graph connectivity
-        pred: Tensor of shape [num_nodes, num_colors] with softmax probabilities
-        d: Average node degree (not used in current implementation)
-        n: Number of nodes
+        assignments: Tensor of shape [num_nodes, num_colors] with softmax probabilities
+            or tensor of shape [num_nodes] with discrete color indices
         num_colors: Number of available colors
+        num_nodes: Number of nodes in the graph
 
     Returns:
         coloring_energy: Negative of conflict-free score (higher is better)
         chromatic_ratio: Ratio of used colors to available colors
     """
-    # Get color assignments by taking argmax
-    color_assignments = torch.argmax(pred, dim=1)
+    if assignments.dim() == 2:
+        color_assignments = torch.argmax(assignments, dim=1)
+    else:
+        color_assignments = assignments.long()
 
     # Count violations (adjacent nodes with same color)
     i, j = edge_index
@@ -125,6 +127,6 @@ def eval_graph_coloring(edge_index, pred, d, n, num_colors):
     coloring_energy = -violations
 
     # Chromatic ratio: lower is better (closer to 1 means using all available colors efficiently)
-    chromatic_ratio = used_colors / num_colors
+    chromatic_ratio = used_colors / max(1, num_colors)
 
     return coloring_energy, torch.tensor(chromatic_ratio)

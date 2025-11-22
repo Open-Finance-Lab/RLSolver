@@ -1,102 +1,92 @@
+"""
+PIGNN Main Entry Point - Train/Inference Dispatcher
+Based on ECO S2V architecture pattern
+
+This file serves as the unified entry point that dispatches to appropriate
+train or inference scripts based on configuration settings.
+"""
+
+import sys
 import os
-import random
-import argparse
-import torch
-import numpy as np
-from tqdm import tqdm
-from time import time
-from torch_geometric.loader import DataLoader
-from pytorch_lightning import Trainer
-from pytorch_lightning.callbacks.early_stopping import EarlyStopping
+from rlsolver.methods.PIGNN.config import (
+    TRAIN_INFERENCE, PROBLEM, Problem, MODEL_CHECKPOINT_DIR, RESULTS_DIR
+)
 
-# Use new unified environment structure
-from rlsolver.methods.PIGNN.data import DRegDataset
-from rlsolver.methods.PIGNN.model import PIGNN
-from rlsolver.methods.PIGNN.util import eval_maxcut, eval_MIS
-from rlsolver.methods.PIGNN.config import *
 
-def run(args):
-    # Seed
-    os.environ["PL_GLOBAL_SEED"] = str(SEED)
-    random.seed(SEED)
-    np.random.seed(SEED)
-    torch.manual_seed(SEED)
-    torch.cuda.manual_seed_all(SEED)
+def print_configuration():
+    """Print current configuration for debugging."""
+    print("="*60)
+    print("PIGNN (Physics-Inspired Graph Neural Network)")
+    print("="*60)
+    print(f"Mode: {'TRAINING' if TRAIN_INFERENCE == 0 else 'INFERENCE'}")
+    print(f"Problem: {PROBLEM.name}")
+    print("="*60)
 
-    # Create datasets and loaders
-    #  in_dim = NUM_NODES ** 0.5 if aNUM_NODES >= 1e5 else NUM_NODES ** (1/3) # In the example code provided by the authors they don't use the cubic root, even though it is stated in the paper
-    in_dim = NUM_NODES ** 0.5
-    in_dim = round(in_dim)
-    dataset = DRegDataset(NODE_DEGREE, NUM_GRAPHS, NUM_NODES, in_dim, SEED)
-    print('dataset len:', len(dataset))
-    dataloader = DataLoader(dataset.data, batch_size=BATCH_SIZE,
-                             shuffle=False, num_workers=NUM_WORKERS)
-    print('dataloader ready...')
 
-    # Build model
-    hidden_dim = round(in_dim/2)
-    model = PIGNN(
-        in_dim, 
-        hidden_dim, 
-        PROBLEM,
-        lr=LEARNING_RATE,
-        out_dim=1, 
-        num_heads=NUM_HEADS,
-        layer_type=GNN_MODEL
-    )
+def dispatch_train_mode():
+    """Dispatch to appropriate training script based on problem type."""
+    if PROBLEM == Problem.maxcut:
+        from rlsolver.methods.PIGNN.train.train_maxcut import run
+        print("Loading MaxCut training module...")
+    elif PROBLEM == Problem.MIS:
+        from rlsolver.methods.PIGNN.train.train_MIS import run
+        print("Loading MIS training module...")
+    elif PROBLEM == Problem.graph_coloring:
+        from rlsolver.methods.PIGNN.train.train_graph_coloring import run
+        print("Loading Graph Coloring training module...")
+    else:
+        raise ValueError(f"Unsupported problem type: {PROBLEM}")
 
-    # Training (via PyL)
-    early_stop_callback = EarlyStopping(
-        monitor="val_loss", 
-        min_delta=1e-4, 
-        patience=1000, 
-        verbose=True, 
-        mode="min"
-    )
+    # Create checkpoint directory if it doesn't exist
+    os.makedirs(MODEL_CHECKPOINT_DIR, exist_ok=True)
 
-    trainer = Trainer(
-        callbacks=[early_stop_callback],
-        devices=[0],
-        accelerator='gpu',
-        max_epochs=EPOCHS,
-        check_val_every_n_epoch=1,
-    )
+    # Run the training
+    run()
 
-    start_time = time()
-    trainer.fit(model, train_dataloaders=dataloader, val_dataloaders=dataloader)
 
-    # Evaluate after training
-    model.eval()
-    eval_fn = eval_maxcut if PROBLEM == Problem.maxcut else eval_MIS
+def dispatch_inference_mode():
+    """Dispatch to appropriate inference script based on problem type."""
+    if PROBLEM == Problem.maxcut:
+        from rlsolver.methods.PIGNN.inference.inference_maxcut import run
+        print("Loading MaxCut inference module...")
+    elif PROBLEM == Problem.MIS:
+        from rlsolver.methods.PIGNN.inference.inference_MIS import run
+        print("Loading MIS inference module...")
+    elif PROBLEM == Problem.graph_coloring:
+        from rlsolver.methods.PIGNN.inference.inference_graph_coloring import run
+        print("Loading Graph Coloring inference module...")
+    else:
+        raise ValueError(f"Unsupported problem type: {PROBLEM}")
 
-    with torch.no_grad():
-        e, a = [], []
-        for batch in tqdm(dataloader, desc='evaluating model...'):
-            x, edge_index = batch.x, batch.edge_index
-            pred = model(x, edge_index)
-            proj = torch.round(pred)
-            energy, approx_ratio = eval_fn(edge_index, proj, NODE_DEGREE, NUM_GRAPHS)
-            e.append(energy.item()), a.append(approx_ratio.item())
+    # Create results directory if it doesn't exist
+    os.makedirs(RESULTS_DIR, exist_ok=True)
 
-    print(f'Avg. estimated energy: {np.mean(e)}, avg. approximation ratio: {np.mean(a)}')    
-    print(f'Completed training and evaluation for seed={SEED} in {round(time()-start_time, 2)}s')
+    # Run the inference
+    run()
+
+
+def main():
+    """Main entry point following ECO S2V pattern."""
+    print_configuration()
+
+    try:
+        if TRAIN_INFERENCE == 0:  # Train mode
+            print("Starting training mode...")
+            dispatch_train_mode()
+        elif TRAIN_INFERENCE == 1:  # Inference mode
+            print("Starting inference mode...")
+            dispatch_inference_mode()
+        else:
+            raise ValueError(f"Invalid TRAIN_INFERENCE value: {TRAIN_INFERENCE}. Must be 0 (train) or 1 (inference).")
+
+    except ImportError as e:
+        print(f"Error: Cannot import required module: {e}")
+        print("Please ensure the corresponding train/inference scripts exist.")
+        sys.exit(1)
+    except Exception as e:
+        print(f"Error during execution: {e}")
+        sys.exit(1)
+
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--seed', type=int, default=42)
-    parser.add_argument('--num_graphs', type=int, default=100)
-    parser.add_argument('--num_nodes', type=int, default=100)
-    parser.add_argument('--node_degree', type=int, default=3)
-    parser.add_argument('--batch_size', type=int, default=1)
-    parser.add_argument('--learning_rate', type=float, default=1e-4)
-    parser.add_argument('--epochs', type=int, default=int(1e5))
-    parser.add_argument('--num_workers', type=int, default=6)
-    parser.add_argument('--gpu_num', type=int, default=0)
-    parser.add_argument('--maxcut', action='store_true', help='If this flag is true solve the maxcut problem, else solve mis')
-    parser.add_argument('--gnn_model', type=int, default=0)
-    parser.add_argument('--num_heads', type=int, default=4, help='Nr of heads if you wish to use GAT Ansatz')
-
-    args = parser.parse_args()
-    run(args)
-
-
+    main()
