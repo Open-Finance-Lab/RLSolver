@@ -24,7 +24,8 @@ from rlsolver.methods.PIGNN.config import *
 from rlsolver.envs.env_PIGNN import PIGNNGraphColoringEnv
 
 # Set up matplotlib for font support
-plt.rcParams['font.family'] = ['Arial', 'DejaVu Sans']
+plt.rcParams['font.sans-serif'] = ['Arial Unicode MS', 'SimHei', 'DejaVu Sans', 'Arial']
+plt.rcParams['font.family'] = plt.rcParams['font.sans-serif']
 plt.rcParams['axes.unicode_minus'] = False
 plt.rcParams['font.size'] = 10
 

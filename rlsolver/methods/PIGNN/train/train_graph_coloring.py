@@ -133,11 +133,14 @@ def run():
     dataset = DRegDataset(NODE_DEGREE, TRAIN_NUM_GRAPHS, TRAIN_NUM_NODES, in_dim, TRAIN_SEED)
     print(f'Dataset created: {len(dataset)} graphs')
 
+    pin_memory = TRAIN_GPU_NUM >= 0 and torch.cuda.is_available()
     dataloader = DataLoader(
         dataset.data,
         batch_size=TRAIN_BATCH_SIZE,
         shuffle=False,
-        num_workers=TRAIN_NUM_WORKERS
+        num_workers=TRAIN_NUM_WORKERS,
+        pin_memory=pin_memory,
+        persistent_workers=TRAIN_NUM_WORKERS > 0
     )
     print('Dataloader ready...')
 

@@ -1,5 +1,5 @@
 import torch as th
-from typing import Iterable, Optional
+from typing import Iterable, Optional, List, Union
 from enum import Enum, unique
 import os
 
@@ -47,15 +47,15 @@ MODEL_FILENAME_TEMPLATE: str = "PIGNN_{problem}_{graph}_{nodes}_{timestamp}.pth"
 RESULTS_DIR: str = os.path.join(_PROJECT_ROOT, "rlsolver", "result")
 SAVE_MODEL: bool = True
 
-SEED: int = 42
-NUM_GRAPHS: int = 100
-NUM_NODES: int = 100
+SEED: int = TRAIN_SEED
+NUM_GRAPHS: int = TRAIN_NUM_GRAPHS
+NUM_NODES: int = TRAIN_NUM_NODES
 NODE_DEGREE: int = 3
-BATCH_SIZE: int = 1
-LEARNING_RATE: float = 1e-4
-EPOCHS: int = int(1e5)
-NUM_WORKERS: int = 6
-GPU_NUM: int = -1  # -1 for CPU, >=0 for GPU ID
+BATCH_SIZE: int = TRAIN_BATCH_SIZE
+LEARNING_RATE: float = TRAIN_LEARNING_RATE
+EPOCHS: int = TRAIN_EPOCHS
+NUM_WORKERS: int = TRAIN_NUM_WORKERS
+GPU_NUM: int = TRAIN_GPU_NUM  # Mirrors TRAIN_GPU_NUM (-1 for CPU, >=0 for GPU ID)
 GNN_MODEL = MODEL_KEY_DICT.GCN
 NUM_HEADS: int = 4 # Num of heads if you wish to use GAT Ansatz
 
@@ -69,6 +69,12 @@ IN_DIM: int = 16  # Feature dimension for graph coloring
 TEMPERATURE: float = 1.2  # Temperature sampling parameter for decoding
 TRIALS: int = 10  # Number of sampling trials for temperature sampling
 
+# Dataset-driven inference parameters for Graph Coloring
+GRAPH_COLORING_INFERENCE_USE_DATASET: bool = False
+GRAPH_COLORING_INFERENCE_DATA_DIR: str = os.path.join(_PROJECT_ROOT, "rlsolver", "data")
+GRAPH_COLORING_INFERENCE_PREFIXES: List[str] = []
+GRAPH_COLORING_INFERENCE_WRITE_RESULTS: bool = True
+GRAPH_COLORING_INFERENCE_ALG_NAME: str = "PIGNN_graph_coloring"
 
 # ================== Model Naming and Management ==================
 
@@ -127,7 +133,7 @@ def get_model_save_path(problem: Optional[str] = None,
     return os.path.join(MODEL_CHECKPOINT_DIR, filename)
 
 
-def _iter_num_nodes(num_nodes: Optional[Iterable[int] | int]):
+def _iter_num_nodes(num_nodes: Optional[Union[Iterable[int], int]]):
     if num_nodes is None:
         yield TRAIN_NUM_NODES if TRAIN_INFERENCE == 0 else INFERENCE_NUM_NODES
         return
@@ -139,7 +145,7 @@ def _iter_num_nodes(num_nodes: Optional[Iterable[int] | int]):
 
 
 def get_model_load_path(problem: str,
-                        num_nodes: Optional[Iterable[int] | int] = None,
+                        num_nodes: Optional[Union[Iterable[int], int]] = None,
                         graph_type: str = "BA",
                         timestamp: Optional[str] = None) -> str:
     """

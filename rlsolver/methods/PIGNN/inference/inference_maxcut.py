@@ -18,7 +18,7 @@ from typing import Optional, List, Tuple
 # Use new unified environment structure
 from rlsolver.methods.PIGNN.data import DRegDataset
 from rlsolver.methods.PIGNN.model import PIGNN
-from rlsolver.methods.PIGNN.util import eval_maxcut
+from rlsolver.methods.PIGNN.util import eval_maxcut, resolve_device
 from rlsolver.methods.PIGNN.config import *
 from rlsolver.methods.config import Problem
 
@@ -84,11 +84,14 @@ def create_inference_dataloader(num_nodes: int, num_graphs: int = 100) -> DataLo
     # Create dataset for inference
     dataset = DRegDataset(NODE_DEGREE, num_graphs, num_nodes, feature_dim, INFERENCE_SEED)
 
+    pin_memory = INFERENCE_GPU_NUM >= 0 and torch.cuda.is_available()
     dataloader = DataLoader(
         dataset.data,
         batch_size=INFERENCE_BATCH_SIZE,
         shuffle=False,
-        num_workers=INFERENCE_NUM_WORKERS
+        num_workers=INFERENCE_NUM_WORKERS,
+        pin_memory=pin_memory,
+        persistent_workers=INFERENCE_NUM_WORKERS > 0
     )
 
     return dataloader
@@ -220,7 +223,7 @@ def run():
     print("=" * 60)
 
     # Configure device
-    device = torch.device(f'cuda:{INFERENCE_GPU_NUM}' if INFERENCE_GPU_NUM >= 0 and torch.cuda.is_available() else 'cpu')
+    device = resolve_device(INFERENCE_GPU_NUM)
     print(f"Using device: {device}")
 
     # Load model

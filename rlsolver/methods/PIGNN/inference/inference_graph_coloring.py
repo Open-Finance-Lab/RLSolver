@@ -18,7 +18,11 @@ from typing import Optional, List, Tuple
 # Use new unified environment structure
 from rlsolver.methods.PIGNN.data import DRegDataset
 from rlsolver.methods.PIGNN.model import PIGNN
-from rlsolver.methods.PIGNN.util import eval_graph_coloring
+from rlsolver.methods.PIGNN.util import (
+    eval_graph_coloring,
+    load_graph_coloring_graphs_from_directory,
+    resolve_device,
+)
 from rlsolver.methods.PIGNN.config import *
 from rlsolver.methods.config import Problem
 
@@ -143,11 +147,14 @@ def create_inference_dataloader(num_nodes: int, num_graphs: int = 100) -> DataLo
     # Create dataset for inference using the same feature dimension as training
     dataset = DRegDataset(NODE_DEGREE, num_graphs, num_nodes, IN_DIM, INFERENCE_SEED)
 
+    pin_memory = INFERENCE_GPU_NUM >= 0 and torch.cuda.is_available()
     dataloader = DataLoader(
         dataset.data,
         batch_size=INFERENCE_BATCH_SIZE,
         shuffle=False,
-        num_workers=INFERENCE_NUM_WORKERS
+        num_workers=INFERENCE_NUM_WORKERS,
+        pin_memory=pin_memory,
+        persistent_workers=INFERENCE_NUM_WORKERS > 0
     )
 
     return dataloader
@@ -190,6 +197,81 @@ def run_inference(model: PIGNN, dataloader: DataLoader, device: torch.device) ->
                 all_predictions.append(colors.detach().cpu())
 
     return energies, approximation_ratios, all_predictions
+
+
+def infer_single_graph(model: PIGNN, graph_data: Data, device: torch.device):
+    """Infer one graph provided as torch_geometric Data."""
+    data = graph_data.to(device)
+    pred = model(data.x, data.edge_index)
+    colors, violations, used_colors = temperature_sampling_decode(
+        pred, data.edge_index, NUM_COLORS, TEMPERATURE, TRIALS
+    )
+    energy, approx_ratio = eval_graph_coloring(
+        data.edge_index, colors, NUM_COLORS, data.num_nodes
+    )
+    return colors.cpu(), energy.item(), approx_ratio.item(), float(violations), int(used_colors)
+
+
+def run_directory_inference(model: PIGNN, device: torch.device):
+    """
+    Run inference on all graph files in the configured directory.
+
+    Returns:
+        energies, ratios, predictions lists.
+    """
+    try:
+        graph_data_list = load_graph_coloring_graphs_from_directory(
+            GRAPH_COLORING_INFERENCE_DATA_DIR,
+            GRAPH_COLORING_INFERENCE_PREFIXES or None,
+            IN_DIM,
+        )
+    except FileNotFoundError as exc:
+        print(f"[PIGNN] {exc}")
+        return [], [], []
+
+    if not graph_data_list:
+        return [], [], []
+
+    energies, ratios, predictions = [], [], []
+    writer = None
+    if GRAPH_COLORING_INFERENCE_WRITE_RESULTS:
+        try:
+            from rlsolver.methods.util_write_read_result import write_graph_result as writer  # type: ignore
+        except ModuleNotFoundError as exc:
+            print(f"[PIGNN] Unable to import write_graph_result ({exc}). Results will not be written.")
+            writer = None
+
+    for data in graph_data_list:
+        start_time = time()
+        colors, energy, ratio, violations, used_colors = infer_single_graph(model, data, device)
+        run_duration = time() - start_time
+        energies.append(energy)
+        ratios.append(ratio)
+        predictions.append(colors)
+
+        if writer is not None:
+            info_dict = {
+                "approx_ratio": ratio,
+                "violations": violations,
+                "used_colors": used_colors,
+            }
+            writer(
+                obj=energy,
+                running_duration=int(round(run_duration)),
+                num_nodes=data.num_nodes,
+                alg_name=GRAPH_COLORING_INFERENCE_ALG_NAME,
+                solution=colors.numpy(),
+                filename=data.file_path,
+                plus1=True,
+                info_dict=info_dict,
+            )
+
+        print(
+            f"[PIGNN] {data.graph_name}: energy={energy:.4f}, "
+            f"ratio={ratio:.4f}, time={run_duration:.2f}s"
+        )
+
+    return energies, ratios, predictions
 
 
 def save_results(energies: List[float], approximation_ratios: List[float],
@@ -264,7 +346,7 @@ def run():
     print(f"  Feature dimension: {IN_DIM}")
 
     # Configure device
-    device = torch.device(f'cuda:{INFERENCE_GPU_NUM}' if INFERENCE_GPU_NUM >= 0 and torch.cuda.is_available() else 'cpu')
+    device = resolve_device(INFERENCE_GPU_NUM)
     print(f"Using device: {device}")
 
     # Load model
@@ -272,8 +354,16 @@ def run():
     model_path = get_model_load_path(problem="graph_coloring", num_nodes=INFERENCE_NUM_NODES)
     model = load_model(model_path, device)
 
+    predictions = []
+
     # Determine inference parameters
-    if isinstance(INFERENCE_NUM_NODES, list):
+    if GRAPH_COLORING_INFERENCE_USE_DATASET:
+        print(f"Running dataset inference from: {GRAPH_COLORING_INFERENCE_DATA_DIR}")
+        energies, approximation_ratios, predictions = run_directory_inference(model, device)
+        if not energies:
+            print("[PIGNN] No graphs processed in dataset inference mode.")
+            return
+    elif isinstance(INFERENCE_NUM_NODES, list):
         print(f"Running inference on multiple node sizes: {INFERENCE_NUM_NODES}")
         all_energies, all_ratios = [], []
 
@@ -309,10 +399,7 @@ def run():
     print(f"Best approximation ratio: {np.max(approximation_ratios):.4f}")
 
     # Save results
-    if 'predictions' in locals():
-        save_results(energies, approximation_ratios, predictions)
-    else:
-        save_results(energies, approximation_ratios, [])
+    save_results(energies, approximation_ratios, predictions if predictions else [])
 
     print("Inference completed successfully!")
 
