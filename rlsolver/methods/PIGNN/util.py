@@ -1,13 +1,5 @@
 import math
-import os
-from typing import List, Optional
-
 import torch
-import networkx as nx
-from torch_geometric.utils import from_networkx
-from torch_geometric.data import Data
-
-from rlsolver.methods.util import calc_txt_files_with_prefixes
 
 def hamiltonian_maxcut(edge_index, pred):
     i, j = edge_index
@@ -104,25 +96,23 @@ def hamiltonian_graph_coloring(edge_index, pred, lambda_entropy=0.1, lambda_bala
 
     return hamiltonian
 
-def eval_graph_coloring(edge_index, assignments, num_colors, num_nodes):
+def eval_graph_coloring(edge_index, pred, d, n, num_colors):
     """
     Evaluate graph coloring solution.
 
     Args:
         edge_index: Tensor of shape [2, num_edges] representing graph connectivity
-        assignments: Tensor of shape [num_nodes, num_colors] with softmax probabilities
-            or tensor of shape [num_nodes] with discrete color indices
+        pred: Tensor of shape [num_nodes, num_colors] with softmax probabilities
+        d: Average node degree (not used in current implementation)
+        n: Number of nodes
         num_colors: Number of available colors
-        num_nodes: Number of nodes in the graph
 
     Returns:
         coloring_energy: Negative of conflict-free score (higher is better)
         chromatic_ratio: Ratio of used colors to available colors
     """
-    if assignments.dim() == 2:
-        color_assignments = torch.argmax(assignments, dim=1)
-    else:
-        color_assignments = assignments.long()
+    # Get color assignments by taking argmax
+    color_assignments = torch.argmax(pred, dim=1)
 
     # Count violations (adjacent nodes with same color)
     i, j = edge_index
@@ -135,120 +125,6 @@ def eval_graph_coloring(edge_index, assignments, num_colors, num_nodes):
     coloring_energy = -violations
 
     # Chromatic ratio: lower is better (closer to 1 means using all available colors efficiently)
-    chromatic_ratio = used_colors / max(1, num_colors)
+    chromatic_ratio = used_colors / num_colors
 
     return coloring_energy, torch.tensor(chromatic_ratio)
-
-
-def resolve_device(requested_gpu_id: int) -> torch.device:
-    """
-    Determine the best available torch.device respecting CUDA/MPS availability.
-    """
-    if requested_gpu_id >= 0 and torch.cuda.is_available():
-        return torch.device(f"cuda:{requested_gpu_id}")
-    if hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
-        return torch.device("mps")
-    return torch.device("cpu")
-
-
-def _read_graph_from_txt(file_path: str) -> nx.Graph:
-    """Load a graph from a Gset-style txt file (1-indexed nodes)."""
-    graph = nx.Graph()
-    with open(file_path, "r", encoding="utf-8") as handle:
-        header = handle.readline()
-        while header and header.strip().startswith("//"):
-            header = handle.readline()
-        if not header:
-            raise ValueError(f"Graph file is empty: {file_path}")
-        parts = header.strip().split()
-        if len(parts) < 2:
-            raise ValueError(f"Invalid graph header in {file_path}")
-        num_nodes = int(parts[0])
-        graph.add_nodes_from(range(num_nodes))
-        for line in handle:
-            if not line.strip() or line.startswith("//"):
-                continue
-            tokens = line.strip().split()
-            if len(tokens) < 2:
-                continue
-            node1 = int(tokens[0]) - 1
-            node2 = int(tokens[1]) - 1
-            weight = float(tokens[2]) if len(tokens) > 2 else 1.0
-            graph.add_edge(node1, node2, weight=weight)
-    return graph
-
-
-def _create_graph_coloring_features(graph: nx.Graph, feature_dim: int) -> torch.Tensor:
-    """Create deterministic + random node features for graph coloring inference."""
-    num_nodes = graph.number_of_nodes()
-    if num_nodes <= 0:
-        raise ValueError("Graph must contain at least one node.")
-
-    random_dim = max(1, feature_dim // 2)
-    random_features = torch.rand(num_nodes, random_dim)
-
-    node_ids = torch.arange(num_nodes, dtype=torch.float32).unsqueeze(1)
-    node_ids = node_ids / max(1.0, num_nodes - 1)
-
-    degrees = torch.tensor([graph.degree(i) for i in range(num_nodes)], dtype=torch.float32).unsqueeze(1)
-    degree_norm = max(1.0, degrees.max().item())
-    degrees = degrees / degree_norm
-
-    remaining_dim = feature_dim - random_features.shape[1] - node_ids.shape[1] - degrees.shape[1]
-    feature_blocks = [random_features, node_ids, degrees]
-    if remaining_dim > 0:
-        feature_blocks.append(torch.rand(num_nodes, remaining_dim))
-    elif remaining_dim < 0:
-        feature_blocks[0] = feature_blocks[0][:, :feature_blocks[0].shape[1] + remaining_dim]
-
-    features = torch.cat(feature_blocks, dim=1)
-    features = (features - features.mean(dim=0, keepdim=True)) / (features.std(dim=0, keepdim=True) + 1e-6)
-    return features
-
-
-def load_graph_coloring_data_from_file(file_path: str, feature_dim: int) -> Data:
-    """Load a single graph coloring instance from disk."""
-    if not os.path.exists(file_path):
-        raise FileNotFoundError(f"Graph file not found: {file_path}")
-    graph = _read_graph_from_txt(file_path)
-    pyg_data = from_networkx(graph)
-    pyg_data.edge_index = pyg_data.edge_index.long()
-    pyg_data.x = _create_graph_coloring_features(graph, feature_dim)
-    pyg_data.num_nodes = graph.number_of_nodes()
-    pyg_data.graph_name = os.path.splitext(os.path.basename(file_path))[0]
-    pyg_data.file_path = file_path
-    return pyg_data
-
-
-def load_graph_coloring_graphs_from_directory(directory: str,
-                                              prefixes: Optional[List[str]],
-                                              feature_dim: int):
-    """Load all graph coloring instances from a directory."""
-    if not os.path.isdir(directory):
-        raise FileNotFoundError(f"Graph directory does not exist: {directory}")
-
-    if prefixes:
-        files = calc_txt_files_with_prefixes(directory, prefixes)
-    else:
-        files = [
-            os.path.join(directory, name)
-            for name in sorted(os.listdir(directory))
-            if name.endswith(".txt")
-        ]
-
-    if not files:
-        print(f"[PIGNN] No graph files found under {directory} with prefixes={prefixes}.")
-        return []
-
-    graphs = []
-    failed_files: List[tuple[str, str]] = []
-    for path in files:
-        try:
-            graphs.append(load_graph_coloring_data_from_file(path, feature_dim))
-        except Exception as exc:  # benign logging
-            failed_files.append((path, str(exc)))
-
-    if failed_files:
-        preview = ", ".join(os.path.basename(p) for p, _ in failed_files[:3])
-        print(f"[PIGNN] Skipped {len(failed_files)} files due to errors. Examples: {preview}")
-    return graphs
