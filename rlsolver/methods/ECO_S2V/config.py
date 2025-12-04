@@ -17,7 +17,7 @@ class Alg(Enum):
 
 PROBLEM = Problem.maxcut
 
-TRAIN_INFERENCE = 1  # 0: train, 1: inference
+TRAIN_INFERENCE = 0  # 0: train, 1: inference
 assert TRAIN_INFERENCE in [0, 1]
 
 ALG = Alg.S2V  # Alg
@@ -28,7 +28,7 @@ TRAIN_GPU_ID = 0
 TRAIN_DEVICE = calc_device(TRAIN_GPU_ID)
 SAMPLE_GPU_ID_IN_ECO_S2V = -1 if ALG in [Alg.ECO, Alg.S2V] else None
 SAMPLE_DEVICE_IN_ECO_S2V = None if SAMPLE_GPU_ID_IN_ECO_S2V is None else calc_device(SAMPLE_GPU_ID_IN_ECO_S2V)
-USE_TWO_DEVICES_IN_ECO_S2V = True if ALG in [Alg.ECO, Alg.S2V] else False
+USE_TWO_DEVICES_IN_ECO_S2V = False # True if ALG in [Alg.ECO, Alg.S2V] else False
 BUFFER_GPU_ID = SAMPLE_GPU_ID_IN_ECO_S2V if USE_TWO_DEVICES_IN_ECO_S2V else TRAIN_GPU_ID
 BUFFER_DEVICE = calc_device(BUFFER_GPU_ID)
 NUM_TRAIN_NODES = 20
