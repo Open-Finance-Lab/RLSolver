@@ -7,7 +7,7 @@ import numpy as np
 from torch import Tensor
 from typing import List, Union, Tuple
 
-from rlsolver.envs.env_k_spin_Ising import EnvMaxcut
+from rlsolver.envs.env_k_spin import EnvMaxcut
 
 from net import OptNet
 import pickle as pkl
