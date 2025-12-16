@@ -31,7 +31,7 @@ from rlsolver.methods.util_write_read_result import (write_graph_result,
 from rlsolver.methods.config import *
 
 # init_solution is useless
-def greedy_maxcut(num_steps: Optional[int], graph: nx.Graph, filename) -> (int, Union[List[int], np.array], List[int]):
+def greedy_maxcut(num_steps: Optional[int], graph: nx.Graph) -> (int, Union[List[int], np.array], List[int]):
     print('greedy')
     start_time = time.time()
     num_nodes = int(graph.number_of_nodes())
@@ -162,7 +162,7 @@ def greedy_MVC(num_steps: int, graph: nx.Graph) -> (int, Union[List[int], np.arr
     print('running_duration: ', running_duration)
     return curr_score, curr_solution, scores
 
-def greedy_MIS(num_steps: Optional[int], graph: nx.Graph, filename) -> (int, Union[List[int], np.array], List[int]):
+def greedy_MIS(num_steps: Optional[int], graph: nx.Graph) -> (int, Union[List[int], np.array], List[int]):
     def calc_candidate_nodes(unselected_nodes: set, selected_nodes: set, neighbors: dict):
         # 优化：使用预计算的邻居和集合，避免遍历所有边
         excluded_nodes = set()
@@ -301,7 +301,9 @@ def greedy_graph_coloring(num_steps: Optional[int], graph: nx.Graph) -> (int, Un
                         color_id = int(key)
 
                 solution[node] = color_id
-
+    if min(solution) == 1:
+        for i in range(len(solution)):
+            solution[i] -= 1
     print("solution: ", solution)
     running_duration = time.time() - start_time
     print('running_duration: ', running_duration)
@@ -329,7 +331,7 @@ def run_greedy_over_manyfiles(alg, alg_name, num_steps, directory_data: str, pre
             write_result_set_cover(score, running_duration, num_items, num_sets, alg_name, filename)
         else:
             graph = read_nxgraph(filename)
-            score, solution, scores = alg(num_steps, graph, filename)
+            score, solution, scores = alg(num_steps, graph)
             scoress.append(scores)
             running_duration = time.time() - start_time
             # 添加问题类型信息
@@ -346,7 +348,7 @@ if __name__ == '__main__':
     # run alg
     alg_name = 'GR'
 
-
+    PROBLEM = Problem.graph_coloring
 
     if PROBLEM == Problem.maxcut:
         alg = greedy_maxcut
