@@ -71,7 +71,6 @@ if __name__ == "__main__":
     std = (sum((x - avg) ** 2 for x in vals) / len(vals)) ** 0.5
     avg_time = sum(durations) / len(durations)
 
-
     print("\n=== Summary ===")
     print(" Best =", best_val)
     print(" Avg  =", f"{avg:.2f}")

@@ -94,6 +94,47 @@ def write_result_set_cover(obj: Union[float, int], running_duration: int, num_it
         new_file.write(f"{prefix}alg_name: {alg_name}\n")
 
 
+# if the file exists, the result file will be renamed so that there is conflict.
+def write_result_knapsack(obj: Union[float, int], running_duration: int,
+                          num_items: Optional[int], alg_name: str,
+                          solution: Union[Tensor, List[int], np.array], filename: str,
+                          info_dict: dict = {}):
+    if type(solution[0]) == bool:
+        sol = []
+        for i in solution:
+            assert i in [False, True]
+            if i is False:
+                sol.append(0)
+            else:
+                sol.append(1)
+        solution = sol
+    add_tail = '_' if running_duration is None else '_' + str(int(running_duration)) \
+        if 'data' in filename else None
+    new_filename = calc_result_file_name(filename, add_tail)
+
+    # if new_filename exists, rename new_filename
+    while os.path.exists(new_filename):
+        assert ('.txt' in new_filename)
+        parts = new_filename.split('.txt')
+        assert (len(parts) == 2)
+        lowercase_letters = string.ascii_lowercase
+        random_int = np.random.randint(0, len(lowercase_letters))
+        random_letter = lowercase_letters[random_int]
+        new_filename = parts[0] + random_letter + '.txt'
+
+    print("result filename: ", new_filename)
+    with open(new_filename, 'w', encoding="UTF-8") as new_file:
+        prefix = '// '
+        new_file.write(f"{prefix}obj: {obj}\n")
+        new_file.write(f"{prefix}running_duration: {running_duration}\n")
+        if num_items is not None:
+            new_file.write(f"// num_items: {num_items}\n")
+        new_file.write(f"{prefix}alg_name: {alg_name}\n")
+        for key, value in info_dict.items():
+            new_file.write(f"{prefix}{key}: {value}\n")
+        for i in range(len(solution)):
+            new_file.write(f"{i + 1} {solution[i]}\n")
+
 # return: num_nodes, ID, running_duration:, obj,
 def read_graph_result_comments(filename: str):
     num_nodes, ID, running_duration, obj = None, None, None, None
