@@ -220,7 +220,7 @@ def pick_xs_by_vs(xs: TEN, vs: TEN, num_repeats: int, if_maximize: bool) -> (TEN
 #             line = file.readline()
 #     return num_items, num_sets, item_matrix
 
-def read_knapsack_data_m(filename):
+def read_mknapsack_data(filename):
     with open(filename, 'r') as file:
         lines = file.readlines()
         N, W = map(int, lines[0].split())
