@@ -25,7 +25,7 @@ class Node:
         self.bound = bound
 
 
-def branch_and_bounds(number: int, capacity: int, weight_cost: List[Tuple[int, int]]) -> Tuple[int, List[int]]:
+def branch_and_bound(number: int, capacity: int, weight_cost: List[Tuple[int, int]]) -> Tuple[int, List[int]]:
     """Branch and bounds method for solving knapsack problem
     http://faculty.cns.uni.edu/~east/teaching/153/branch_bound/knapsack/overview_algorithm.html
 

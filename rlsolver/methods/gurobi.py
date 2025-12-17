@@ -14,7 +14,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import time
 from rlsolver.methods.util_read_data import (read_nxgraph,
-                                             read_knapsack_data,
+                                             read_knapsack_data_m,
                                              read_set_cover_data)
 from rlsolver.methods.util import (transfer_float_to_binary,
                                    calc_txt_files_with_prefixes,
@@ -286,7 +286,7 @@ def run_using_gurobi(filename: str, init_x=None, time_limit: int = None, plot_fi
                     math.sqrt(sum((points[i][k] - points[j][k]) ** 2 for k in range(2)))
                 for i in range(n) for j in range(i)}
     elif PROBLEM == Problem.knapsack:
-        num, weight, items = read_knapsack_data(filename)
+        num, weight, items = read_knapsack_data_m(filename)
     elif PROBLEM == Problem.set_cover:
         total_elements, total_subsets, subsets = read_set_cover_data(filename)
     else:

@@ -5,7 +5,8 @@ from typing import List, Tuple
 ALPHA = 0.85
 
 
-def simulated_annealing(number: int, capacity: int, weight_cost: List[Tuple[int, int]], init_temp: int = 100, steps: int = 100) -> Tuple[int, List[int]]:
+def simulated_annealing(number: int, capacity: int, weight_cost: List[Tuple[int, int]], init_temp: int = 100) -> Tuple[int, List[int]]:
+    steps = max(100, number)
     start_sol = init_solution(weight_cost, capacity)
     best_cost, solution = simulate(start_sol, weight_cost, capacity, init_temp, steps)
     best_combination = [0] * number

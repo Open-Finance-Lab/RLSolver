@@ -12,7 +12,7 @@ class Alg(Enum):
     greedy = 'greedy'
     simulated_annealing = 'simulated_annealing'
 
-ALG = Alg.degree_of_saturation
+ALG = Alg.brute_force
 
 
 
@@ -25,3 +25,4 @@ if __name__ == '__main__':
         filename = files[i]
         print(f'Start the {i}-th file: {filename}')
         graph = read_nxgraph(filename)
+        

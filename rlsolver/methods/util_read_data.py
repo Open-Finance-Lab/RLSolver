@@ -220,7 +220,7 @@ def pick_xs_by_vs(xs: TEN, vs: TEN, num_repeats: int, if_maximize: bool) -> (TEN
 #             line = file.readline()
 #     return num_items, num_sets, item_matrix
 
-def read_knapsack_data(filename):
+def read_knapsack_data_m(filename):
     with open(filename, 'r') as file:
         lines = file.readlines()
         N, W = map(int, lines[0].split())
@@ -230,6 +230,26 @@ def read_knapsack_data(filename):
             items.append((weight, value))
     return N, W, items
 
+# <instance_id> <number_of_items> <capacity> <weight1> <cost1> <weight2> <cost2> ...
+def read_knapsack_data(filename):
+    with open(filename, 'r') as file:
+        lines = file.readlines()
+        # assert (len(lines) == 1)
+        line = lines[0]
+        parts = line.split(' ')
+        instance_id = int(parts[0])
+        num_items = int(parts[1])
+        capacity = int(parts[2])
+        weights = []
+        profits = []
+        for i in range(3, len(parts)):
+            if i % 2 == 1:
+                weight = int(parts[i])
+                weights.append(weight)
+            else:
+                profit = int(parts[i])
+                profits.append(profit)
+    return instance_id, num_items, capacity, weights, profits
 
 def read_set_cover_data(filename):
     with open(filename, 'r') as file:
@@ -318,3 +338,8 @@ if __name__ == '__main__':
         graph2 = read_nxgraph('../data/syn_BA/BA_100_ID0.txt')
 
     check_get_hot_tenor_of_graph()
+
+    read_knapsack = True
+    filename = '../data/knapsack/knap_4_ID00.txt'
+    instance_id, num_items, capacity, weights, profits = read_knapsack_data(filename)
+    pass
