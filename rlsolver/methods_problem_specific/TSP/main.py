@@ -27,13 +27,13 @@ from rlsolver.methods.util import (calc_txt_files_with_prefixes,
                                    )
 
 
-def run_multi_instances(dir: str, prefixes: List[str]):
+def run_manyfiles(dir: str, prefixes: List[str]):
     files = calc_txt_files_with_prefixes(dir, prefixes)
     for i in range(len(files)):
         file = files[i]
-        run_one_instance(file)
+        run_onefile(file)
 
-def run_one_instance(file_name):
+def run_onefile(file_name):
     print("file_name: ", )
     # Loading Coordinates # Berlin 52 (Minimum Distance = 7544.3659)
     # if 'Coordinates' in file_name:
@@ -112,7 +112,7 @@ def main():
     #prefixes = ['s', 't', 'u']
     #prefixes = ['berlin52']
 
-    run_multi_instances(dir, prefixes)
+    run_manyfiles(dir, prefixes)
 
     pass
 
