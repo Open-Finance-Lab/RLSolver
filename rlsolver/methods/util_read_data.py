@@ -220,17 +220,84 @@ def pick_xs_by_vs(xs: TEN, vs: TEN, num_repeats: int, if_maximize: bool) -> (TEN
 #             line = file.readline()
 #     return num_items, num_sets, item_matrix
 
+"""
+data format
+(1) n_vars m_cons optimal solution value
+(2) [coefficients p(j)](1,n_vars)
+(3) [[the coefficients r(i,j)]](m_cons,n_vars)
+(4) [b]^T(1,m_cons)
+        ----> i'm setting this at r[[]] <-----
+"""
 def read_mknapsack_data(filename):
-    with open(filename, 'r') as file:
-        lines = file.readlines()
-        N, W = map(int, lines[0].split())
-        items = []
-        for line in lines[1:]:
-            weight, value = map(int, line.split())
-            items.append((weight, value))
-    return N, W, items
+    with open(filename, "r") as file:
+        p = []
+        r = []
+        b = []
 
-# <instance_id> <number_of_items> <capacity> <weight1> <cost1> <weight2> <cost2> ...
+        # (1)
+        line = file.readline()
+        if len(line.split(" ")) < 3:
+            line = file.readline().split(" ")
+        else:
+            line =  line.split(" ")
+        n_vars = int(line[0])
+        m_cons = int(line[1])
+        optimal = int(line[2])
+
+        # (2)
+        line = file.readline().split(" ")
+        while(len(line) < n_vars):
+            line = line + file.readline().split(" ")
+        for el in line:
+            p.append(int(el))
+        assert len(p) == n_vars, "len(p) != n_vars"
+        line = []
+
+        # (3)
+        for i in range(m_cons):
+            line = file.readline().split(" ")
+            while(len(line) < n_vars):
+                line = line + file.readline().split(" ")
+            r_vec = []
+            for el in line:
+                r_vec.append(int(el))
+            r.append(r_vec)
+            line = []
+        assert len(r)*len(r[0]) == n_vars*m_cons, "matrix [[r]] size aren't right"
+
+        # (4)
+        line = file.readline().split(" ")
+        while(len(line) < m_cons):
+            line = line + file.readline().split(" ")
+        for i in range(m_cons):
+            b.append(int(line[i]))
+        assert len(b) == m_cons, "Vector [b]  size aren't right"
+        line = []
+
+        variable_names = []
+        lower_bounds = []
+        upper_bounds = []
+        for i in range(n_vars):
+            variable_names.append("x"+str(i))
+            lower_bounds.append(0)
+            upper_bounds.append(1)
+
+        constraint_names = []
+        constraint_senses = []
+        constraint_coefs = []
+        rhs = b
+
+        for i in range(m_cons):
+            constraint_coefs.append(r[i])
+            constraint_names.append("c"+str(i))
+            constraint_senses.append("LE")  # <= less equal
+
+        obj_coefs = p
+
+        return obj_coefs, variable_names, constraint_coefs, constraint_senses, rhs
+
+
+# <instance_id> <number_of_items> <capacity> <weight1> <profit1> <weight2> <profit2> ...
 def read_knapsack_data(filename):
     with open(filename, 'r') as file:
         lines = file.readlines()
@@ -340,6 +407,13 @@ if __name__ == '__main__':
     check_get_hot_tenor_of_graph()
 
     read_knapsack = True
-    filename = '../data/knapsack/knap_4_ID00.txt'
-    instance_id, num_items, capacity, weights, profits = read_knapsack_data(filename)
+    if read_knapsack:
+        filename = '../data/knapsack/knap_4_ID00.txt'
+        instance_id, num_items, capacity, weights, profits = read_knapsack_data(filename)
+
+    read_mknapsack = True
+    if read_mknapsack:
+        filename = '../data/knapsack/mknap1_ID00.txt'
+        obj_coefs, variable_names, constraint_coefs, constraint_senses, rhs = read_mknapsack_data(filename)
+        pass
     pass
