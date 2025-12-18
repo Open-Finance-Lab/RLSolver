@@ -66,13 +66,15 @@ def run_over_manyfiles(alg, alg_name, directory_data: str, prefixes: List[str]) 
 
 
 def main():
-    dir = '../../data/knapsack'
-    prefixes = ['knap_4_']
-    ALG = Alg.greedy
-    scoress = run_over_manyfiles(ALG, ALG.value, dir, prefixes)
-    print("scoress: ", scoress)
+    run_one_alg = True
+    if run_one_alg:
+        dir = '../../data/knapsack'
+        prefixes = ['knap_4_']
+        ALG = Alg.greedy
+        scoress = run_over_manyfiles(ALG, ALG.value, dir, prefixes)
+        print("scoress: ", scoress)
 
-    run_all_algs = True
+    run_all_algs = False
     if run_all_algs:
         algs = list(Alg)
         for alg in algs:

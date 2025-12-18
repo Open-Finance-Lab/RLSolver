@@ -228,7 +228,7 @@ data format
 (4) [b]^T(1,m_cons)
         ----> i'm setting this at r[[]] <-----
 """
-def read_mknapsack_data(filename):
+def read_multiknapsack_data(filename):
     with open(filename, "r") as file:
         p = []
         r = []
@@ -242,7 +242,7 @@ def read_mknapsack_data(filename):
             line =  line.split(" ")
         n_vars = int(line[0])
         m_cons = int(line[1])
-        optimal = int(line[2])
+        optimal_obj = int(line[2])
 
         # (2)
         line = file.readline().split(" ")
@@ -294,7 +294,7 @@ def read_mknapsack_data(filename):
 
         obj_coefs = p
 
-        return obj_coefs, variable_names, constraint_coefs, constraint_senses, rhs
+        return optimal_obj, obj_coefs, variable_names, constraint_coefs, constraint_senses, rhs
 
 
 # <instance_id> <number_of_items> <capacity> <weight1> <profit1> <weight2> <profit2> ...
@@ -408,12 +408,12 @@ if __name__ == '__main__':
 
     read_knapsack = True
     if read_knapsack:
-        filename = '../data/knapsack/knap_4_ID00.txt'
+        filename = '../data/knapsack/knap_4_ID9000.txt'
         instance_id, num_items, capacity, weights, profits = read_knapsack_data(filename)
 
     read_mknapsack = True
     if read_mknapsack:
-        filename = '../data/knapsack/mknap1_ID00.txt'
-        obj_coefs, variable_names, constraint_coefs, constraint_senses, rhs = read_mknapsack_data(filename)
+        filename = '../data/multiknapsack/mknap1_ID00.txt'
+        optimal_obj, obj_coefs, variable_names, constraint_coefs, constraint_senses, rhs = read_multiknapsack_data(filename)
         pass
     pass

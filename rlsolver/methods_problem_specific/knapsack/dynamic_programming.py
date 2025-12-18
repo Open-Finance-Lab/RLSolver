@@ -35,11 +35,7 @@ class memoized:
 def dynamic_programming(number: int, capacity: int, weight_cost: List[Tuple[int, int]]) -> Tuple[int, List[int]]:
     """
     Solve the knapsack problem by finding the most valuable
-    subsequence of `weight_cost` subject that weighs no more than
-    `capacity`.
-
-    Top-down solution from: http://codereview.stackexchange.com/questions/20569/dynamic-programming-solution-to-knapsack-problem
-
+    subsequence of `weight_cost` subject that weighs no more than `capacity`.
     :param number: number of existing items
     :param capacity: is a non-negative integer
     :param weight_cost: is a sequence of pairs (weight, cost)

@@ -1,3 +1,4 @@
+import math
 import sys
 import os
 import numpy as np
@@ -14,7 +15,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import time
 from rlsolver.methods.util_read_data import (read_nxgraph,
-                                             read_mknapsack_data,
+                                             read_knapsack_data,
                                              read_set_cover_data)
 from rlsolver.methods.util import (transfer_float_to_binary,
                                    calc_txt_files_with_prefixes,
@@ -23,11 +24,9 @@ from rlsolver.methods.util import (transfer_float_to_binary,
                                    plot_fig,
                                    fetch_node,
                                    transfer_nxgraph_to_adjacencymatrix)
-# from util import fetch_indices
 from rlsolver.methods.config import *
 from rlsolver.methods.util_read_data import read_tsp_file
 from itertools import combinations
-
 
 # Callback - use lazy constraints to eliminate sub-tours
 def subtourelim(model, where):
@@ -218,7 +217,6 @@ def write_result_gurobi(model, filename: str = './result/result', running_durati
     vars = model.getVars()
     nodes: List[int] = []
     values: List[int] = []
-    tuples_and_values = {}
     if PROBLEM == Problem.TSP:
         tour = model._attribute['tour']
         with open(new_filename, 'w', encoding="UTF-8") as new_file:
@@ -251,14 +249,10 @@ def write_result_gurobi(model, filename: str = './result/result', running_durati
         if 'num_nodes' in model._attribute:
             new_file.write(f"// num_nodes: {model._attribute['num_nodes']}\n")
         for i in range(len(nodes)):
-            if GUROBI_VAR_CONTINUOUS or PROBLEM == Problem.MVC:
+            if GUROBI_VAR_CONTINUOUS or PROBLEM in [Problem.MVC, Problem.knapsack]:
                 new_file.write(f"{nodes[i] + 1} {values[i]}\n")
             else:
                 new_file.write(f"{nodes[i] + 1} {values[i] + 1}\n")
-
-        new_file.write("// Tuples Format: \n")
-        for (i, j), value in tuples_and_values.items():
-            new_file.write(f"{i + 1}, {j + 1}: {value}\n")
 
     if_write_others = False
     if if_write_others:
@@ -286,7 +280,7 @@ def run_using_gurobi(filename: str, init_x=None, time_limit: int = None, plot_fi
                     math.sqrt(sum((points[i][k] - points[j][k]) ** 2 for k in range(2)))
                 for i in range(n) for j in range(i)}
     elif PROBLEM == Problem.knapsack:
-        num, weight, items = read_mknapsack_data(filename)
+        instance_id, num_items, capacity, weights, profits = read_knapsack_data(filename)
     elif PROBLEM == Problem.set_cover:
         total_elements, total_subsets, subsets = read_set_cover_data(filename)
     else:
@@ -419,17 +413,17 @@ def run_using_gurobi(filename: str, init_x=None, time_limit: int = None, plot_fi
             model.setObjective(HA + coef_A * HB, GRB.MINIMIZE)
     elif PROBLEM == Problem.knapsack:
         if GUROBI_MILP_QUBO == 0:
-            x = model.addVars(num, vtype=GRB.BINARY, name="x")
-            model.setObjective(quicksum(items[i][1] * x[i] for i in range(num)), GRB.MAXIMIZE)
+            x = model.addVars(num_items, vtype=GRB.BINARY, name="x")
+            model.setObjective(quicksum(profits[i] * x[i] for i in range(num_items)), GRB.MAXIMIZE)
         else:
-            x = model.addVars(num, vtype=GRB.BINARY, name='x')
-            y = model.addVars(weight + 1, vtype=GRB.BINARY, name='y')
-            alpha = min(1.0 / max(value for weight, value in items), 1.0) / 2
+            x = model.addVars(num_items, vtype=GRB.BINARY, name='x')
+            y = model.addVars(capacity, vtype=GRB.BINARY, name='y')
+            alpha = 0.5 / max(profits)
             model.setObjective(
-                (quicksum(y[n] for n in range(1, weight + 1))) ** 2 +
-                (quicksum(n * y[n] for n in range(1, weight + 1)) - quicksum(
-                    items[i][0] * x[i] for i in range(num))) ** 2 -
-                alpha * quicksum(items[i][1] * x[i] for i in range(num)),
+                (quicksum(y[n] for n in range(capacity ))) ** 2 +
+                (quicksum(n * y[n] for n in range(capacity)) - quicksum(
+                    weights[i] * x[i] for i in range(num_items))) ** 2 -
+                alpha * quicksum(profits[i] * x[i] for i in range(num_items)),
                 GRB.MINIMIZE
             )
 
@@ -490,7 +484,7 @@ def run_using_gurobi(filename: str, init_x=None, time_limit: int = None, plot_fi
             #         if i != j:
             #             model.addConstr(u[i] + adjacency_matrix[(i, j)] <= u[j] + 1000000 * (1 - x[i, j]), name=f'subtour_{i}_{j}')
         elif PROBLEM == Problem.knapsack:
-            model.addConstr(quicksum(items[i][0] * x[i] for i in range(num)) <= weight, "knapsack")
+            model.addConstr(quicksum(weights[i] * x[i] for i in range(num_items)) <= capacity, "knapsack")
         elif PROBLEM == Problem.set_cover:
             for u in range(total_elements):
                 model.addConstr(quicksum(x[i] for i, subset in enumerate(subsets) if u in subset) >= 1,
@@ -572,7 +566,7 @@ def run_using_gurobi(filename: str, init_x=None, time_limit: int = None, plot_fi
         elif PROBLEM == Problem.set_cover:
             x_values = [x[i].x for i in range(total_subsets)]
         elif PROBLEM == Problem.knapsack:
-            x_values = [x[i].x for i in range(num)]
+            x_values = [x[i].x for i in range(num_items)]
         else:
             x_values = []
         if PROBLEM not in [Problem.knapsack, Problem.set_cover]:
@@ -634,22 +628,13 @@ if __name__ == '__main__':
 
     if PROBLEM == Problem.TSP:
         directory_data = '../data/tsplib'
-        # prefixes = ['g', 'k', 'l', 'p', 'r', 's', 't', 'u']
-        # prefixes = ['a', 'b', 'c', 'd', 'e', 'f']
-
+        # prefixes = list(string.ascii_lowercase)
+        # prefixes = list(string.ascii_uppercase)
         # prefixes = ['a', 'b', 'c']
-        # prefixes = ['d']
-        # prefixes = ['e']
-
-        # prefixes = ['g', 'k']
-        # prefixes = ['l']
-        # prefixes = ['k']
-        # prefixes = ['l']
-        # prefixes = ['p']
-        # prefixes = ['r']
-        # prefixes = ['s', 't', 'u']
         prefixes = ['a5']
-
+    elif PROBLEM == Problem.knapsack:
+        directory_data = '../data/knapsack'
+        prefixes = ['knap_4_']
     run_gurobi_over_manyfiles(prefixes, GUROBI_TIME_LIMITS, directory_data)
 
     directory_result = '../result'

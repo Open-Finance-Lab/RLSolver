@@ -4,7 +4,6 @@ from typing import List, Tuple
 
 def brute_force(number: int, capacity: int, weight_cost: List[Tuple[int, int]]) -> Tuple[int, List[int]]:
     """Brute force method for solving knapsack problem
-
     :param number: number of existing items
     :param capacity: the capacity of knapsack
     :param weight_cost: list of tuples like: [(weight, cost), (weight, cost), ...]

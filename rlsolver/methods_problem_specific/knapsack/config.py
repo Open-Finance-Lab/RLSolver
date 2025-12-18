@@ -15,7 +15,6 @@ class Alg(Enum):
 ALG = Alg.brute_force
 
 
-
 if __name__ == '__main__':
     dir = '../../data/syn_BA'
     prefixes = ['BA_5_']
