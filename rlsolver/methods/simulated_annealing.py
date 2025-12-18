@@ -248,7 +248,7 @@ def run_simulated_annealing_over_manyfiles(alg, alg_name, init_temperature, num_
                                                                     num_items, num_sets, item_matrix)
             scoress.append(scores)
             running_duration = time.time() - start_time
-            alg_name = 'greedy'
+            alg_name = 'simulated_annealing'
             write_result_set_cover(score, running_duration, num_items, num_sets, alg_name, filename)
         else:
             graph = read_nxgraph(filename)
@@ -269,7 +269,7 @@ if __name__ == '__main__':
         init_temperature = 0.2
         num_steps = None
         directory_data = '../data/syn_BA'
-        prefixes = ['barabasi_albert_100_']
+        prefixes = ['BA_100_']
     else:
         init_temperature = 4
         num_steps = None

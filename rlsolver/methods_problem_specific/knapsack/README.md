@@ -13,34 +13,6 @@ This project implements 6 different algorithms for solving the classic 0/1 knaps
 - **FPTAS** - Fully Polynomial-Time Approximation Scheme
 - **Simulated Annealing** - Metaheuristic optimization approach
 
-## Requirements
-
-- Python 3.7 or higher
-- No external dependencies required
-
-## Installation
-
-1. Clone or download this repository
-2. No additional installation steps required - all dependencies are built into Python
-
-## Usage
-
-### Basic Usage
-
-```bash
-python3 knapsack_problem_solver.py -f <input_file> -o <output_file> -m <method>
-```
-
-
-
-### Available Methods
-
-- Brute force (exhaustive search)
-- Greedy ratio method
-- Dynamic programming
-- Branch and bound
-- fptas - FPTAS approximation
-- Simulated annealing
 
 
 ## Input Format
@@ -89,18 +61,6 @@ The solver includes robust error handling for:
 - File I/O errors
 - Invalid algorithm parameters
 
-## License
-
-This project is open source. Feel free to use, modify, and distribute as needed.
-
-## Contributing
-
-Contributions are welcome! Please ensure:
-- Code follows Python 3 standards
-- Type hints are included for all functions
-- Error handling is comprehensive
-- Performance is optimized where possible
-s with reasonable capacity
 
 ### Branch and Bound
 - **Time Complexity**: O(2^n) worst case, much better in practice
@@ -141,34 +101,5 @@ The `inst/` directory contains test instances of varying sizes:
 - `knap_40.txt` - 40 items
 
 
-## Performance Comparison
 
-For the provided test instances, typical performance characteristics:
-
-| Algorithm | knap_10 | knap_20 | knap_30 | knap_40 |
-|-----------|---------|---------|---------|---------|
-| Brute Force | ~0.001s | ~0.1s | ~10s | >100s |
-| Dynamic Programming | ~0.001s | ~0.001s | ~0.001s | ~0.001s |
-| Branch and Bound | ~0.001s | ~0.01s | ~0.1s | ~1s |
-| Greedy | ~0.0001s | ~0.0001s | ~0.0001s | ~0.0001s |
-| FPTAS | ~0.001s | ~0.001s | ~0.001s | ~0.001s |
-| Simulated Annealing | ~0.01s | ~0.01s | ~0.01s | ~0.01s |
-
-*Times are approximate and may vary based on system and problem characteristics.*
-
-## Development
-
-### Code Structure
-
-- `knapsack_problem_solver.py` - Main entry point and command-line interface
-- `brute_force.py` - Brute force implementation
-- `dynamic_programming.py` - Dynamic programming with memoization
-- `branch_bounds.py` - Branch and bound algorithm
-- `greedy.py` - Greedy ratio algorithm
-- `fptas.py` - FPTAS approximation algorithm
-- `simulated_annealing.py` - Simulated annealing implementation
-
-### Type Hints
-
-All functions include comprehensive type hints for better code maintainability and IDE support.
 

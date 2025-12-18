@@ -574,7 +574,7 @@ def run():
     graph_id = 0
     # graph_name = f"{graph_type}_{num_nodes}_ID{graph_id}"
     # path = f'temp_{graph_name}.txt'
-    # graph_name = "barabasi_albert_1000_ID0"
+    # graph_name = "BA_1000_ID0"
     # graph_name = "gset_55"
     # save_mygraph_to_txt(mygraph=load_mygraph(graph_name=graph_name), txt_path=path)
 

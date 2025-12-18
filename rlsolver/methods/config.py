@@ -29,7 +29,7 @@ class Problem(Enum):
     TNCO = "TNCO"
     VRP = "VRP"
     TSP = "TSP"
-PROBLEM = Problem.MIS
+PROBLEM = Problem.knapsack
 
 GPU_ID: int = 0  # -1: cpu, >=0: gpu
 
@@ -67,8 +67,6 @@ NUM_INFERENCE_NODES = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 
 INFERENCE_PREFIXES = [GRAPH_TYPE.value + "_" + str(i) + "_" for i in NUM_INFERENCE_NODES]
 # PREFIXES = ["BA_100_", "BA_200_", "BA_300_", "BA_400_", "BA_500_""]  # Replace with your desired prefixes
 NUM_INFERENCE_ENVS = 50
-
-
 
 
 # RUNNING_DURATIONS = [600, 1200, 1800, 2400, 3000, 3600]  # store results

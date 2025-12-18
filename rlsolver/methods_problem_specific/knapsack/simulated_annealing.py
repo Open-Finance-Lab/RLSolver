@@ -80,7 +80,6 @@ def simulate(solution: List[int], weight_cost: List[Tuple[int, int]], max_weight
             else:
                 if math.exp(delta / float(temperature)) > random.random():
                     current_sol = random_move
-
         temperature *= ALPHA
         if current_cost >= best_cost or temperature <= 0:
             break
