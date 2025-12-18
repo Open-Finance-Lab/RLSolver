@@ -18,7 +18,7 @@ from rlsolver.methods.ECO_S2V.src.envs.util_envs import ExtraAction
 from rlsolver.methods.ECO_S2V.src.envs.util_envs import OptimisationTarget
 from rlsolver.methods.ECO_S2V.src.envs.util_envs import SpinBasis
 from rlsolver.methods.ECO_S2V.src.envs.util_envs import DEFAULT_OBSERVABLES
-from rlsolver.methods.ECO_S2V.src.networks.mpnn import MPNN
+from rlsolver.networks.mpnn import MPNN
 
 from rlsolver.methods.util_write_read_result import write_graph_result
 from rlsolver.methods.ECO_S2V.config import *
@@ -33,14 +33,14 @@ def run(graph_folder="../../data/syn_BA",
 
     print("Testing network: ", network_save_path)
 
-    network_fn = MPNN
-    network_args = {
+    mpnn_args = {
         'n_layers': 3,
         'n_features': 64,
         'n_hid_readout': [],
-        'tied_weights': False
+        'tied_weights': False,
+        'device': INFERENCE_DEVICE,
     }
-    network = network_fn(n_obs_in=7, **network_args).to(INFERENCE_DEVICE)
+    network = MPNN(n_obs_in=7, **mpnn_args).to(INFERENCE_DEVICE)
 
     network.load_state_dict(torch.load(network_save_path, map_location=INFERENCE_DEVICE))
     for param in network.parameters():

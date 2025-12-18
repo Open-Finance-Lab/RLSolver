@@ -16,7 +16,7 @@ from rlsolver.methods.ECO_S2V.src.envs.util_envs import (EdgeType, Observable,
                                                          RewardSignal, ExtraAction,
                                                          OptimisationTarget, SpinBasis,
                                                          DEFAULT_OBSERVABLES)
-from rlsolver.methods.ECO_S2V.src.networks.mpnn import MPNN
+from rlsolver.networks.mpnn import MPNN
 from rlsolver.methods.ECO_S2V.util import test_network
 
 from rlsolver.methods.ECO_S2V.config import *
@@ -86,17 +86,17 @@ def run(neural_network_folder, num_envs, mini_envs, num_generated_instances, alg
             network_results = []
             network_save_path = os.path.join(neural_network_folder, network_name)
             network_path.append(network_name)
-            network_fn = MPNN
-            network_args = {
+            mpnn_args = {
                 'n_layers': 3,
                 'n_features': 64,
                 'n_hid_readout': [],
-                'tied_weights': False
+                'tied_weights': False,
+                'device': INFERENCE_DEVICE,
             }
             if alg == Alg.ECO or alg == Alg.PECO:
-                network = network_fn(n_obs_in=7, **network_args).to(INFERENCE_DEVICE)
+                network = MPNN(n_obs_in=7, **mpnn_args).to(INFERENCE_DEVICE)
             elif alg == Alg.S2V:
-                network = network_fn(n_obs_in=1, **network_args).to(INFERENCE_DEVICE)
+                network = MPNN(n_obs_in=1, **mpnn_args).to(INFERENCE_DEVICE)
             network.load_state_dict(torch.load(network_save_path, map_location=INFERENCE_DEVICE))
             for param in network.parameters():
                 param.requires_grad = False

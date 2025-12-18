@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-from rlsolver.methods.ECO_S2V.src.networks.mpnn import MPNN
+from rlsolver.networks.mpnn import MPNN
 
 
 class MPNN_A2C(nn.Module):

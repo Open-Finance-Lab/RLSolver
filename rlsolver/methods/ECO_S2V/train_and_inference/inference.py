@@ -9,7 +9,7 @@ from rlsolver.methods.ECO_S2V.src.envs.util_envs import (SingleGraphGenerator,
                                                          RewardSignal, ExtraAction,
                                                          OptimisationTarget, SpinBasis,
                                                          DEFAULT_OBSERVABLES, Observable)
-from rlsolver.methods.ECO_S2V.src.networks.mpnn import MPNN
+from rlsolver.networks.mpnn import MPNN
 from rlsolver.methods.ECO_S2V.util import test_network, load_graph_set_from_txt
 from rlsolver.methods.util import calc_txt_files_with_prefixes
 from rlsolver.methods.util_write_read_result import write_graph_result
@@ -33,12 +33,12 @@ def run(save_loc="BA_40spin/eco",
     # NETWORK SETUP
     ####################################################
 
-    network_fn = MPNN
-    network_args = {
+    mpnn_args = {
         'n_layers': 3,
         'n_features': 64,
         'n_hid_readout': [],
-        'tied_weights': False
+        'tied_weights': False,
+        'device': INFERENCE_DEVICE,
     }
 
     ####################################################
@@ -96,8 +96,8 @@ def run(save_loc="BA_40spin/eco",
         torch.device(INFERENCE_DEVICE)
         print("Set torch default device to {}.".format(INFERENCE_DEVICE))
 
-        network = network_fn(n_obs_in=test_env.observation_space.shape[1],
-                             **network_args).to(INFERENCE_DEVICE)
+        network = MPNN(n_obs_in=test_env.observation_space.shape[1],
+                             **mpnn_args).to(INFERENCE_DEVICE)
 
         network.load_state_dict(torch.load(network_save_path, map_location=INFERENCE_DEVICE))
         for param in network.parameters():

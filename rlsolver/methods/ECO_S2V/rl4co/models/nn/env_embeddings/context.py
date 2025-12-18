@@ -3,7 +3,7 @@ import torch.nn as nn
 from tensordict import TensorDict
 
 from rlsolver.methods.ECO_S2V.rl4co.utils.ops import gather_by_index
-from rlsolver.methods.ECO_S2V.src.networks.mpnn import MPNN
+from rlsolver.networks.mpnn import MPNN
 
 
 def env_context_embedding(env_name: str, config: dict) -> nn.Module:

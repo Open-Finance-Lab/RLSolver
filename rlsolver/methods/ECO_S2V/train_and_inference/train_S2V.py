@@ -10,7 +10,7 @@ from rlsolver.methods.ECO_S2V.src.envs.util_envs import (SetGraphGenerator,
                                                          EdgeType, RewardSignal, ExtraAction,
                                                          OptimisationTarget, SpinBasis, ValidationGraphGenerator,
                                                          Observable)
-from rlsolver.methods.ECO_S2V.src.networks.mpnn import MPNN
+from rlsolver.networks.mpnn import MPNN
 from rlsolver.methods.ECO_S2V.util import (cal_txt_name)
 
 try:
@@ -108,7 +108,8 @@ def run(save_loc):
                               n_layers=3,
                               n_features=64,
                               n_hid_readout=[],
-                              tied_weights=False)
+                              tied_weights=False,
+                              device=TRAIN_INFERENCE if TRAIN_INFERENCE==0 else INFERENCE_DEVICE,)
 
     args = {
         'envs': train_envs,

@@ -1,7 +1,7 @@
 from torch import nn
 
 from rlsolver.methods.ECO_S2V.jumanji.train.config import *
-from rlsolver.methods.ECO_S2V.src.networks.mpnn import MPNN
+from rlsolver.networks.mpnn import MPNN
 from .AgentBase import AgentBase
 
 TEN = th.Tensor

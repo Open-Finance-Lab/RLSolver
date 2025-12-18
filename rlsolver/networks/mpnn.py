@@ -10,7 +10,7 @@ class MPNN(nn.Module):
                  n_features=64,
                  tied_weights=False,
                  n_hid_readout=[],
-                 device=torch.device('cpu'),):
+                 device=torch.device('cpu')):
 
         super().__init__()
 
@@ -18,7 +18,7 @@ class MPNN(nn.Module):
         self.n_layers = n_layers
         self.n_features = n_features
         self.tied_weights = tied_weights
-
+        self.device = device
         self.node_init_embedding_layer = nn.Sequential(
             nn.Linear(n_obs_in, n_features, bias=False),
             nn.ReLU()
