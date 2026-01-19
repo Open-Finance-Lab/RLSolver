@@ -19,8 +19,7 @@ from rlsolver.methods.config import *
 TEN = th.Tensor
 # from rlsolver.envs.LocalSearch import LocalSearch
 from rlsolver.methods.LocalSearch import LocalSearch
-from rlsolver.envs.env_MCPG import EnvMaxcut
-from rlsolver.methods.util_read_data import read_mygraph
+# from rlsolver.methods.util_read_data import read_mygraph
 
 class EnvMaxcut:
     def __init__(self, sim_name: str = 'max_cut', mygraph: MyGraph = [],
@@ -496,18 +495,18 @@ def search_and_evaluate_local_search():
 
 
 
-def check_solution_x():
-    filename = '../data/syn_BA/BA_100_ID0.txt'
-    graph = read_mygraph(filename)
-    simulator = EnvMaxcut(sim_name=filename, mygraph=graph)
-
-    x_str = X_G14
-    num_nodes = simulator.num_nodes
-    encoder = EncoderBase64(encode_len=num_nodes)
-
-    x = encoder.str_to_bool(x_str)
-    vs = simulator.calculate_obj_values(xs=x[None, :])
-    print(f"objective value  {vs[0].item():8.2f}  solution {x_str}", flush=True)
+# def check_solution_x():
+#     filename = '../data/syn_BA/BA_100_ID0.txt'
+#     graph = read_mygraph(filename)
+#     simulator = EnvMaxcut(sim_name=filename, mygraph=graph)
+#
+#     x_str = X_G14
+#     num_nodes = simulator.num_nodes
+#     encoder = EncoderBase64(encode_len=num_nodes)
+#
+#     x = encoder.str_to_bool(x_str)
+#     vs = simulator.calculate_obj_values(xs=x[None, :])
+#     print(f"objective value  {vs[0].item():8.2f}  solution {x_str}", flush=True)
 
 
 if __name__ == '__main__':
