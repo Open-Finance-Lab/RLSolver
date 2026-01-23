@@ -280,10 +280,10 @@ def generate_dataset(
         for distribution in distributions or [None]:
             for graph_size in graph_sizes:
                 if filename is None:
-                    datadir = os.path.join(data_dir, problem)
-                    os.makedirs(datadir, exist_ok=True)
+                    data_dir = os.path.join(data_dir, problem)
+                    os.makedirs(data_dir, exist_ok=True)
                     fname = os.path.join(
-                        datadir,
+                        data_dir,
                         "{}{}{}_{}_seed{}.npz".format(
                             problem,
                             (
@@ -354,7 +354,7 @@ def generate_default_datasets(data_dir, generate_eda=False):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--filename", help="Filename of the dataset to create (ignores datadir)"
+        "--filename", help="Filename of the dataset to create (ignores data_dir)"
     )
     parser.add_argument(
         "--data_dir",

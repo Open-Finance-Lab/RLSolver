@@ -1,0 +1,9 @@
+problem_type: "maxcut_edge"
+lr_init: 0.15
+regular_init: 0
+sample_epoch_num: 8
+max_epoch_num: 200
+reset_epoch_num: 80
+total_mcmc_num: 130
+repeat_times: 120
+num_ls: 3

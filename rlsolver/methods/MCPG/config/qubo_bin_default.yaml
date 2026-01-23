@@ -1,0 +1,9 @@
+problem_type: "qubo_bin"
+lr_init: 0.25
+regular_init: 0
+sample_epoch_num: 8
+max_epoch_num: 1600
+reset_epoch_num: 800
+total_mcmc_num: 120
+repeat_times: 60
+num_ls: 2

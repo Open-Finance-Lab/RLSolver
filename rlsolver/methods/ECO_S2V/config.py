@@ -5,7 +5,7 @@ cur_path = os.path.dirname(os.path.abspath(__file__))
 rlsolver_path = os.path.join(cur_path, '../../')
 from rlsolver.methods.config import GraphType, Problem, PROBLEM
 from rlsolver.methods.util import calc_device
-
+from rlsolver.methods.config import *
 
 class Alg(Enum):
     ECO = 'ECO'
@@ -17,7 +17,7 @@ class Alg(Enum):
 
 PROBLEM = Problem.maxcut
 
-TRAIN_INFERENCE = 0  # 0: train, 1: inference
+TRAIN_INFERENCE = 1  # 0: train, 1: inference
 assert TRAIN_INFERENCE in [0, 1]
 
 ALG = Alg.S2V  # Alg
@@ -52,7 +52,10 @@ MINI_INFERENCE_ENVS = int(0.5 * NUM_INFERENCE_ENVS)  # 如果NUM_INFERENCE_ENVS�
 USE_LOCAL_SEARCH = True if ALG == Alg.PECO else False
 LOCAL_SEARCH_FREQUENCY = 10
 NEURAL_NETWORK_SAVE_PATH = rlsolver_path + "trained_agent/" + ALG.value + "_" + PROBLEM.value + "_" + GRAPH_TYPE.value + "_" + str(NUM_TRAINED_NODES_IN_INFERENCE) + ".pth"
+
 DATA_DIR = rlsolver_path + "data/syn_" + GRAPH_TYPE.value
+if USE_OUTSIDE_DATA:
+    DATA_DIR = DATA_DIR.replace("data/", "../../data/")
 NEURAL_NETWORK_DIR = rlsolver_path + "trained_agent/tmp"
 NEURAL_NETWORK_SUBFOLDER = ALG.value + "_" + PROBLEM.value + "_" + GRAPH_TYPE.value + "_" + str(NUM_TRAINED_NODES_IN_INFERENCE)
 NEURAL_NETWORK_FOLDER = rlsolver_path + "trained_agent/tmp/" + NEURAL_NETWORK_SUBFOLDER
