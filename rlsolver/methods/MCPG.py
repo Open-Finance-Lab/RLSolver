@@ -23,9 +23,9 @@ from rlsolver.methods.util_write_read_result import write_graph_result
 """
 pip install torch_geometric
 """
-from config import (GPU_ID,
+from config import (GPU_ID, 
                     calc_device,
-                    DATA_DIR,
+                    DIRECTORY_DATA,
                     PREFIXES)
 
 fix_seed = False # if test speed, objs_epochs, etc, set it as True; and False otherwise.
@@ -456,8 +456,8 @@ def mcpg(filename: str):
     best_x = xs_epochs[best_index]
     return best_obj, best_x
 
-def mcpg_manyfiles(data_dir: str, prefixes: List[str]):
-    files = calc_txt_files_with_prefixes(data_dir, prefixes)
+def mcpg_manyfiles(directory_data: str, prefixes: List[str]):
+    files = calc_txt_files_with_prefixes(directory_data, prefixes)
     for i in range(len(files)):
         start_time = time.time()
         filename = files[i]
@@ -472,9 +472,9 @@ def mcpg_manyfiles(data_dir: str, prefixes: List[str]):
 
 
 if __name__ == '__main__':
-    data_dir = DATA_DIR
+    directory_data = DIRECTORY_DATA
     prefixes = PREFIXES
-    mcpg_manyfiles(data_dir, prefixes)
+    mcpg_manyfiles(directory_data, prefixes)
 
 
 

@@ -116,8 +116,8 @@ def run_using_scip(filename: str, time_limit: int = None, plot_fig_: bool = Fals
         plot_fig(scores, alg_name)
     print()
 
-def run_scip_over_manyfiles(prefixes: List[str], time_limits: List[int], data_dir: str = 'data', result_directory: str = './result'):
-    files = calc_txt_files_with_prefixes(data_dir, prefixes)
+def run_scip_over_manyfiles(prefixes: List[str], time_limits: List[int], directory_data: str = 'data', directory_result: str = './result'):
+    files = calc_txt_files_with_prefixes(directory_data, prefixes)
     for i in range(len(files)):
         filename = files[i]
         print(f'Start the {i}-th file: {filename}')
@@ -126,12 +126,12 @@ def run_scip_over_manyfiles(prefixes: List[str], time_limits: List[int], data_di
     directory = '../result'
     calc_avg_std_of_objs(directory, prefixes, time_limits)
 if __name__ == '__main__':
-    data_dir = '../data/syn_BA'
+    directory_data = '../data/syn_BA'
     prefixes = ['BA_100_']
     # time_limits = [0.5 * 3600, 1 * 3600]
     time_limits = [0.5 * 3600]
-    result_directory = '../result'
-    run_scip_over_manyfiles(prefixes, time_limits, data_dir, result_directory)
-    avg_std = calc_avg_std_of_objs(result_directory, prefixes, time_limits)
+    directory_result = '../result'
+    run_scip_over_manyfiles(prefixes, time_limits, directory_data, directory_result)
+    avg_std = calc_avg_std_of_objs(directory_result, prefixes, time_limits)
     pass
 

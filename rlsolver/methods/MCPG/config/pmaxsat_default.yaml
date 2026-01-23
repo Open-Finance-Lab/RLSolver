@@ -1,9 +1,0 @@
-problem_type: "maxsat"
-lr_init: 0.1
-regular_init: 0
-sample_epoch_num: 8
-max_epoch_num: 400
-reset_epoch_num: 80
-total_mcmc_num: 600
-repeat_times: 80
-num_ls: 2
