@@ -385,6 +385,59 @@ class SetGraphGenerator(GraphGenerator):
         return self.pad_matrix(m) if with_padding else m
 
 
+class PerturbedGraphGenerator(GraphGenerator):
+
+    def __init__(self, matrices, perturb_mean=0, perturb_std=0.01, biases=None, ordered=False):
+
+        if type(matrices) != list:
+            matrices = list(matrices)
+
+        if biases is not None:
+            if type(biases) != list:
+                biases = list(biases)
+
+        if len(set([m.shape[0] - 1 for m in matrices])) == 1:
+            n_spins = matrices[0].shape[0]
+        else:
+            raise NotImplementedError("All graphs passed to PerturbedGraphGenerator must have the same dimension.")
+
+        super().__init__(n_spins, EdgeType.RANDOM, biases is not None)
+
+        self.perturb_mean = perturb_mean
+        self.perturb_std = perturb_std
+
+        if not self.biased:
+            self.graphs = matrices
+        else:
+            raise NotImplementedError("Not implemented PerturbedGraphGenerator for biased graphs yet.")
+
+        self.ordered = ordered
+        if self.ordered:
+            self.i = 0
+
+    def get(self, with_padding=False):
+        if self.ordered:
+            m = self.graphs[self.i]
+            self.i = (self.i + 1) % len(self.graphs)
+            if self.biased:
+                m, b = m
+        else:
+            if not self.biased:
+                m = random.sample(self.graphs, k=1)[0]
+            else:
+                m, b = random.sample(self.graphs, k=1)[0]
+
+        # Sample noise.
+        noise = np.random.normal(self.perturb_mean, self.perturb_std, size=m.shape)
+        # Set noise to 0 for non-edges in the adjacency matrix.
+        np.putmask(noise, m == 0, 0)
+        # Ensure noise is symettric.
+        noise = np.tril(noise) + np.triu(noise.T, 1)
+
+        m = m + noise
+
+        return self.pad_matrix(m) if with_padding else m
+
 
 class HistoryBuffer():
     def __init__(self):
