@@ -8,11 +8,11 @@ TEN = th.Tensor
 
 from rlsolver.methods.config import MyGraph
 from rlsolver.methods.config import MyNeighbor
-from rlsolver.methods.config import DIRECTORY_DATA
+from rlsolver.methods.config import DATA_DIR
 from rlsolver.methods.config import GRAPH_TYPES
 from rlsolver.methods.util_generate import generate_mygraph
 
-DataDir = DIRECTORY_DATA
+DataDir = DATA_DIR
 
 from rlsolver.methods.util import convert_matrix_to_vector
 from typing import List, Union, Tuple
@@ -69,7 +69,7 @@ class SimulatorMaxcut:  # Markov Chain Monte Carlo Simulator
         if graph_tuple:
             graph, num_nodes, num_edges = graph_tuple
         else:
-            graph, num_nodes, num_edges = load_mygraph(DIRECTORY_DATA, graph_name=graph_name)
+            graph, num_nodes, num_edges = load_mygraph(DATA_DIR, graph_name=graph_name)
 
         # 建立邻接矩阵，不预先保存索引的邻接矩阵不适合GPU并行
         '''
@@ -503,7 +503,7 @@ class SimulatorGraphMaxCut:
         self.if_bidirectional = if_bidirectional
 
         '''load graph'''
-        graph: MyGraph = graph if graph else load_mygraph(DIRECTORY_DATA, graph_name=sim_name)
+        graph: MyGraph = graph if graph else load_mygraph(DATA_DIR, graph_name=sim_name)
 
         '''建立邻接矩阵'''
         self.adjacency_matrix = build_adjacency_matrix(graph=graph, if_bidirectional=True).to(device)

@@ -673,18 +673,10 @@ if __name__ == '__main__':
 
     if_calc_avg_std = False
     if if_calc_avg_std:
-        directory_result = 'result'
+        result_directory = 'result'
         prefixes = ['BA_100_', 'BA_200_']
         time_limits = GUROBI_TIME_LIMITS
-        avgs_stds = calc_avg_std_of_objs(directory_result, prefixes, time_limits)
-
-    # filename = 'result/syn_10_21_1800.sta'
-    # new_filename = 'result/syn_10_21_1800.txt'
-    # transfer_write_solver_result(filename, new_filename)
-
-    # from_extension = '.sov'
-    # to_extension = '.txt'
-    # transfer_write_solver_results(directory_result, prefixes, time_limits, from_extension, to_extension)
+        avgs_stds = calc_avg_std_of_objs(result_directory, prefixes, time_limits)
 
 
 

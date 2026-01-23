@@ -266,7 +266,7 @@ We can select a problem such as maxcut.
 Take methods/greedy.py as an example:
 
 ```
- directory_data = '../data/syn_BA' # the directory of datasets
+ data_dir = '../data/syn_BA' # the directory of datasets
  prefixes = ['BA_100_'] # select the graphs with 100 nodes
 ```
 

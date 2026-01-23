@@ -29,7 +29,7 @@ from rlsolver.methods.util import get_hot_image_of_graph
 from rlsolver.methods.util import show_array2d
 from rlsolver.methods.config import MyGraph
 from rlsolver.methods.config import MyNeighbor
-from rlsolver.methods.config import DIRECTORY_DATA
+from rlsolver.methods.config import DATA_DIR
 from rlsolver.methods.config import GRAPH_TYPES
 from rlsolver.methods.util_generate import generate_mygraph
 
