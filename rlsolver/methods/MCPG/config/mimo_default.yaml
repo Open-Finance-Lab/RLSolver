@@ -1,4 +1,4 @@
-problem_type: "mimo"
+problem_type: "mimo2"
 lr_init: 0.25
 regular_init: 0
 sample_epoch_num: 8

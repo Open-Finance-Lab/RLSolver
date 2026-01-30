@@ -93,7 +93,7 @@ def run(cfg: DictConfig) -> Tuple[dict, dict]:
     return metric_dict, object_dict
 
 
-@hydra.main(version_base="1.3", config_path="../../configs", config_name="main.yaml")
+@hydra.run_one_file(version_base="1.3", config_path="../../configs", config_name="main.yaml")
 def train(cfg: DictConfig) -> Optional[float]:
     # apply extra utilities
     # (e.g. ask for tags if none are provided in cfg, print cfg tree, etc.)

@@ -46,9 +46,31 @@ conda env create -f environment.yaml
 
 ## Quick Start
 Run the following code with the default configuration to solve the selected instances.
-```
+
 # maxcut
 python mcpg.py --config_file config/maxcut_default.yaml --problem_instance data/graph/G14.txt
+
+# qubo on {-1,1}^n
+python mcpg.py --config_file config/qubo_default.yaml --problem_instance data/nbiq/nbiq_500.npy
+# qubo on {0,1}^n
+python mcpg.py --config_file config/qubo_bin_default.yaml --problem_instance data/nbiq/nbiq_500.npy
+# ratio Cheeger cut
+python mcpg.py --config_file config/rcheegercut_default.yaml --problem_instance data/graph/G35.txt
+# normal Cheeger cut
+python mcpg.py --config_file config/ncheegercut_default.yaml --problem_instance data/graph/G35.txt
+# maxsat
+python mcpg.py --config_file config/maxsat_default.yaml --problem_instance data/sat/randu1.cnf
+# partial maxsat
+python mcpg.py --config_file config/pmaxsat_default.yaml --problem_instance data/partial_sat/clq1-cv160c800l2g1.wcnf
+# MIMO
+python MIMO.py  
+
+
+```
+# maxcut
+python mcpg.py 
+
+python mcpg.py --config_file config/maxcut_default.yaml --problem_instance data/syn_BA/BA_5_ID0.txt
 
 # qubo on {-1,1}^n
 python mcpg.py --config_file config/qubo_default.yaml --problem_instance data/nbiq/nbiq_500.npy

@@ -1,27 +1,12 @@
-"""
-Copyright (c) 2024 Cheng Chen, Ruitao Chen, Tianyou Li, Zaiwen Wen
-All rights reserved.
-Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-the following conditions are met:
-1. Redistributions of source code must retain the above copyright notice, this list of conditions and the
-   following disclaimer.
-2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions
-   and the following disclaimer in the documentation and/or other materials provided with the distribution.
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
-ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-"""
+
 import torch
 import time
 import yaml
 import argparse
 from dataloader import read_data_mimo
-from mcpg_solver import mcpg_solver
+from MCPG_solver import mcpg_solver
 import tyro
+from config import ConfigMIMO
 
 class ConfigLocalMimo:
     snr: int = 2
@@ -42,80 +27,81 @@ def main():
     # parser.add_argument("size", type=int,
     #                     help="input the problem size which appoint the dataset.")
     # args = parser.parse_args()
-    with open("config/mimo_default.yaml") as f:
-        config = yaml.safe_load(f)
+    # with open("config/mimo_default.yaml") as f:
+    #     config = yaml.safe_load(f)
+    config = ConfigMIMO()
     print("args: ", args)
     print("args.snr: ", args.snr)
     print("args.size: ", args.size)
 
     def get_parameter(SNR, N, K, config):
-        config["num_ls"] = 4
+        config.num_ls = 4
         num_epochs = 3
         max_range = 150
         if N == 800 and K == 800:
             if SNR == 2:
-                config["num_ls"] = 3
+                config.num_ls = 3
                 num_epochs = 1
             elif SNR == 4:
-                config["num_ls"] = 3
+                config.num_ls = 3
                 num_epochs = 2
             elif SNR == 6:
-                config["num_ls"] = 5
+                config.num_ls = 5
                 num_epochs = 5
             elif SNR == 8:
-                config["num_ls"] = 7
+                config.num_ls = 7
                 num_epochs = 3
             elif SNR == 10:
-                config["num_ls"] = 5
+                config.num_ls = 5
                 num_epochs = 2
             elif SNR == 12:
-                config["num_ls"] = 4
+                config.num_ls = 4
                 num_epochs = 2
         if N == 1000 and K == 1000:
             if SNR == 2:
-                config["num_ls"] = 2
+                config.num_ls = 2
                 num_epochs = 2
             elif SNR == 4:
-                config["num_ls"] = 3
+                config.num_ls = 3
                 num_epochs = 2
             elif SNR == 6:
-                config["num_ls"] = 7
+                config.num_ls = 7
                 num_epochs = 4
             elif SNR == 8:
-                config["num_ls"] = 8
+                config.num_ls = 8
                 num_epochs = 4
             elif SNR == 10:
-                config["num_ls"] = 7
+                config.num_ls = 7
                 num_epochs = 2
             elif SNR == 12:
-                config["num_ls"] = 3
+                config.num_ls = 3
                 num_epochs = 3
         if N == 1200 and K == 1200:
             if SNR == 2:
-                config["num_ls"] = 3
+                config.num_ls = 3
                 num_epochs = 1
             elif SNR == 4:
-                config["num_ls"] = 3
+                config.num_ls = 3
                 num_epochs = 2
             elif SNR == 6:
-                config["num_ls"] = 7
+                config.num_ls = 7
                 num_epochs = 3
             elif SNR == 8:
-                config["num_ls"] = 6
+                config.num_ls = 6
                 num_epochs = 4
                 max_range = 100
             elif SNR == 10:
-                config["num_ls"] = 4
+                config.num_ls = 4
                 num_epochs = 4
             elif SNR == 12:
-                config["num_ls"] = 5
+                config.num_ls = 5
                 num_epochs = 2
-        config["max_epoch_num"] = num_epochs * config["sample_epoch_num"]
+        config.max_epoch_num = num_epochs * config.sample_epoch_num
         return config, max_range
 
     num_nodes = 2*args.size
     max_range = 150
-    config["num_ls"] = 4  # local search epoch
+    config.num_ls = 4  # local search epoch
     config, max_range = get_parameter(args.snr, args.size, args.size, config)  # get paramter
 
     rand_seeds = list(range(0, num_rand))
@@ -146,4 +132,5 @@ def main():
     print("AVERAGE TIME: ", total_time/num_rand)
 
 if __name__ == '__main__':
-    tyro.cli(main)
+    # tyro.cli(main)
+    main()

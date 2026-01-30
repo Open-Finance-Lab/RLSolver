@@ -1,39 +1,40 @@
 import torch
 from torch_scatter import scatter
 from torch.distributions.bernoulli import Bernoulli
-from config import DEVICE
+from config import DEVICE, PROBLEM, Problem
 
 def sample_initializer(problem_type, probs, config,
                        device=DEVICE, data=None):
     if problem_type in ["r_cheegercut", "n_cheegercut"]:
-        samples = torch.zeros(config['total_mcmc_num'], data.num_nodes)
-        index = data.sorted_degree_nodes[- config['total_mcmc_num']:]
-        for i in range(config['total_mcmc_num']):
+        samples = torch.zeros(config.total_mcmc_num, data.num_nodes)
+        index = data.sorted_degree_nodes[-config.total_mcmc_num:]
+        max_i = min(len(index), config.total_mcmc_num)
+        for i in range(max_i):
             samples[i][index[i]] = 1
-        samples = samples.repeat(config['repeat_times'], 1)
+        samples = samples.repeat(config.repeat_times, 1)
         return samples.t()
     m = Bernoulli(probs)
-    samples = m.sample([config['total_mcmc_num'] * config['repeat_times']])
+    samples = m.sample([config.total_mcmc_num * config.repeat_times])
     samples = samples.detach().to(device)
     return samples.t()
 
 
 def sampler_select(problem_type):
-    if problem_type == "maxcut":
+    if problem_type == Problem.maxcut.value:
         return mcpg_sampling_maxcut
-    elif problem_type == "maxcut_edge":
+    elif problem_type == Problem.maxcut_edge.value:
         return mcpg_sampling_maxcut_edge
-    elif problem_type == "maxsat":
+    elif problem_type == Problem.maxsat.value:
         return mcpg_sampling_maxsat
-    elif problem_type == "mimo":
+    elif problem_type == Problem.MIMO.value:
         return mcpg_sampling_mimo
-    elif problem_type == "qubo":
+    elif problem_type == Problem.qubo.value:
         return mcpg_sampling_qubo
-    elif problem_type == "qubo_bin":
+    elif problem_type == Problem.qubo_bin.value:
         return mcpg_sampling_qubo_bin
-    elif problem_type == "r_cheegercut":
+    elif problem_type == Problem.r_cheegercut.value:
         return mcpg_sampling_rcheegercut
-    elif problem_type == "n_cheegercut":
+    elif problem_type == Problem.n_cheegercut.value:
         return mcpg_sampling_ncheegercut
     else:
         raise (Exception("Unrecognized problem type {}".format(problem_type)))
@@ -82,8 +83,7 @@ def mcpg_sampling_maxcut(data,
     edge_weight_sum = data.edge_weight_sum
     graph_probs = start_result.clone()
     # get probs
-    graph_probs = metro_sampling(
-        probs, graph_probs, change_times)
+    graph_probs = metro_sampling(probs, graph_probs, change_times)
     start = graph_probs.clone()
 
     temp = graph_probs[data.sorted_degree_nodes[0]].clone()
@@ -101,20 +101,16 @@ def mcpg_sampling_maxcut(data,
             node = data.sorted_degree_nodes[node_index]
             neighbor_index = data.neighbors[node]
             neighbor_edge_weight = data.neighbor_edges[node]
-            node_temp_v = torch.mm(
-                neighbor_edge_weight, graph_probs[neighbor_index])
+            node_temp_v = torch.mm(neighbor_edge_weight, graph_probs[neighbor_index])
             node_temp_v = torch.squeeze(node_temp_v)
-            node_temp_v += torch.rand(node_temp_v.shape[0],
-                                      device=torch.device(device))/4
-            graph_probs[node] = (node_temp_v <
-                                 data.weighted_degree[node]/2+0.125).int()
+            node_temp_v += torch.rand(node_temp_v.shape[0], device=torch.device(device))/4
+            graph_probs[node] = (node_temp_v < data.weighted_degree[node]/2+0.125).int()
         if cnt >= num_ls:
             break
 
     # maxcut
 
-    expected_cut[:] = ((2 * graph_probs[nlr_graph.type(torch.long)][:] - 1)*(
-        2 * graph_probs[nlc_graph.type(torch.long)][:] - 1) * edge_weight).sum(dim=0)
+    expected_cut[:] = ((2 * graph_probs[nlr_graph.type(torch.long)][:] - 1)*(2 * graph_probs[nlc_graph.type(torch.long)][:] - 1) * edge_weight).sum(dim=0)
 
     expected_cut_reshape = torch.reshape(expected_cut, (-1, total_mcmc_num))
     index = torch.argmin(expected_cut_reshape, dim=0)
@@ -136,8 +132,7 @@ def mcpg_sampling_maxcut_edge(data,
     edge_weight_sum = data.edge_weight_sum
     graph_probs = start_result.clone()
     # get probs
-    graph_probs = metro_sampling(
-        probs, graph_probs, change_times, device)
+    graph_probs = metro_sampling(probs, graph_probs, change_times, device)
     start = graph_probs.clone()
 
     temp = graph_probs[data.sorted_degree_nodes[0]].clone()
@@ -179,8 +174,7 @@ def mcpg_sampling_maxcut_edge(data,
             break
 
     # maxcut
-    expected_cut[:] = ((2 * graph_probs[nlr_graph.type(torch.long)][:] - 1)*(
-        2 * graph_probs[nlc_graph.type(torch.long)][:] - 1) * edge_weight).sum(dim=0)
+    expected_cut[:] = ((2 * graph_probs[nlr_graph.type(torch.long)][:] - 1)*(2 * graph_probs[nlc_graph.type(torch.long)][:] - 1) * edge_weight).sum(dim=0)
 
     expected_cut_reshape = torch.reshape(expected_cut, (-1, total_mcmc_num))
     index = torch.argmin(expected_cut_reshape, dim=0)
@@ -206,8 +200,7 @@ def mcpg_sampling_rcheegercut(data,
         probs, graph_probs, change_times)
     samples = raw_samples.clone()
 
-    res_cut = ((2 * samples[nlr_graph.type(torch.long)][:] - 1)*(
-        2 * samples[nlc_graph.type(torch.long)][:] - 1)).sum(dim=0)
+    res_cut = ((2 * samples[nlr_graph.type(torch.long)][:] - 1)*(2 * samples[nlc_graph.type(torch.long)][:] - 1)).sum(dim=0)
     res_cut[:] = (data.edge_weight_sum - res_cut) / 2
     res_node = samples.sum(dim=0)
     cheeger_cut = res_cut / torch.min(res_node, nvar - res_node)
@@ -218,15 +211,11 @@ def mcpg_sampling_rcheegercut(data,
             neighbor_index = data.neighbors[node]
 
             change_cut_size = torch.sum(samples[neighbor_index], dim=0)
-            new_res_cut = res_cut - \
-                (2 * samples[node] - 1) * \
-                (data.weighted_degree[node] - 2 * change_cut_size)
+            new_res_cut = res_cut - (2 * samples[node] - 1) * (data.weighted_degree[node] - 2 * change_cut_size)
             new_res_node = res_node - (2 * samples[node] - 1)
-            new_cheeger_cut = new_res_cut / \
-                torch.min(new_res_node, nvar - new_res_node)
+            new_cheeger_cut = new_res_cut / torch.min(new_res_node, nvar - new_res_node)
             new_min_node = torch.min(new_res_node, nvar - new_res_node)
-            cond = torch.logical_or(
-                (cheeger_cut < new_cheeger_cut), (new_min_node < 0.0000001))
+            cond = torch.logical_or((cheeger_cut < new_cheeger_cut), (new_min_node < 0.0000001))
             samples[node] = torch.where(cond, samples[node], 1 - samples[node])
             res_cut = torch.where(cond, res_cut, new_res_cut)
             res_node = torch.where(cond, res_node, new_res_node)
@@ -255,8 +244,7 @@ def mcpg_sampling_ncheegercut(data,
         probs, graph_probs, change_times)
     samples = raw_samples.clone()
 
-    res_cut = ((2 * samples[nlr_graph.type(torch.long)][:] - 1)*(
-        2 * samples[nlc_graph.type(torch.long)][:] - 1)).sum(dim=0)
+    res_cut = ((2 * samples[nlr_graph.type(torch.long)][:] - 1)*(2 * samples[nlc_graph.type(torch.long)][:] - 1)).sum(dim=0)
     res_cut[:] = (data.edge_weight_sum - res_cut) / 2
     res_node = samples.sum(dim=0)
     cheeger_cut = res_cut * (1 / res_node + 1 / (nvar - res_node))
@@ -267,15 +255,11 @@ def mcpg_sampling_ncheegercut(data,
             neighbor_index = data.neighbors[node]
 
             change_cut_size = torch.sum(samples[neighbor_index], dim=0)
-            new_res_cut = res_cut - \
-                (2 * samples[node] - 1) * \
-                (data.weighted_degree[node] - 2 * change_cut_size)
+            new_res_cut = res_cut - (2 * samples[node] - 1) * (data.weighted_degree[node] - 2 * change_cut_size)
             new_res_node = res_node - (2 * samples[node] - 1)
-            new_cheeger_cut = new_res_cut * \
-                (1 / new_res_node + 1 / (nvar - new_res_node))
+            new_cheeger_cut = new_res_cut * (1 / new_res_node + 1 / (nvar - new_res_node))
             new_min_node = torch.min(new_res_node, nvar - new_res_node)
-            cond = torch.logical_or(
-                (cheeger_cut < new_cheeger_cut), (new_min_node < 0.0000001))
+            cond = torch.logical_or((cheeger_cut < new_cheeger_cut), (new_min_node < 0.0000001))
             samples[node] = torch.where(cond, samples[node], 1 - samples[node])
             res_cut = torch.where(cond, res_cut, new_res_cut)
             res_node = torch.where(cond, res_node, new_res_node)
@@ -298,25 +282,21 @@ def mcpg_sampling_maxsat(
 
     nvar, nclause, vi, ci, neg = data.pdata[0:5]
     raw_samples = start_result.clone()
-    raw_samples = metro_sampling(
-        probs, raw_samples, change_times, device)
+    raw_samples = metro_sampling(probs, raw_samples, change_times, device)
     samples = raw_samples.t().clone()
     samples = samples * 2 - 1
     for cnt in range(num_ls):
         for index in range(nvar):
             i = data.ndata[3][index].item()
             cal_sample = samples[:, data.ndata[0][i]] * data.ndata[2][i]
-            res_clause = scatter(
-                cal_sample, data.ndata[1][i], reduce="max", dim=1)
+            res_clause = scatter(cal_sample, data.ndata[1][i], reduce="max", dim=1)
             res_sample_old = torch.sum(res_clause, dim=1)
             samples[:, i] = - samples[:, i]
             cal_sample = samples[:, data.ndata[0][i]] * data.ndata[2][i]
-            res_clause = scatter(
-                cal_sample, data.ndata[1][i], reduce="max", dim=1)
+            res_clause = scatter(cal_sample, data.ndata[1][i], reduce="max", dim=1)
             res_sample_new = torch.sum(res_clause, dim=1)
             # ind = (res_sample_new > res_sample_old)
-            ind = (res_sample_new > res_sample_old +
-                   torch.rand(res_sample_old.shape[0], device=device)-0.5)
+            ind = (res_sample_new > res_sample_old + torch.rand(res_sample_old.shape[0], device=device)-0.5)
             samples[:, i] = torch.where(ind, samples[:, i], -samples[:, i])
 
     cal_sample = samples[:, vi] * neg
@@ -330,8 +310,7 @@ def mcpg_sampling_maxsat(
 
     res_sample_reshape = torch.reshape(res_sample, (-1, total_mcmc_num))
     index = torch.argmax(res_sample_reshape, dim=0)
-    index = torch.tensor(list(range(total_mcmc_num)),
-                         device=device) + index*total_mcmc_num
+    index = torch.tensor(list(range(total_mcmc_num)), device=device) + index*total_mcmc_num
     max_res = res_sample[index]
     samples = (samples + 1) / 2
     return max_res, samples.t()[:, index], raw_samples, -(res_sample - torch.mean(res_sample.float())).to(device)
@@ -386,8 +365,7 @@ def mcpg_sampling_qubo(data, start_result, probs, num_ls, change_times, total_mc
     nvar = data['nvar']
     raw_samples = start_result.clone()
     # get probs
-    raw_samples = metro_sampling(
-        probs, raw_samples, change_times, device)
+    raw_samples = metro_sampling(probs, raw_samples, change_times, device)
     samples = raw_samples.clone()
     samples = samples * 2 - 1
     # local search
@@ -402,19 +380,18 @@ def mcpg_sampling_qubo(data, start_result, probs, num_ls, change_times, total_mc
     res_sample = torch.sum(torch.mul(samples, res_sample), dim=0)
     res_sample_reshape = torch.reshape(res_sample, (-1, total_mcmc_num))
     index = torch.argmax(res_sample_reshape, dim=0)
-    index = torch.tensor(list(range(total_mcmc_num)),
-                         device=device) + index*total_mcmc_num
+    index = torch.tensor(list(range(total_mcmc_num)), device=device) + index*total_mcmc_num
     max_res = res_sample[index]
     samples = (samples + 1) / 2
     return max_res, samples[:, index], raw_samples, -(res_sample - torch.mean(res_sample.float())).to(device)
+
 def mcpg_sampling_qubo_bin(data, start_result, probs, num_ls, change_times, total_mcmc_num,
                        device=DEVICE):
     Q = data['Q']
     nvar = data['nvar']
     raw_samples = start_result.clone()
     # get probs
-    raw_samples = metro_sampling(
-        probs, raw_samples, change_times, device)
+    raw_samples = metro_sampling(probs, raw_samples, change_times, device)
     samples = raw_samples.clone()
     # local search
     for cnt in range(num_ls):
@@ -428,7 +405,6 @@ def mcpg_sampling_qubo_bin(data, start_result, probs, num_ls, change_times, tota
     res_sample = torch.sum(torch.mul(samples, res_sample), dim=0)
     res_sample_reshape = torch.reshape(res_sample, (-1, total_mcmc_num))
     index = torch.argmax(res_sample_reshape, dim=0)
-    index = torch.tensor(list(range(total_mcmc_num)),
-                         device=device) + index*total_mcmc_num
+    index = torch.tensor(list(range(total_mcmc_num)), device=device) + index*total_mcmc_num
     max_res = res_sample[index]
     return max_res, samples[:, index], raw_samples, -(res_sample - torch.mean(res_sample.float())).to(device)

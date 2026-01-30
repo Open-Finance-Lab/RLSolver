@@ -1,20 +1,4 @@
-"""
-Copyright (c) 2024 Cheng Chen, Ruitao Chen, Tianyou Li, Zaiwen Wen
-All rights reserved.
-Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-the following conditions are met:
-1. Redistributions of source code must retain the above copyright notice, this list of conditions and the
-   following disclaimer.
-2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions
-   and the following disclaimer in the documentation and/or other materials provided with the distribution.
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
-ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-"""
+
 import torch
 import os
 from torch_geometric.data import Data
@@ -28,6 +12,12 @@ import copy
 cur_path = os.path.dirname(os.path.abspath(__file__))
 data_path = os.path.join(cur_path, 'data')
 sys.path.append(os.path.dirname(data_path))
+
+cur_path = os.path.dirname(os.path.abspath(__file__))
+rlsolver_path = os.path.join(cur_path, '../../../rlsolver')
+sys.path.append(os.path.dirname(rlsolver_path))
+
+from rlsolver.methods.util_read_data import read_list
 
 def dataloader_select(problem_type):
     # if problem_type in ["maxcut", "maxcut_edge", "r_cheegercut", "n_cheegercut"]:
@@ -66,8 +56,7 @@ def maxcut_dataloader(path, device=DEVICE):
                 edge_index[1][cnt] = int(line[1]) - 1
                 edge_attr[cnt][0] = float(line[2])
                 cnt += 1
-        data_maxcut = Data(num_nodes=num_nodes,
-                           edge_index=edge_index, edge_attr=edge_attr)
+        data_maxcut = Data(num_nodes=num_nodes, edge_index=edge_index, edge_attr=edge_attr)
         data_maxcut = data_maxcut.to(device)
         data_maxcut.edge_weight_sum = float(torch.sum(data_maxcut.edge_attr))
 
@@ -78,34 +67,26 @@ def maxcut_dataloader(path, device=DEVICE):
         tensor_abs_weighted_degree = []
         for i0 in range(data_maxcut.num_nodes):
             data_maxcut.single_degree.append(len(data_maxcut.neighbors[i0]))
-            data_maxcut.weighted_degree.append(
-                float(torch.sum(data_maxcut.neighbor_edges[i0])))
-            tensor_abs_weighted_degree.append(
-                float(torch.sum(torch.abs(data_maxcut.neighbor_edges[i0]))))
+            data_maxcut.weighted_degree.append(float(torch.sum(data_maxcut.neighbor_edges[i0])))
+            tensor_abs_weighted_degree.append(float(torch.sum(torch.abs(data_maxcut.neighbor_edges[i0]))))
         tensor_abs_weighted_degree = torch.tensor(tensor_abs_weighted_degree)
-        data_maxcut.sorted_degree_nodes = torch.argsort(
-            tensor_abs_weighted_degree, descending=True)
+        data_maxcut.sorted_degree_nodes = torch.argsort(tensor_abs_weighted_degree, descending=True)
 
         edge_degree = []
         add = torch.zeros(3, num_edges).to(device)
         for i0 in range(num_edges):
-            edge_degree.append(abs(edge_attr[i0].item())*(
-                tensor_abs_weighted_degree[edge_index[0][i0]]+tensor_abs_weighted_degree[edge_index[1][i0]]))
+            edge_degree.append(abs(edge_attr[i0].item())*(tensor_abs_weighted_degree[edge_index[0][i0]]+tensor_abs_weighted_degree[edge_index[1][i0]]))
             node_r = edge_index[0][i0]
             node_c = edge_index[1][i0]
-            add[0][i0] = - data_maxcut.weighted_degree[node_r] / \
-                2 + data_maxcut.edge_attr[i0] - 0.05
-            add[1][i0] = - data_maxcut.weighted_degree[node_c] / \
-                2 + data_maxcut.edge_attr[i0] - 0.05
+            add[0][i0] = - data_maxcut.weighted_degree[node_r] / 2 + data_maxcut.edge_attr[i0] - 0.05
+            add[1][i0] = - data_maxcut.weighted_degree[node_c] / 2 + data_maxcut.edge_attr[i0] - 0.05
             add[2][i0] = data_maxcut.edge_attr[i0]+0.05
 
         for i0 in range(num_nodes):
-            data_maxcut.neighbor_edges[i0] = data_maxcut.neighbor_edges[i0].unsqueeze(
-                0)
+            data_maxcut.neighbor_edges[i0] = data_maxcut.neighbor_edges[i0].unsqueeze(0)
         data_maxcut.add = add
         edge_degree = torch.tensor(edge_degree)
-        data_maxcut.sorted_degree_edges = torch.argsort(
-            edge_degree, descending=True)
+        data_maxcut.sorted_degree_edges = torch.argsort(edge_degree, descending=True)
 
         return data_maxcut, num_nodes
 
@@ -269,8 +250,7 @@ def maxsat_dataloader(path, device=DEVICE):
 
     pdata = [nvar, nclause, variable_index, ci_cuda, neg_index]
     if ptype == 'p':
-        pdata = [nvar, nclause, variable_index,
-                 ci_cuda, neg_index, weight, nhard]
+        pdata = [nvar, nclause, variable_index, ci_cuda, neg_index, weight, nhard]
     return Data_MaxSAT(pdata=pdata, ndata=ndata), pdata[0]
 
 
@@ -283,8 +263,20 @@ def sort_node(ndata):
     return ndata
 
 
-def qubo_dataloader(path, device=DEVICE):
-    Q = np.load(path)
+def qubo_dataloader(filename, device=DEVICE):
+    # Q = np.load(path)
+    # Q = torch.tensor(Q).float().to(device)
+    Q = np.array([])
+    with open(filename, 'r', encoding='utf-8') as file:
+        while True:
+            numbers = read_list(file)
+            print("numbers: ", numbers)
+            if len(numbers) == 0:
+                break
+            if len(Q) == 0:
+                Q = numbers
+            else:
+                Q = np.concatenate((Q, numbers), axis=0)
     Q = torch.tensor(Q).float().to(device)
     data = {'Q': Q, 'nvar': Q.shape[0]}
     return data, Q.shape[0]
@@ -292,15 +284,17 @@ def qubo_dataloader(path, device=DEVICE):
 
 def read_data_mimo(K, N, SNR, X_num, r_seed, device=DEVICE):
 
-    path = "data/mimo/4QAM{}_{}/4QAM{}H{}.mat".format(N, K, K, int(r_seed//X_num+1))
-    data = scio.loadmat(path)
-    H = data["save_H"]
-    path = "data/mimo/4QAM{}_{}/4QAM{}X{}.mat".format(N, K, K, int(r_seed//X_num+1))
-    data = scio.loadmat(path)
-    X = data["save_X"][r_seed % X_num]
-    path = "data/mimo/4QAM{}_{}/4QAM{}v{}.mat".format(N, K, K, int(r_seed//X_num+1))
-    data = scio.loadmat(path)
-    v = data["save_v"][r_seed % X_num]
+    path = "data/mimo2/4QAM{}_{}/4QAM{}H{}.mat".format(N, K, K, int(r_seed//X_num+1))
+    H_ = scio.loadmat(path)
+    H = H_["save_H"]
+    path = "data/mimo2/4QAM{}_{}/4QAM{}X{}.mat".format(N, K, K, int(r_seed//X_num+1))
+    X_ = scio.loadmat(path)
+    X = X_["save_X"][r_seed % X_num]
+    path = "data/mimo2/4QAM{}_{}/4QAM{}v{}.mat".format(N, K, K, int(r_seed//X_num+1))
+    v_ = scio.loadmat(path)
+    v = v_["save_v"][r_seed % X_num]
+
+
     v = np.sqrt(2*K*10**(-SNR/10)) * v
 
     Y = H.dot(X) + v
@@ -320,6 +314,11 @@ def read_data_mimo(K, N, SNR, X_num, r_seed, device=DEVICE):
     sca = torch.tensor(sca).to(device)
 
     data = [Sigma, Diag, X, sca, noise]
+
+    use_new_read: bool = True
+    if use_new_read:
+        filename = data_path + "/mimo3/4QAM180_180_ID1.txt"
+        data2 = read_data_mimo3(filename, 10, 0)
     return data
 
 
@@ -361,7 +360,6 @@ def read_data_mimo3(filename: str, X_num, r_seed, device=DEVICE):
                 numbers = line.split(", ")
                 v = np.array([float(m) for m in numbers if len(m) >= 1])
                 # v = v[r_seed % X_num]
-                v = np.sqrt(2*K*10**(-SNR/10)) * v
             elif line == "X":
                 line = file.readline()
                 line = line.replace("\n", "")
