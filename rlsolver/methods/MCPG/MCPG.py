@@ -7,8 +7,8 @@ import yaml
 import time
 import tyro
 from typing import List, Tuple
-from MCPG_solver import mcpg_solver
-from dataloader import dataloader_select
+from MCPG_solver import MCPG_solver
+from dataloader import dataloader_select_old, dataloader_select2
 from config import DEVICE, Problem, PROBLEM
 
 from rlsolver.methods.util_read_data import (read_set_cover_data, read_nxgraph)
@@ -24,7 +24,7 @@ from config import *
 device = DEVICE
 
 
-def run_old(config, problem_instance: str):
+def run_old(problem, config, problem_instance: str):
     print("problem_instance: ", problem_instance)
 
     # with open(config_file) as f:
@@ -32,12 +32,12 @@ def run_old(config, problem_instance: str):
 
     path = rlsolver_path + problem_instance
     start_time = time.perf_counter()
-    dataloader = dataloader_select(config.problem_type)
+    dataloader = dataloader_select_old(config.problem_type)
     data, num_vars = dataloader(path)
     # device2 = data['Q'].device
     # print("device2: ", device2)
     dataloader_t = time.perf_counter()
-    res, solution, _, _ = mcpg_solver(num_vars, config, data, verbose=True)
+    res, solution, _, _ = MCPG_solver(problem, num_vars, config, data, verbose=True)
     mcpg_t = time.perf_counter()
 
     if config.problem_type == Problem.maxsat.value and len(data.pdata) == 7:
@@ -64,7 +64,7 @@ def run_one_file(problem: Problem, filename: str):
         config = ConfigMaxsat()
     elif problem == PROBLEM.MIMO:
         config = ConfigMIMO()
-    elif problem == PROBLEM.n_cheegercut:
+    elif problem == PROBLEM.ncheegercut:
         config = ConfigNcheegercut()
     elif problem == PROBLEM.partial_maxsat:
         config = ConfigPartialMaxsat()
@@ -72,7 +72,7 @@ def run_one_file(problem: Problem, filename: str):
         config = ConfigQuboBin()
     elif problem == PROBLEM.qubo:
         config = ConfigQubo()
-    elif problem == PROBLEM.r_cheegercut:
+    elif problem == PROBLEM.rcheegercut:
         config = ConfigNcheegercut()
     else:
         raise ValueError("error, problem")
@@ -88,13 +88,13 @@ def run_one_file(problem: Problem, filename: str):
     # path = rlsolver_path + problem_instance
     # path = args.problem_instance
     start_time = time.perf_counter()
-    dataloader = dataloader_select(config.problem_type)
+    dataloader = dataloader_select2(problem)
     data, num_vars = dataloader(filename)
     dataloader_t = time.perf_counter()
-    obj, solution, _, _ = mcpg_solver(num_vars, config, data, verbose=True)
+    obj, solution, _, _ = MCPG_solver(problem, num_vars, config, data, verbose=True)
     mcpg_t = time.perf_counter()
 
-    if config.problem_type == Problem.maxsat.value and len(data.pdata) == 7:
+    if problem in [Problem.maxsat.value, Problem.partial_maxsat] and len(data.pdata) == 7:
         if obj > data.pdata[5] * data.pdata[6]:
             obj -= data.pdata[5] * data.pdata[6]
             print("SATISFIED")
@@ -138,18 +138,32 @@ def run_manyfiles(alg_name, problem: Problem, data_dir: str, prefixes: List[str]
 if __name__ == '__main__':
     # tyro.cli(main)
     run_maxcut = True
-    run_qubo = True
-    run_qubo_bin = True
-    run_rcheegercut = True
-    run_ncheegercut = True
-    run_maxsat = True
-    run_partial_sat = True
+    run_maxcut_edge = False
+    run_maxsat = False
+    run_ncheegercut = False
+    run_partial_maxsat = False
+    run_qubo = False
+    run_qubo_bin = False
+    run_rcheegercut = False
+
 
     run_old_version: bool = False
     if run_old_version:
         if run_maxcut:
             PROBLEM = Problem.maxcut
             problem_instance = "data/syn_BA/BA_5_ID0.txt"
+        if run_maxcut_edge:
+            PROBLEM = Problem.maxcut_edge
+            problem_instance = "data/syn_BA/BA_5_ID0.txt"
+        if run_maxsat:
+            PROBLEM = Problem.maxsat
+            problem_instance = "data/sat/randu0.cnf"
+        if run_ncheegercut:
+            PROBLEM = Problem.ncheegercut
+            problem_instance = "data/syn_BA/BA_5_ID0.txt"
+        if run_partial_maxsat:
+            PROBLEM = Problem.partial_maxsat
+            problem_instance = "data/partial_sat/clq1-cv160c800l2g0.wcnf"
         if run_qubo:
             PROBLEM = Problem.qubo
             problem_instance = "data/nbiq/nbiq_5.txt"
@@ -157,17 +171,9 @@ if __name__ == '__main__':
             PROBLEM = Problem.qubo_bin
             problem_instance = "data/nbiq/nbiq_5.txt"
         if run_rcheegercut:
-            PROBLEM = Problem.r_cheegercut
+            PROBLEM = Problem.rcheegercut
             problem_instance = "data/syn_BA/BA_5_ID0.txt"
-        if run_ncheegercut:
-            PROBLEM = Problem.n_cheegercut
-            problem_instance = "data/syn_BA/BA_5_ID0.txt"
-        if run_maxsat:
-            PROBLEM = Problem.maxsat
-            problem_instance = "data/sat/randu0.cnf"
-        if run_partial_sat:
-            PROBLEM = Problem.partial_maxsat
-            problem_instance = "data/partial_sat/clq1-cv160c800l2g0.wcnf"
+
         if PROBLEM == PROBLEM.maxcut:
             config = ConfigMaxcut()
         elif PROBLEM == PROBLEM.maxcut_edge:
@@ -176,20 +182,20 @@ if __name__ == '__main__':
             config = ConfigMaxsat()
         elif PROBLEM == PROBLEM.MIMO:
             config = ConfigMIMO()
-        elif PROBLEM == PROBLEM.n_cheegercut:
+        elif PROBLEM == PROBLEM.ncheegercut:
             config = ConfigNcheegercut()
         elif PROBLEM == PROBLEM.partial_maxsat:
             config = ConfigPartialMaxsat()
-        elif PROBLEM == PROBLEM.qubo_bin:
-            config = ConfigQuboBin()
         elif PROBLEM == PROBLEM.qubo:
             config = ConfigQubo()
-        elif PROBLEM == PROBLEM.r_cheegercut:
+        elif PROBLEM == PROBLEM.qubo_bin:
+            config = ConfigQuboBin()
+        elif PROBLEM == PROBLEM.rcheegercut:
             config = ConfigNcheegercut()
         else:
             raise ValueError("error, problem")
 
-        run_old(config, problem_instance)
+        run_old(PROBLEM, config, problem_instance)
 
 
     run_new_version: bool = True
@@ -199,6 +205,22 @@ if __name__ == '__main__':
             PROBLEM = Problem.maxcut
             data_dir = rlsolver_path + "data/syn_BA"
             prefixes = ["BA_5_"]
+        if run_maxcut_edge:
+            PROBLEM = Problem.maxcut_edge
+            data_dir = rlsolver_path + "data/syn_BA"
+            prefixes = ["BA_5_"]
+        if run_maxsat:
+            PROBLEM = Problem.maxsat
+            data_dir = rlsolver_path + "data/sat"
+            prefixes = ["randu0"]
+        if run_ncheegercut:
+            PROBLEM = Problem.ncheegercut
+            data_dir = rlsolver_path + "data/syn_BA"
+            prefixes = ["BA_5_"]
+        if run_partial_maxsat:
+            PROBLEM = Problem.partial_maxsat
+            data_dir = rlsolver_path + "data/partial_sat"
+            prefixes = ["clq1-cv160c800l2g0"]
         if run_qubo:
             PROBLEM = Problem.qubo
             data_dir = rlsolver_path + "data/nbiq"
@@ -208,21 +230,12 @@ if __name__ == '__main__':
             data_dir = rlsolver_path + "data/nbiq"
             prefixes = ["nbiq_5"]
         if run_rcheegercut:
-            PROBLEM = Problem.r_cheegercut
+            PROBLEM = Problem.rcheegercut
             data_dir = rlsolver_path + "data/syn_BA"
             prefixes = ["BA_5_"]
-        if run_ncheegercut:
-            PROBLEM = Problem.n_cheegercut
-            data_dir = rlsolver_path + "data/syn_BA"
-            prefixes = ["BA_5_"]
-        if run_maxsat:
-            PROBLEM = Problem.maxsat
-            data_dir = rlsolver_path + "data/sat"
-            prefixes = ["randu0"]
-        if run_partial_sat:
-            PROBLEM = Problem.partial_maxsat
-            data_dir = rlsolver_path + "data/partial_sat"
-            prefixes = ["clq1-cv160c800l2g0"]
+
+
+
 
         # data_dir = rlsolver_path + "data/nbiq"
         # prefixes = ["nbiq_5"]

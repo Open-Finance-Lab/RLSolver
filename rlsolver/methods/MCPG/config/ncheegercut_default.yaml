@@ -1,4 +1,4 @@
-problem_type: "n_cheegercut"
+problem_type: "ncheegercut"
 lr_init: 0.25
 regular_init: 0
 sample_epoch_num: 8

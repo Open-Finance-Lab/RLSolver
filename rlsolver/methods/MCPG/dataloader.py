@@ -19,8 +19,8 @@ sys.path.append(os.path.dirname(rlsolver_path))
 
 from rlsolver.methods.util_read_data import read_list
 
-def dataloader_select(problem_type):
-    # if problem_type in ["maxcut", "maxcut_edge", "r_cheegercut", "n_cheegercut"]:
+def dataloader_select_old(problem_type):
+    # if problem_type in ["maxcut", "maxcut_edge", "rcheegercut", "ncheegercut"]:
     #     return maxcut_dataloader
     # elif problem_type == "maxsat":
     #     return maxsat_dataloader
@@ -28,7 +28,7 @@ def dataloader_select(problem_type):
     #     return qubo_dataloader
     # else:
     #     raise (Exception("Unrecognized problem type {}".format(problem_type)))
-    if problem_type in [Problem.maxcut.value, Problem.maxcut_edge.value, Problem.r_cheegercut.value, Problem.n_cheegercut.value]:
+    if problem_type in [Problem.maxcut.value, Problem.maxcut_edge.value, Problem.rcheegercut.value, Problem.ncheegercut.value]:
         return maxcut_dataloader
     elif problem_type == Problem.maxsat.value:
         return maxsat_dataloader
@@ -37,6 +37,23 @@ def dataloader_select(problem_type):
     else:
         raise (Exception("Unrecognized problem type {}".format(problem_type)))
 
+def dataloader_select2(problem):
+    # if problem_type in ["maxcut", "maxcut_edge", "rcheegercut", "ncheegercut"]:
+    #     return maxcut_dataloader
+    # elif problem_type == "maxsat":
+    #     return maxsat_dataloader
+    # elif problem_type in ["qubo", "qubo_bin"]:
+    #     return qubo_dataloader
+    # else:
+    #     raise (Exception("Unrecognized problem type {}".format(problem_type)))
+    if problem in [Problem.maxcut, Problem.maxcut_edge, Problem.rcheegercut, Problem.ncheegercut]:
+        return maxcut_dataloader
+    elif problem in [Problem.maxsat, Problem.partial_maxsat]:
+        return maxsat_dataloader
+    elif problem in [Problem.qubo, Problem.qubo_bin]:
+        return qubo_dataloader
+    else:
+        raise (Exception("Unrecognized problem type {}".format(problem)))
 
 def maxcut_dataloader(path, device=DEVICE):
     with open(path) as f:

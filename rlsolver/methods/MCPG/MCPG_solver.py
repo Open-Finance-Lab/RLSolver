@@ -2,21 +2,22 @@
 import torch
 
 from model import simple
-from sampling import sampler_select, sample_initializer
+from sampling import sampler_select_old, sampler_select, sample_initializer_old, sample_initializer
 from config import update_config_for_maxsat_partial_maxsat
 from config import PROBLEM, Problem
 
-def mcpg_solver(nvar, config, data, verbose=False):
+def MCPG_solver(problem: Problem, num_vars, config, data, verbose=False):
     from config import DEVICE
     device = DEVICE
 
-    update_config_for_maxsat_partial_maxsat(config, nvar)
+    update_config_for_maxsat_partial_maxsat(problem, config, num_vars)
 
-    sampler = sampler_select(config.problem_type)
+    # sampler = sampler_select_old(config.problem_type)
+    sampler = sampler_select(problem)
 
-    change_times = int(nvar/10)  # transition times for metropolis sampling
+    change_times = int(num_vars / 10)  # transition times for metropolis sampling
 
-    net = simple(nvar)
+    net = simple(num_vars)
     net.to(device).reset_parameters()
     optimizer = torch.optim.Adam(net.parameters(), lr=config.lr_init)
 
@@ -39,8 +40,9 @@ def mcpg_solver(nvar, config, data, verbose=False):
 
         # get start samples
         if epoch == 0:
-            probs = (torch.zeros(nvar)+0.5).to(device)
-            tensor_probs = sample_initializer(config.problem_type, probs, config, data=data)
+            probs = (torch.zeros(num_vars) + 0.5).to(device)
+            # tensor_probs = sample_initializer_old(config.problem_type, probs, config, data=data)
+            tensor_probs = sample_initializer(problem, probs, config, data=data)
             temp_max, temp_max_info, temp_start_samples, value = sampler(data, tensor_probs, probs, config.num_ls, 0, config.total_mcmc_num)
             now_max_res = temp_max
             now_max_info = temp_max_info
@@ -74,7 +76,7 @@ def mcpg_solver(nvar, config, data, verbose=False):
             # construct the start point for next iteration
             start_samples = start_samples_temp.t()
             if verbose:
-                if config.problem_type == Problem.maxsat.value and len(data.pdata) == 7:
+                if problem in [Problem.maxsat, Problem.partial_maxsat] and len(data.pdata) == 7:
                     res = max(now_max_res).item()
                     if res > data.pdata[5] * data.pdata[6]:
                         res -= data.pdata[5] * data.pdata[6]

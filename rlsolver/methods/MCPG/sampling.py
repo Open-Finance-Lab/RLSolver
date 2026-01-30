@@ -3,9 +3,8 @@ from torch_scatter import scatter
 from torch.distributions.bernoulli import Bernoulli
 from config import DEVICE, PROBLEM, Problem
 
-def sample_initializer(problem_type, probs, config,
-                       device=DEVICE, data=None):
-    if problem_type in ["r_cheegercut", "n_cheegercut"]:
+def sample_initializer_old(problem_type, probs, config, device=DEVICE, data=None):
+    if problem_type in ["rcheegercut", "ncheegercut"]:
         samples = torch.zeros(config.total_mcmc_num, data.num_nodes)
         index = data.sorted_degree_nodes[-config.total_mcmc_num:]
         max_i = min(len(index), config.total_mcmc_num)
@@ -18,8 +17,21 @@ def sample_initializer(problem_type, probs, config,
     samples = samples.detach().to(device)
     return samples.t()
 
+def sample_initializer(problem: Problem, probs, config, device=DEVICE, data=None):
+    if problem in [Problem.rcheegercut, Problem.ncheegercut]:
+        samples = torch.zeros(config.total_mcmc_num, data.num_nodes)
+        index = data.sorted_degree_nodes[-config.total_mcmc_num:]
+        max_i = min(len(index), config.total_mcmc_num)
+        for i in range(max_i):
+            samples[i][index[i]] = 1
+        samples = samples.repeat(config.repeat_times, 1)
+        return samples.t()
+    m = Bernoulli(probs)
+    samples = m.sample([config.total_mcmc_num * config.repeat_times])
+    samples = samples.detach().to(device)
+    return samples.t()
 
-def sampler_select(problem_type):
+def sampler_select_old(problem_type):
     if problem_type == Problem.maxcut.value:
         return mcpg_sampling_maxcut
     elif problem_type == Problem.maxcut_edge.value:
@@ -32,13 +44,34 @@ def sampler_select(problem_type):
         return mcpg_sampling_qubo
     elif problem_type == Problem.qubo_bin.value:
         return mcpg_sampling_qubo_bin
-    elif problem_type == Problem.r_cheegercut.value:
+    elif problem_type == Problem.rcheegercut.value:
         return mcpg_sampling_rcheegercut
-    elif problem_type == Problem.n_cheegercut.value:
+    elif problem_type == Problem.ncheegercut.value:
         return mcpg_sampling_ncheegercut
     else:
         raise (Exception("Unrecognized problem type {}".format(problem_type)))
 
+def sampler_select(problem: Problem):
+    if problem == Problem.maxcut:
+        return mcpg_sampling_maxcut
+    elif problem == Problem.maxcut_edge:
+        return mcpg_sampling_maxcut_edge
+    elif problem == Problem.maxsat:
+        return mcpg_sampling_maxsat
+    elif problem == Problem.MIMO:
+        return mcpg_sampling_mimo
+    elif problem == Problem.ncheegercut:
+        return mcpg_sampling_ncheegercut
+    elif problem == Problem.partial_maxsat:
+        return mcpg_sampling_maxsat
+    elif problem == Problem.qubo:
+        return mcpg_sampling_qubo
+    elif problem == Problem.qubo_bin:
+        return mcpg_sampling_qubo_bin
+    elif problem == Problem.rcheegercut:
+        return mcpg_sampling_rcheegercut
+    else:
+        raise (Exception("Unrecognized problem type {}".format(problem)))
 
 def metro_sampling(probs, start_status, max_transfer_time,
                    device=DEVICE):

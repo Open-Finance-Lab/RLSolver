@@ -4,15 +4,16 @@ import time
 import yaml
 import argparse
 from dataloader import read_data_mimo
-from MCPG_solver import mcpg_solver
+from MCPG_solver import MCPG_solver
 import tyro
-from config import ConfigMIMO
+from config import ConfigMIMO, Problem, PROBLEM
 
 class ConfigLocalMimo:
     snr: int = 2
     size: int = 180
 
 def main():
+    problem: Problem = Problem.MIMO
     args = ConfigLocalMimo()
     # args.snr = snr
     # args.size = size
@@ -114,7 +115,7 @@ def main():
         data = read_data_mimo(args.size, args.size, args.snr, X_num, r_seed)
 
         total_start_time = time.perf_counter()
-        _, _, now_best, now_best_info = mcpg_solver(num_nodes, config, data)
+        _, _, now_best, now_best_info = MCPG_solver(problem, num_nodes, config, data)
         now_best_info = now_best_info * 2 - 1
         total_end_time = time.perf_counter()
         total_time += total_end_time - total_start_time

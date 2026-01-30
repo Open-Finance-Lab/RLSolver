@@ -11,11 +11,11 @@ class Problem(enum.Enum):
     maxcut_edge = "maxcut_edge"
     maxsat = "maxsat"
     MIMO = "MIMO"
-    n_cheegercut = "n_cheegercut"
+    ncheegercut = "ncheegercut"
     partial_maxsat = "partial_maxsat"
-    qubo_bin = "qubo_bin"
     qubo = "qubo"
-    r_cheegercut = "r_cheegercut"
+    qubo_bin = "qubo_bin"
+    rcheegercut = "rcheegercut"
 
 GPU_ID: int = 0
 PROBLEM = Problem.maxcut
@@ -85,7 +85,7 @@ class ConfigMIMO:
 
 class ConfigNcheegercut:
     def __init__(self):
-        self.problem_type = "n_cheegercut"
+        self.problem_type = "ncheegercut"
         self.lr_init = 0.25
         self.regular_init = 0
         self.sample_epoch_num = 8
@@ -137,7 +137,7 @@ class ConfigQubo:
 
 class ConfigRcheegercut:
     def __init__(self):
-        self.problem_type = "r_cheegercut"
+        self.problem_type = "rcheegercut"
         self.lr_init = 0.25
         self.regular_init = 0
         self.sample_epoch_num = 8
@@ -165,8 +165,8 @@ def class_to_dict_recursive(obj):
             result[key] = value
     return result
 
-def update_config_for_maxsat_partial_maxsat(config, nvar):
-    if config.problem_type == Problem.maxsat.value:
+def update_config_for_maxsat_partial_maxsat(problem: Problem, config, nvar):
+    if problem == Problem.maxsat:
         num_epochs = 10
         if nvar >= 3000:
             num_epochs = 16
@@ -176,7 +176,7 @@ def update_config_for_maxsat_partial_maxsat(config, nvar):
             config.num_ls = 10
 
         config.max_epoch_num = (num_epochs - 1) * config.sample_epoch_num + 1
-    elif config.problem_type == Problem.partial_maxsat.value:
+    elif problem == Problem.partial_maxsat:
         num_epochs = 35
         config.num_ls = 2
         if nvar >= 700:
