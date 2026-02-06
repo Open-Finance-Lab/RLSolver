@@ -301,18 +301,18 @@ def qubo_dataloader(filename, device=DEVICE):
 
 def read_data_mimo(K, N, SNR, X_num, r_seed, device=DEVICE):
 
-    path = "data/mimo2/4QAM{}_{}/4QAM{}H{}.mat".format(N, K, K, int(r_seed//X_num+1))
-    H_ = scio.loadmat(path)
+    path_H = "data/mimo2/4QAM{}_{}/4QAM{}H{}.mat".format(N, K, K, int(r_seed//X_num+1))
+    H_ = scio.loadmat(path_H)
     H = H_["save_H"]
-    path = "data/mimo2/4QAM{}_{}/4QAM{}X{}.mat".format(N, K, K, int(r_seed//X_num+1))
-    X_ = scio.loadmat(path)
+    path_X = "data/mimo2/4QAM{}_{}/4QAM{}X{}.mat".format(N, K, K, int(r_seed//X_num+1))
+    X_ = scio.loadmat(path_X)
     X = X_["save_X"][r_seed % X_num]
-    path = "data/mimo2/4QAM{}_{}/4QAM{}v{}.mat".format(N, K, K, int(r_seed//X_num+1))
-    v_ = scio.loadmat(path)
-    v = v_["save_v"][r_seed % X_num]
+    path_v = "data/mimo2/4QAM{}_{}/4QAM{}v{}.mat".format(N, K, K, int(r_seed//X_num+1))
+    v_ = scio.loadmat(path_v)
+    v__ = v_["save_v"][r_seed % X_num]
 
 
-    v = np.sqrt(2*K*10**(-SNR/10)) * v
+    v = np.sqrt(2*K*10**(-SNR/10)) * v__
 
     Y = H.dot(X) + v
     noise = np.linalg.norm(v)
