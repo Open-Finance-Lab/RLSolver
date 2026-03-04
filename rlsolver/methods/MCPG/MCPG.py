@@ -7,7 +7,7 @@ import yaml
 import time
 import tyro
 from typing import List, Tuple
-from MCPG_solver import MCPG_solver
+from base_solver import base_solver
 from dataloader import dataloader_select_old, dataloader_select2
 from config import DEVICE, Problem, PROBLEM
 
@@ -30,14 +30,14 @@ def run_old(problem, config, problem_instance: str):
     # with open(config_file) as f:
     #     config = yaml.safe_load(f)
 
-    path = rlsolver_path + problem_instance
+    filename = rlsolver_path + problem_instance
     start_time = time.perf_counter()
     dataloader = dataloader_select_old(config.problem_type)
-    data, num_vars = dataloader(path)
+    data, num_vars = dataloader(filename)
     # device2 = data['Q'].device
     # print("device2: ", device2)
     dataloader_t = time.perf_counter()
-    res, solution, _, _ = MCPG_solver(problem, num_vars, config, data, verbose=True)
+    res, solution, _, _ = base_solver(problem, num_vars, config, data, verbose=True)
     mcpg_t = time.perf_counter()
 
     if config.problem_type == Problem.maxsat.value and len(data.pdata) == 7:
@@ -91,7 +91,7 @@ def run_one_file(problem: Problem, filename: str):
     dataloader = dataloader_select2(problem)
     data, num_vars = dataloader(filename)
     dataloader_t = time.perf_counter()
-    obj, solution, _, _ = MCPG_solver(problem, num_vars, config, data, verbose=True)
+    obj, solution, _, _ = base_solver(problem, num_vars, config, data, verbose=True)
     mcpg_t = time.perf_counter()
 
     if problem in [Problem.maxsat.value, Problem.partial_maxsat] and len(data.pdata) == 7:
@@ -137,15 +137,14 @@ def run_manyfiles(alg_name, problem: Problem, data_dir: str, prefixes: List[str]
 
 if __name__ == '__main__':
     # tyro.cli(main)
-    run_maxcut = True
+    run_maxcut = False
     run_maxcut_edge = False
     run_maxsat = False
     run_ncheegercut = False
-    run_partial_maxsat = False
+    run_partial_maxsat = True
     run_qubo = False
     run_qubo_bin = False
     run_rcheegercut = False
-
 
     run_old_version: bool = False
     if run_old_version:
@@ -233,9 +232,6 @@ if __name__ == '__main__':
             PROBLEM = Problem.rcheegercut
             data_dir = rlsolver_path + "data/syn_BA"
             prefixes = ["BA_5_"]
-
-
-
 
         # data_dir = rlsolver_path + "data/nbiq"
         # prefixes = ["nbiq_5"]

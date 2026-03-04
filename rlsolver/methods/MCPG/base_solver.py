@@ -4,10 +4,9 @@ import torch
 from model import simple
 from sampling import sampler_select_old, sampler_select, sample_initializer_old, sample_initializer
 from config import update_config_for_maxsat_partial_maxsat
-from config import PROBLEM, Problem
+from config import PROBLEM, Problem, DEVICE
 
-def MCPG_solver(problem: Problem, num_vars, config, data, verbose=False):
-    from config import DEVICE
+def base_solver(problem: Problem, num_vars, config, data, verbose=False):
     device = DEVICE
 
     update_config_for_maxsat_partial_maxsat(problem, config, num_vars)

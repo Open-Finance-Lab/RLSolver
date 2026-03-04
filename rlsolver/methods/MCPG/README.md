@@ -28,8 +28,8 @@ The pipeline of MCPG is demonstrated in the next figure. In each iteration, MCPG
     ├── driver         : Scripts to reproduce the experiment results.
     |                    See Examples for more details to use the driver files
     └── src
-        ├── mcpg.py          : Main file to run MCPG solver on specific problem data.
-        ├── mcpg_solver.py   : Our MCPG solver. 
+        ├── MCPG.py          : Main file to run MCPG solver on specific problem data.
+        ├── MCPG_solver.py   : Our MCPG solver. 
         ├── model.py         : The probabilistic model to output the mean-field distribution.
         ├── dataloader.py    : Data loader for MCPG to input the problem instance.
         └── sampling.py      : The sampling procedure combining with the local search 
@@ -47,64 +47,71 @@ conda env create -f environment.yaml
 ## Quick Start
 Run the following code with the default configuration to solve the selected instances.
 
-# maxcut
-python mcpg.py --config_file config/maxcut_default.yaml --problem_instance data/graph/G14.txt
 
-# qubo on {-1,1}^n
-python mcpg.py --config_file config/qubo_default.yaml --problem_instance data/nbiq/nbiq_500.npy
-# qubo on {0,1}^n
-python mcpg.py --config_file config/qubo_bin_default.yaml --problem_instance data/nbiq/nbiq_500.npy
-# ratio Cheeger cut
-python mcpg.py --config_file config/rcheegercut_default.yaml --problem_instance data/graph/G35.txt
-# normal Cheeger cut
-python mcpg.py --config_file config/ncheegercut_default.yaml --problem_instance data/graph/G35.txt
-# maxsat
-python mcpg.py --config_file config/maxsat_default.yaml --problem_instance data/sat/randu1.cnf
-# partial maxsat
-python mcpg.py --config_file config/pmaxsat_default.yaml --problem_instance data/partial_sat/clq1-cv160c800l2g1.wcnf
-# MIMO
+# old_version: maxcut
+python MCPG.py --config_file config/maxcut_default.yaml --problem_instance data/graph/G14.txt
+
+# old_version: qubo on {-1,1}^n
+python MCPG.py --config_file config/qubo_default.yaml --problem_instance data/nbiq/nbiq_500.npy
+# old_version: qubo on {0,1}^n
+python MCPG.py --config_file config/qubo_bin_default.yaml --problem_instance data/nbiq/nbiq_500.npy
+# old_version: ratio Cheeger cut
+python MCPG.py --config_file config/rcheegercut_default.yaml --problem_instance data/graph/G35.txt
+# old_version: normal Cheeger cut
+python MCPG.py --config_file config/ncheegercut_default.yaml --problem_instance data/graph/G35.txt
+# old_version: maxsat
+python MCPG.py --config_file config/maxsat_default.yaml --problem_instance data/sat/randu1.cnf
+# old_version: partial maxsat
+python MCPG.py --config_file config/pmaxsat_default.yaml --problem_instance data/partial_sat/clq1-cv160c800l2g1.wcnf
+
+# old_version: MIMO
 python MIMO.py  
 
 
 ```
-# maxcut
-python mcpg.py 
+# new_version: maxcut
+run_maxcut = True
+python MCPG.py 
 
-python mcpg.py --config_file config/maxcut_default.yaml --problem_instance data/syn_BA/BA_5_ID0.txt
+# new_version: qubo on {-1,1}^n
+python MCPG.py
 
-# qubo on {-1,1}^n
-python mcpg.py --config_file config/qubo_default.yaml --problem_instance data/nbiq/nbiq_500.npy
-# qubo on {0,1}^n
-python mcpg.py --config_file config/qubo_bin_default.yaml --problem_instance data/nbiq/nbiq_500.npy
-# ratio Cheeger cut
-python mcpg.py --config_file config/rcheegercut_default.yaml --problem_instance data/graph/G35.txt
-# normal Cheeger cut
-python mcpg.py --config_file config/ncheegercut_default.yaml --problem_instance data/graph/G35.txt
-# maxsat
-python mcpg.py --config_file config/maxsat_default.yaml --problem_instance data/sat/randu1.cnf
-# partial maxsat
-python mcpg.py --config_file config/pmaxsat_default.yaml --problem_instance data/partial_sat/clq1-cv160c800l2g1.wcnf
-# MIMO
-python MIMO.py  
+# new_version: qubo on {0,1}^n
+python MCPG.py
+
+# new_version: ratio Cheeger cut
+python MCPG.py
+
+# new_version: normal Cheeger cut
+python MCPG.py
+
+# new_version: maxsat
+python MCPG.py
+
+# new_version: partial maxsat
+python MCPG.py
+
+# new_version: MIMO
+python MCPG_MIMO.py  
 
 ```
 
 ## Usage
 ```
-usage: python mcpg.py [-h] config_file problem_instance
+usage: python MCPG.py [-h] config_file problem_instance
 
 positional arguments:
-  config_file       input the configuration file for the mcpg solver
+  config_file       input the configuration file for the MCPG solver
   problem_instance  input the data file for the problem instance
 ```
-The following codes demonstrate how to integrate the mcpg solver into your program
+The following codes demonstrate how to integrate the MCPG solver into your program
 ```
-from mcpg_solver import mcpg_solver
-# load the config file and problem_data file as shown in mcpg.py
+from MCPG_solver import MCPG_solver
+# load the config file and problem_data file as shown in MCPG.py
 config = ...
 problem_data = ...
-# use mcpg_solver to obtain the solution
-max_res, solution, _, _ = mcpg_solver(config, problem_data)
+# use MCPG_solver to obtain the solution
+max_res, solution, _, _ = MCPG_solver(config, problem_data)
 # use the solution in the rest of the program
 ```
 Although the experiments we show in the paper are running with GPU, the program automatically detects the devices and can also running on CPU without assistance of GPU device.  
@@ -127,11 +134,6 @@ To reproduce the experiments, please download the dataset referred in Summary of
 The MaxCut problem aims to divide a given weighted graph $G = (V,E)$ into two parts and maximize the total weight of the edges connecting two parts. This problem can be expressed as a binary programming problem:
 $$\max  \quad  \sum_{(i,j) \in E} w_{ij} (1-x_i x_j), \quad \mathrm{s.t.}\quad  x\in \\{-1, 1\\}^n.$$
 
-For solving maxcut problem using MCPG, run the following code
-
-```
-python driver/maxcut_gset.py
-```
 
 The following table shows the selected results for MaxCut on Gset datasets regardless of time limits. For BLS, DSDP, RUN-CSP and PI-GNN, we directly use the results presented in the referenced papers since their performance is highly dependent on the implementation. 
 | Graph | Nodes  | Edges  | MCPG   | BLS    | DSDP   | RUN-CSP | PI-GNN | EO    | EMADM |
@@ -161,10 +163,7 @@ QUBO is to solve the following problem:
 $$\max \quad  x^\mathrm{T} Q x,\quad\mathrm{s.t.}\quad x\in \\{0, 1\\}^n.$$
 The sparsity of $Q$ in our experiments is greater than $0.5$, which fundamentally differs from instances derived from graphs such as Gset dataset, where the sparsity is less than $0.1$.
 
-For solving QUBO problem using MCPG, run the following code
-```python
-python driver/qubo.py
-```
+
 The following table shows the results for QUBO on the large instances of Biq Mac Library.
 | Problem  |         | MCPG    |      | MCPG-U  |      | MCPG-P  |      | EMADM   |      |
 | -------- | ------- | ------- | ---- | ------- | ---- | ------- | ---- | ------- | ---- |
@@ -200,11 +199,7 @@ $$\min \quad \frac{\sum_{(i,j)\in E}w_{ij}(1-x_ix_j)}{\min \sum_{i=1:n} (1 + x_i
 and 
 $$\min\quad \frac{\sum_{(i,j)\in E}w_{ij}(1-x_ix_j)}{\sum_{i=1:n} (1 + x_i)} + \frac{\sum_{(i,j)\in E}w_{ij}(1-x_ix_j)}{\sum_{i=1:n} (1 - x_i)},\quad \mathrm{s.t.} \quad x\in\\{-1,1\\}^n.$$
 
-For solving the Cheeger cut problem using MCPG, run the following code
-```python
-python driver/rcheegercut.py
-python driver/ncheegercut.py
-```
+
 The following table shows the selected results for ratio Cheeger cut on Gset dataset.
 | Problem | MCPG  |      | MCPG-U |      | MCPG-P |      | pSC   |      |
 | ------- | ----- | ---- | ------ | ---- | ------ | ---- | ----- | ---- |
@@ -254,14 +249,7 @@ where $w_i = 1$ for $c^i \in C_1$ and $w_i = |C_1| + 1$ for $c^i \in C_2$. $C_1$
 
 $c_j^i$ represents the sign of literal $j$ in clause $i$. $c_j^i = 1$ when $x_j$ appears in the clause $C_i$, $c_j^i = -1$ when $\neg x_j$ appears in the clause $C_i$ and  otherwise $c_j^i = 0$.
 
-For solving the MaxSAT problem using MCPG, run the following code
-```python
-python driver/maxsat.py
-```
-For solving the partial maxsat problem using MCPG, run the following code
-```python
-python driver/pmaxsat.py
-```
+
 
 The following table shows the selected results for MaxSAT without hard clauses on the generated difficult dataset.
 | Problem |         |      | MCPG |      | WBO  |      | WBO-inc |      | SATLike |      |
@@ -298,17 +286,3 @@ We list the downloading links to the datasets used in the papers for reproductio
 * Max-SAT Evaluation 2016: [Max-SAT 2016 - Eleventh Max-SAT Evaluation (udl.cat)](http://maxsat.ia.udl.cat/benchmarks/)
 * MIMO Simulation: http://faculty.bicmr.pku.edu.cn/~wenzw/code/mimo.zip 
 
-## Contact 
-
-We hope that the package is useful for your application. If you have any bug reports or comments, please feel free to email one of the toolbox authors:
-
-- Cheng Chen, chen1999 at pku.edu.cn
-- Ruitao Chen, chenruitao at stu.pku.edu.cn
-- Tianyou Li, tianyouli at stu.pku.edu.cn
-- Zaiwen Wen, wenzw at pku.edu.cn
-
-## Reference
-[Cheng Chen, Ruitao Chen, Tianyou Li, Ruicheng Ao, Zaiwen Wen, A Monte Carlo Policy Gradient Method with Local Search for Binary Optimization, arXiv:2307.00783, 2023.](https://arxiv.org/abs/2307.00783)
-
-## License
-GNU General Public License v3.0

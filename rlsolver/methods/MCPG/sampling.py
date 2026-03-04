@@ -349,17 +349,13 @@ def mcpg_sampling_maxsat(
     return max_res, samples.t()[:, index], raw_samples, -(res_sample - torch.mean(res_sample.float())).to(device)
 
 
-def mcpg_sampling_mimo(data,
-              start_result, probs,
-              num_ls, change_times, total_mcmc_num,
-              device=DEVICE):
+def mcpg_sampling_mimo(data, start_result, probs, num_ls, change_times, total_mcmc_num, device=DEVICE):
     Sigma = data[0]
     Diag = data[1]
     num_n = data[0].shape[0]
     info = start_result.clone()
     # get probs
-    info = metro_sampling(
-        probs, info, change_times, device)
+    info = metro_sampling(probs, info, change_times, device)
     start = info.clone()
 
     info = (info-0.5)*4  # convert to 2, -2
@@ -372,8 +368,7 @@ def mcpg_sampling_mimo(data,
                 break
             cnt += 1
             neighbor_weight = Sigma[node].unsqueeze(0)
-            node_temp_v = torch.matmul(
-                neighbor_weight, info)
+            node_temp_v = torch.matmul(neighbor_weight, info)
             node_temp_v = torch.squeeze(node_temp_v)
             temp = (node_temp_v < - Diag[node]/2).int()
             info[node] = temp*2-1

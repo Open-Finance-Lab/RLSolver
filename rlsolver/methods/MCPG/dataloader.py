@@ -300,16 +300,17 @@ def qubo_dataloader(filename, device=DEVICE):
 
 
 def read_data_mimo(K, N, SNR, X_num, r_seed, device=DEVICE):
-
-    path_H = "data/mimo2/4QAM{}_{}/4QAM{}H{}.mat".format(N, K, K, int(r_seed//X_num+1))
+    ID1 = int(r_seed//X_num+1)
+    ID2 = r_seed % X_num
+    path_H = "data/mimo2/4QAM{}_{}/4QAM{}H{}.mat".format(N, K, K, ID1)
     H_ = scio.loadmat(path_H)
     H = H_["save_H"]
-    path_X = "data/mimo2/4QAM{}_{}/4QAM{}X{}.mat".format(N, K, K, int(r_seed//X_num+1))
+    path_X = "data/mimo2/4QAM{}_{}/4QAM{}X{}.mat".format(N, K, K, ID1)
     X_ = scio.loadmat(path_X)
-    X = X_["save_X"][r_seed % X_num]
-    path_v = "data/mimo2/4QAM{}_{}/4QAM{}v{}.mat".format(N, K, K, int(r_seed//X_num+1))
+    X = X_["save_X"][ID2]
+    path_v = "data/mimo2/4QAM{}_{}/4QAM{}v{}.mat".format(N, K, K, ID1)
     v_ = scio.loadmat(path_v)
-    v__ = v_["save_v"][r_seed % X_num]
+    v__ = v_["save_v"][ID2]
 
 
     v = np.sqrt(2*K*10**(-SNR/10)) * v__
@@ -335,7 +336,7 @@ def read_data_mimo(K, N, SNR, X_num, r_seed, device=DEVICE):
     use_new_read: bool = True
     if use_new_read:
         filename = data_path + "/mimo3/4QAM180_180_ID1.txt"
-        data2 = read_data_mimo3(filename, 10, 0)
+        # data2 = read_data_mimo3(filename, 10, 0)
     return data
 
 
@@ -407,7 +408,47 @@ def read_data_mimo3(filename: str, X_num, r_seed, device=DEVICE):
     data = [Sigma, Diag, X, sca, noise]
     return data
 
+def read_data_mimo5(K, N, SNR, X_num, r_seed, device=DEVICE):
+    ID1 = int(r_seed // X_num + 1)
+    ID2 = r_seed % X_num
+    filename = "data/mimo5/4QAM{}_{}/4QAM{}_{}.npz".format(N, K, K, ID1)
+    data = np.load(filename)
+
+    K_ = data["K"]
+    SNR_ = data["SNR"]
+
+    H = data["H"]
+    X = data["X"]
+    v__ = data["v"]
+
+    v = np.sqrt(2 * K * 10 ** (-SNR / 10)) * v__
+
+    Y = H.dot(X) + v
+    noise = np.linalg.norm(v)
+
+    Sigma = H.T.dot(H)
+    Diag = -2 * Y.T.dot(H)
+    sca = Y.T.dot(Y)
+    for i in range(Sigma.shape[0]):
+        sca += Sigma[i][i]
+        Sigma[i][i] = 0
+
+    # to cuda
+    Sigma = torch.tensor(Sigma).to(device)
+    Diag = torch.tensor(Diag).to(device)
+    X = torch.tensor(X).to(device)
+    sca = torch.tensor(sca).to(device)
+
+    data3 = [Sigma, Diag, X, sca, noise]
+    return data3
+
+
+
 if __name__ == '__main__':
+    # filename = data_path + "/mimo5/4QAM180_180/4QAM180_1.npz"
+    # data = read_data_mimo5(filename)
+    # print(len(data))
+
     filename = data_path + "/mimo3/4QAM180_180_ID4.txt"
     data = read_data_mimo3(filename, 10, 0)
     print(len(data))
