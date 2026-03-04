@@ -1,17 +1,16 @@
-
 import torch
 
 from model import simple
-from sampling import sampler_select_old, sampler_select, sample_initializer_old, sample_initializer
+from sampling import sampler_select, sample_initializer
 from config import update_config_for_maxsat_partial_maxsat
 from config import PROBLEM, Problem, DEVICE
+
 
 def base_solver(problem: Problem, num_vars, config, data, verbose=False):
     device = DEVICE
 
     update_config_for_maxsat_partial_maxsat(problem, config, num_vars)
 
-    # sampler = sampler_select_old(config.problem_type)
     sampler = sampler_select(problem)
 
     change_times = int(num_vars / 10)  # transition times for metropolis sampling
@@ -40,7 +39,6 @@ def base_solver(problem: Problem, num_vars, config, data, verbose=False):
         # get start samples
         if epoch == 0:
             probs = (torch.zeros(num_vars) + 0.5).to(device)
-            # tensor_probs = sample_initializer_old(config.problem_type, probs, config, data=data)
             tensor_probs = sample_initializer(problem, probs, config, data=data)
             temp_max, temp_max_info, temp_start_samples, value = sampler(data, tensor_probs, probs, config.num_ls, 0, config.total_mcmc_num)
             now_max_res = temp_max

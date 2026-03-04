@@ -1,18 +1,16 @@
-
 import torch
 import time
-import yaml
-import argparse
 from dataloader import read_data_mimo, read_data_mimo5
 from base_solver import base_solver
-import tyro
 from config import ConfigMIMO, Problem, PROBLEM
+
 
 class ConfigLocalMimo:
     snr: int = 2
     size: int = 180
 
-def main_old():
+
+def MCPG_MIMO_old():
     problem: Problem = Problem.MIMO
     args = ConfigLocalMimo()
     # args.snr = snr
@@ -100,7 +98,7 @@ def main_old():
         config.max_epoch_num = num_epochs * config.sample_epoch_num
         return config, max_range
 
-    num_nodes = 2*args.size
+    num_nodes = 2 * args.size
     max_range = 150
     config.num_ls = 4  # local search epoch
     config, max_range = get_parameter(args.snr, args.size, args.size, config)  # get paramter
@@ -111,9 +109,7 @@ def main_old():
     total_time = 0
 
     for r_seed in rand_seeds:
-
         data = read_data_mimo(args.size, args.size, args.snr, X_num, r_seed)
-
         total_start_time = time.perf_counter()
         _, _, now_best, now_best_info = base_solver(problem, num_nodes, config, data)
         now_best_info = now_best_info * 2 - 1
@@ -125,32 +121,21 @@ def main_old():
         for i0 in range(max_range):
             total_best_info += torch.squeeze(now_best_info[:, best_sort[i0]])
         total_best_info = torch.sign(total_best_info)
-        record.append((total_best_info != data[2]).sum().item()/num_nodes)
+        record.append((total_best_info != data[2]).sum().item() / num_nodes)
 
     print("SNR = {} SIZE = {}".format(args.snr, args.size))
     print("BEST: ", min(record))
-    print("MEAN: ", sum(record)/num_rand)
-    print("AVERAGE TIME: ", total_time/num_rand)
+    print("MEAN: ", sum(record) / num_rand)
+    print("AVERAGE TIME: ", total_time / num_rand)
 
 
-def main_new():
+def MCPG_MIMO_new():
     problem: Problem = Problem.MIMO
     args = ConfigLocalMimo()
-    # args.snr = snr
-    # args.size = size
-
     H_num = 10
     X_num = 10
     num_rand = H_num * X_num
 
-    # parser = argparse.ArgumentParser()
-    # parser.add_argument("snr", type=int,
-    #                     help="input the SNR for the simulation.")
-    # parser.add_argument("size", type=int,
-    #                     help="input the problem size which appoint the dataset.")
-    # args = parser.parse_args()
-    # with open("config/mimo_default.yaml") as f:
-    #     config = yaml.safe_load(f)
     config = ConfigMIMO()
     print("args: ", args)
     print("args.snr: ", args.snr)
@@ -221,20 +206,15 @@ def main_new():
         config.max_epoch_num = num_epochs * config.sample_epoch_num
         return config, max_range
 
-    num_nodes = 2*args.size
-    max_range = 150
+    num_nodes = 2 * args.size
     config.num_ls = 4  # local search epoch
     config, max_range = get_parameter(args.snr, args.size, args.size, config)  # get paramter
-
-    rand_seeds = list(range(0, num_rand))
 
     record = []
     total_time = 0
 
-    for r_seed in rand_seeds:
-
+    for r_seed in range(num_rand):
         data = read_data_mimo5(args.size, args.size, args.snr, X_num, r_seed)
-
         total_start_time = time.perf_counter()
         _, _, now_best, now_best_info = base_solver(problem, num_nodes, config, data)
         now_best_info = now_best_info * 2 - 1
@@ -246,15 +226,15 @@ def main_new():
         for i0 in range(max_range):
             total_best_info += torch.squeeze(now_best_info[:, best_sort[i0]])
         total_best_info = torch.sign(total_best_info)
-        record.append((total_best_info != data[2]).sum().item()/num_nodes)
+        record.append((total_best_info != data[2]).sum().item() / num_nodes)
 
     print("SNR = {} SIZE = {}".format(args.snr, args.size))
     print("BEST: ", min(record))
-    print("MEAN: ", sum(record)/num_rand)
-    print("AVERAGE TIME: ", total_time/num_rand)
+    print("MEAN: ", sum(record) / num_rand)
+    print("AVERAGE TIME: ", total_time / num_rand)
 
 
 if __name__ == '__main__':
-    main_old()
+    # main_old()
 
-    # main_new()
+    MCPG_MIMO_new()

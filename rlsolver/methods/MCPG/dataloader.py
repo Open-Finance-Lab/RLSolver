@@ -1,4 +1,3 @@
-
 import torch
 import os
 from torch_geometric.data import Data
@@ -9,6 +8,7 @@ import numpy as np
 import os
 import sys
 import copy
+
 cur_path = os.path.dirname(os.path.abspath(__file__))
 data_path = os.path.join(cur_path, 'data')
 sys.path.append(os.path.dirname(data_path))
@@ -19,23 +19,25 @@ sys.path.append(os.path.dirname(rlsolver_path))
 
 from rlsolver.methods.util_read_data import read_list
 
-def dataloader_select_old(problem_type):
-    # if problem_type in ["maxcut", "maxcut_edge", "rcheegercut", "ncheegercut"]:
-    #     return maxcut_dataloader
-    # elif problem_type == "maxsat":
-    #     return maxsat_dataloader
-    # elif problem_type in ["qubo", "qubo_bin"]:
-    #     return qubo_dataloader
-    # else:
-    #     raise (Exception("Unrecognized problem type {}".format(problem_type)))
-    if problem_type in [Problem.maxcut.value, Problem.maxcut_edge.value, Problem.rcheegercut.value, Problem.ncheegercut.value]:
-        return maxcut_dataloader
-    elif problem_type == Problem.maxsat.value:
-        return maxsat_dataloader
-    elif problem_type in [Problem.qubo.value, Problem.qubo_bin.value]:
-        return qubo_dataloader
-    else:
-        raise (Exception("Unrecognized problem type {}".format(problem_type)))
+
+# def dataloader_select_old(problem_type):
+#     # if problem_type in ["maxcut", "maxcut_edge", "rcheegercut", "ncheegercut"]:
+#     #     return maxcut_dataloader
+#     # elif problem_type == "maxsat":
+#     #     return maxsat_dataloader
+#     # elif problem_type in ["qubo", "qubo_bin"]:
+#     #     return qubo_dataloader
+#     # else:
+#     #     raise (Exception("Unrecognized problem type {}".format(problem_type)))
+#     if problem_type in [Problem.maxcut.value, Problem.maxcut_edge.value, Problem.rcheegercut.value, Problem.ncheegercut.value]:
+#         return maxcut_dataloader
+#     elif problem_type == Problem.maxsat.value:
+#         return maxsat_dataloader
+#     elif problem_type in [Problem.qubo.value, Problem.qubo_bin.value]:
+#         return qubo_dataloader
+#     else:
+#         raise (Exception("Unrecognized problem type {}".format(problem_type)))
+
 
 def dataloader_select2(problem):
     # if problem_type in ["maxcut", "maxcut_edge", "rcheegercut", "ncheegercut"]:
@@ -54,6 +56,7 @@ def dataloader_select2(problem):
         return qubo_dataloader
     else:
         raise (Exception("Unrecognized problem type {}".format(problem)))
+
 
 def maxcut_dataloader(path, device=DEVICE):
     with open(path) as f:
@@ -92,12 +95,12 @@ def maxcut_dataloader(path, device=DEVICE):
         edge_degree = []
         add = torch.zeros(3, num_edges).to(device)
         for i0 in range(num_edges):
-            edge_degree.append(abs(edge_attr[i0].item())*(tensor_abs_weighted_degree[edge_index[0][i0]]+tensor_abs_weighted_degree[edge_index[1][i0]]))
+            edge_degree.append(abs(edge_attr[i0].item()) * (tensor_abs_weighted_degree[edge_index[0][i0]] + tensor_abs_weighted_degree[edge_index[1][i0]]))
             node_r = edge_index[0][i0]
             node_c = edge_index[1][i0]
             add[0][i0] = - data_maxcut.weighted_degree[node_r] / 2 + data_maxcut.edge_attr[i0] - 0.05
             add[1][i0] = - data_maxcut.weighted_degree[node_c] / 2 + data_maxcut.edge_attr[i0] - 0.05
-            add[2][i0] = data_maxcut.edge_attr[i0]+0.05
+            add[2][i0] = data_maxcut.edge_attr[i0] + 0.05
 
         for i0 in range(num_nodes):
             data_maxcut.neighbor_edges[i0] = data_maxcut.neighbor_edges[i0].unsqueeze(0)
@@ -208,8 +211,8 @@ def maxsat_dataloader(path, device=DEVICE):
                     nvi.append([])
                     nci.append([])
                     nneg.append([])
-                vp = [0]*nvar
-                vn = [0]*nvar
+                vp = [0] * nvar
+                vn = [0] * nvar
                 continue
             tempvi = []
             tempneg = []
@@ -222,8 +225,8 @@ def maxsat_dataloader(path, device=DEVICE):
                     variable_index.append(abs(ety) - 1)
                     tempvi.append(abs(ety) - 1)
                     clause_index.append(clause_cnt)
-                    neg_index.append(int(ety/abs(ety))*clause_weight_i)
-                    tempneg.append(int(ety/abs(ety))*clause_weight_i)
+                    neg_index.append(int(ety / abs(ety)) * clause_weight_i)
+                    tempneg.append(int(ety / abs(ety)) * clause_weight_i)
                     if ety > 0:
                         vp[abs(ety) - 1] += 1
                     else:
@@ -236,8 +239,8 @@ def maxsat_dataloader(path, device=DEVICE):
                     variable_index.append(abs(ety) - 1)
                     tempvi.append(abs(ety) - 1)
                     clause_index.append(clause_cnt)
-                    neg_index.append(int(ety/abs(ety)))
-                    tempneg.append(int(ety/abs(ety)))
+                    neg_index.append(int(ety / abs(ety)))
+                    tempneg.append(int(ety / abs(ety)))
                     if ety > 0:
                         vp[abs(ety) - 1] += 1
                     else:
@@ -248,15 +251,15 @@ def maxsat_dataloader(path, device=DEVICE):
                 nneg[node] += tempneg
                 temp = len(nci[node])
                 if temp > 0:
-                    temp = nci[node][temp-1]+1
-                nci[node] += [temp]*len(tempvi)
+                    temp = nci[node][temp - 1] + 1
+                nci[node] += [temp] * len(tempvi)
             clause_cnt += 1
     degree = []
     for i0 in range(nvar):
         nvi[i0] = torch.LongTensor(nvi[i0]).to(device)
         nci[i0] = torch.LongTensor(nci[i0]).to(device)
         nneg[i0] = torch.tensor(nneg[i0]).to(device)
-        degree.append(vp[i0]+vn[i0])
+        degree.append(vp[i0] + vn[i0])
     degree = torch.FloatTensor(degree).to(device)
     sorted = torch.argsort(degree, descending=True).to('cpu')
     neg_index = torch.tensor(neg_index).to(device)
@@ -274,7 +277,7 @@ def maxsat_dataloader(path, device=DEVICE):
 def sort_node(ndata):
     degree = ndata[4]
     device = degree.device
-    temp = degree + (torch.rand(degree.shape[0], device=device)-0.5)/2
+    temp = degree + (torch.rand(degree.shape[0], device=device) - 0.5) / 2
     sorted = torch.argsort(temp, descending=True).to('cpu')
     ndata[3] = sorted
     return ndata
@@ -300,7 +303,7 @@ def qubo_dataloader(filename, device=DEVICE):
 
 
 def read_data_mimo(K, N, SNR, X_num, r_seed, device=DEVICE):
-    ID1 = int(r_seed//X_num+1)
+    ID1 = int(r_seed // X_num + 1)
     ID2 = r_seed % X_num
     path_H = "data/mimo2/4QAM{}_{}/4QAM{}H{}.mat".format(N, K, K, ID1)
     H_ = scio.loadmat(path_H)
@@ -312,14 +315,13 @@ def read_data_mimo(K, N, SNR, X_num, r_seed, device=DEVICE):
     v_ = scio.loadmat(path_v)
     v__ = v_["save_v"][ID2]
 
-
-    v = np.sqrt(2*K*10**(-SNR/10)) * v__
+    v = np.sqrt(2 * K * 10 ** (-SNR / 10)) * v__
 
     Y = H.dot(X) + v
     noise = np.linalg.norm(v)
 
     Sigma = H.T.dot(H)
-    Diag = -2*Y.T.dot(H)
+    Diag = -2 * Y.T.dot(H)
     sca = Y.T.dot(Y)
     for i in range(Sigma.shape[0]):
         sca += Sigma[i][i]
@@ -386,14 +388,13 @@ def read_data_mimo3(filename: str, X_num, r_seed, device=DEVICE):
                 X = np.array(X)
                 found_X = True
 
-
-    v = np.sqrt(2*K*10**(-SNR/10)) * v
+    v = np.sqrt(2 * K * 10 ** (-SNR / 10)) * v
 
     Y = H.dot(X) + v
     noise = np.linalg.norm(v)
 
     Sigma = H.T.dot(H)
-    Diag = -2*Y.T.dot(H)
+    Diag = -2 * Y.T.dot(H)
     sca = Y.T.dot(Y)
     for i in range(Sigma.shape[0]):
         sca += Sigma[i][i]
@@ -408,10 +409,10 @@ def read_data_mimo3(filename: str, X_num, r_seed, device=DEVICE):
     data = [Sigma, Diag, X, sca, noise]
     return data
 
+
 def read_data_mimo5(K, N, SNR, X_num, r_seed, device=DEVICE):
     ID1 = int(r_seed // X_num + 1)
-    ID2 = r_seed % X_num
-    filename = "data/mimo5/4QAM{}_{}/4QAM{}_{}.npz".format(N, K, K, ID1)
+    filename = rlsolver_path + "/data/MIMO/4QAM{}_{}/4QAM{}_{}.npz".format(N, K, K, ID1)
     data = np.load(filename)
 
     K_ = data["K"]
@@ -443,13 +444,13 @@ def read_data_mimo5(K, N, SNR, X_num, r_seed, device=DEVICE):
     return data3
 
 
-
 if __name__ == '__main__':
-    # filename = data_path + "/mimo5/4QAM180_180/4QAM180_1.npz"
+    # filename = data_path + "/MIMO/4QAM180_180/4QAM180_1.npz"
     # data = read_data_mimo5(filename)
     # print(len(data))
 
-    filename = data_path + "/mimo3/4QAM180_180_ID4.txt"
-    data = read_data_mimo3(filename, 10, 0)
-    print(len(data))
+    # filename = data_path + "/mimo3/4QAM180_180_ID4.txt"
+    # data = read_data_mimo3(filename, 10, 0)
+    # print(len(data))
 
+    print()

@@ -1,9 +1,0 @@
-problem_type: "rcheegercut"
-lr_init: 0.25
-regular_init: 0
-sample_epoch_num: 8
-max_epoch_num: 800
-reset_epoch_num: 80
-total_mcmc_num: 140
-repeat_times: 120
-num_ls: 2

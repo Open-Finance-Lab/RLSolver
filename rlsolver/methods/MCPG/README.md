@@ -48,50 +48,36 @@ conda env create -f environment.yaml
 Run the following code with the default configuration to solve the selected instances.
 
 
-# old_version: maxcut
-python MCPG.py --config_file config/maxcut_default.yaml --problem_instance data/graph/G14.txt
-
-# old_version: qubo on {-1,1}^n
-python MCPG.py --config_file config/qubo_default.yaml --problem_instance data/nbiq/nbiq_500.npy
-# old_version: qubo on {0,1}^n
-python MCPG.py --config_file config/qubo_bin_default.yaml --problem_instance data/nbiq/nbiq_500.npy
-# old_version: ratio Cheeger cut
-python MCPG.py --config_file config/rcheegercut_default.yaml --problem_instance data/graph/G35.txt
-# old_version: normal Cheeger cut
-python MCPG.py --config_file config/ncheegercut_default.yaml --problem_instance data/graph/G35.txt
-# old_version: maxsat
-python MCPG.py --config_file config/maxsat_default.yaml --problem_instance data/sat/randu1.cnf
-# old_version: partial maxsat
-python MCPG.py --config_file config/pmaxsat_default.yaml --problem_instance data/partial_sat/clq1-cv160c800l2g1.wcnf
-
-# old_version: MIMO
-python MIMO.py  
-
-
 ```
-# new_version: maxcut
-run_maxcut = True
+# maxcut
+PROBLEM = Problem.maxcut # set it in MCPG.py
 python MCPG.py 
 
-# new_version: qubo on {-1,1}^n
+# qubo on {-1,1}^n
+PROBLEM = Problem.qubo # set it in MCPG.py
 python MCPG.py
 
-# new_version: qubo on {0,1}^n
+# qubo on {0,1}^n
+PROBLEM = Problem.qubo_bin # set it in MCPG.py
 python MCPG.py
 
-# new_version: ratio Cheeger cut
+# ratio Cheeger cut
+PROBLEM = Problem.rcheegercut # set it in MCPG.py
 python MCPG.py
 
-# new_version: normal Cheeger cut
+# normal Cheeger cut
+PROBLEM = Problem.ncheegercut # set it in MCPG.py
 python MCPG.py
 
-# new_version: maxsat
+# maxsat
+PROBLEM = Problem.maxsat # set it in MCPG.py
 python MCPG.py
 
-# new_version: partial maxsat
+# partial maxsat
+PROBLEM = Problem.partial_maxsat # set it in MCPG.py
 python MCPG.py
 
-# new_version: MIMO
+# MIMO
 python MCPG_MIMO.py  
 
 ```

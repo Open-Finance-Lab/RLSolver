@@ -17,6 +17,7 @@ class Problem(enum.Enum):
     qubo_bin = "qubo_bin"
     rcheegercut = "rcheegercut"
 
+
 GPU_ID: int = 0
 PROBLEM = Problem.maxcut
 DEVICE: th.device = calc_device(GPU_ID)
@@ -24,7 +25,6 @@ DEVICE: th.device = calc_device(GPU_ID)
 
 class ConfigMaxcut:
     def __init__(self):
-        self.problem_type = "maxcut"
         self.lr_init = 0.25
         self.regular_init = 0
         self.sample_epoch_num = 8
@@ -34,9 +34,9 @@ class ConfigMaxcut:
         self.repeat_times = 120
         self.num_ls = 3
 
+
 class ConfigMaxcutEdge:
     def __init__(self):
-        self.problem_type = "maxcut_edge"
         self.lr_init = 0.15
         self.regular_init = 0
         self.sample_epoch_num = 8
@@ -46,9 +46,9 @@ class ConfigMaxcutEdge:
         self.repeat_times = 120
         self.num_ls = 3
 
+
 class ConfigMaxcutLarge:
     def __init__(self):
-        self.problem_type = "maxcut"
         self.lr_init = 0.25
         self.regular_init = 0
         self.sample_epoch_num = 8
@@ -58,9 +58,9 @@ class ConfigMaxcutLarge:
         self.repeat_times = 120
         self.num_ls = 2
 
+
 class ConfigMaxsat:
     def __init__(self):
-        self.problem_type = "maxsat"
         self.lr_init = 0.1
         self.regular_init = 0
         self.sample_epoch_num = 8
@@ -73,7 +73,6 @@ class ConfigMaxsat:
 
 class ConfigMIMO:
     def __init__(self):
-        self.problem_type = "MIMO"
         self.lr_init = 0.25
         self.regular_init = 0
         self.sample_epoch_num = 8
@@ -83,9 +82,9 @@ class ConfigMIMO:
         self.repeat_times = 100
         self.num_ls = 4
 
+
 class ConfigNcheegercut:
     def __init__(self):
-        self.problem_type = "ncheegercut"
         self.lr_init = 0.25
         self.regular_init = 0
         self.sample_epoch_num = 8
@@ -98,7 +97,6 @@ class ConfigNcheegercut:
 
 class ConfigPartialMaxsat:
     def __init__(self):
-        self.problem_type = "maxsat"
         self.lr_init = 0.1
         self.regular_init = 0
         self.sample_epoch_num = 8
@@ -111,7 +109,6 @@ class ConfigPartialMaxsat:
 
 class ConfigQuboBin:
     def __init__(self):
-        self.problem_type = "qubo_bin"
         self.lr_init = 0.25
         self.regular_init = 0
         self.sample_epoch_num = 8
@@ -124,7 +121,6 @@ class ConfigQuboBin:
 
 class ConfigQubo:
     def __init__(self):
-        self.problem_type = "qubo"
         self.lr_init = 0.25
         self.regular_init = 0
         self.sample_epoch_num = 8
@@ -137,7 +133,6 @@ class ConfigQubo:
 
 class ConfigRcheegercut:
     def __init__(self):
-        self.problem_type = "rcheegercut"
         self.lr_init = 0.25
         self.regular_init = 0
         self.sample_epoch_num = 8
@@ -146,8 +141,6 @@ class ConfigRcheegercut:
         self.total_mcmc_num = 140
         self.repeat_times = 120
         self.num_ls = 2
-
-
 
 
 def class_to_dict_recursive(obj):
@@ -164,6 +157,7 @@ def class_to_dict_recursive(obj):
         else:
             result[key] = value
     return result
+
 
 def update_config_for_maxsat_partial_maxsat(problem: Problem, config, nvar):
     if problem == Problem.maxsat:
@@ -189,5 +183,3 @@ def update_config_for_maxsat_partial_maxsat(problem: Problem, config, nvar):
         config.repeat_times = 80
 
         config.max_epoch_num = (num_epochs - 1) * config.sample_epoch_num + 1
-
-

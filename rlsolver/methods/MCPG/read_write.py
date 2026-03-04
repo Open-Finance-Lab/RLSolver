@@ -4,6 +4,7 @@ import numpy as np
 import os
 import sys
 import copy
+
 cur_path = os.path.dirname(os.path.abspath(__file__))
 data_path = os.path.join(cur_path, 'data')
 sys.path.append(os.path.dirname(data_path))
@@ -39,10 +40,10 @@ def write2(file, d):
     else:
         pass
 
+
 def write_mimo():
     dir = data_path + "/mimo2"
     dir2 = os.listdir(dir)
-
 
     for dir3 in dir2:
         dir3b = dir + "/" + dir3
@@ -79,7 +80,7 @@ def write_mimo():
             f_txt_new = ""
             f_txt_new += f_txt_new1[: ind1]
             f_txt_new += "_ID"
-            f_txt_new += f_txt_new1[ind2 + 1: ]
+            f_txt_new += f_txt_new1[ind2 + 1:]
             print("f_txt_new: ", f_txt_new)
             for f_npy in dir6b:
 
@@ -115,20 +116,20 @@ def write_mimo():
                     continue
                 # with open(f_txt, 'w', encoding='utf-8') as file:
                 #     pass
-                    # write2(d)
-                        # if all_:
-                        #     for line in lines2:
-                        #         file.write(line)
-                        #         file.write("\n")
-                        # else:
-                        #     for line in lines3:
-                        #         file.write(line)
-                        #         file.write("\n")
-                        # file.writelines(lines2)
-                        # for i in range(d_shape[0]):
-                        #     s2 = str(d[i])
-                        #     file.write(s2)
-                        # raise ValueError
+                # write2(d)
+                # if all_:
+                #     for line in lines2:
+                #         file.write(line)
+                #         file.write("\n")
+                # else:
+                #     for line in lines3:
+                #         file.write(line)
+                #         file.write("\n")
+                # file.writelines(lines2)
+                # for i in range(d_shape[0]):
+                #     s2 = str(d[i])
+                #     file.write(s2)
+                # raise ValueError
             print("f_txt_new: ", f_txt_new)
             with open(f_txt_new, 'w', encoding='utf-8') as file:
                 file.write("SNR\n")
@@ -146,6 +147,7 @@ def write_mimo():
                 file.write("X\n")
                 write2(file, X)
                 file.write("\n\n")
+
 
 def write_qubo():
     dir = data_path + "/nbiq"
@@ -166,4 +168,3 @@ def write_qubo():
 if __name__ == '__main__':
     write_mimo()
     # write_qubo()
-
