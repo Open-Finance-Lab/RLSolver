@@ -456,8 +456,8 @@ def mcpg(filename: str):
     best_x = xs_epochs[best_index]
     return best_obj, best_x
 
-def mcpg_manyfiles(directory_data: str, prefixes: List[str]):
-    files = calc_txt_files_with_prefixes(directory_data, prefixes)
+def mcpg_manyfiles(data_dir: str, prefixes: List[str]):
+    files = calc_txt_files_with_prefixes(data_dir, prefixes)
     for i in range(len(files)):
         start_time = time.time()
         filename = files[i]
@@ -472,9 +472,9 @@ def mcpg_manyfiles(directory_data: str, prefixes: List[str]):
 
 
 if __name__ == '__main__':
-    directory_data = DATA_DIR
+    data_dir = DATA_DIR
     prefixes = PREFIXES
-    mcpg_manyfiles(directory_data, prefixes)
+    mcpg_manyfiles(data_dir, prefixes)
 
 
 

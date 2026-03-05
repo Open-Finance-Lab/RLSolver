@@ -601,21 +601,21 @@ def run_using_gurobi(filename: str, init_x=None, time_limit: int = None, plot_fi
     return x_values
 
 
-def run_gurobi_over_manyfiles(prefixes: List[str], time_limits: List[int], directory_data: str):
-    files = calc_txt_files_with_prefixes(directory_data, prefixes)
+def run_gurobi_manyfiles(prefixes: List[str], time_limits: List[int], data_dir: str):
+    files = calc_txt_files_with_prefixes(data_dir, prefixes)
     for i in range(len(files)):
         filename = files[i]
         print(f'Start the {i}-th file: {filename}')
         for j in range(len(time_limits)):
             run_using_gurobi(files[i], None, time_limits[j])
-    assert 'data' in directory_data
-    directory_data2 = copy.deepcopy(directory_data)
-    directory_result3 = directory_data2.replace('data', 'result')
-    index = directory_result3.find('result')
-    directory_result4 = directory_result3[:index] + 'result'
-    # directory_result4 = directory_result3.split('/')
-    # directory_result = directory_result3.replace('/' + directory_result4[-1], '')
-    avg_std = calc_avg_std_of_objs(directory_result4, prefixes, time_limits)
+    assert 'data' in data_dir
+    data_dir2 = copy.deepcopy(data_dir)
+    result_dir3 = data_dir2.replace('data', 'result')
+    index = result_dir3.find('result')
+    result_dir4 = result_dir3[:index] + 'result'
+    # result_dir4 = result_dir3.split('/')
+    # result_dir = result_didr3.replace('/' + result_dir4[-1], '')
+    avg_std = calc_avg_std_of_objs(result_dir4, prefixes, time_limits)
 
 
 if __name__ == '__main__':
@@ -623,31 +623,31 @@ if __name__ == '__main__':
     # time_limits = GUROBI_TIME_LIMITS
     # time_limits = [10 * 60, 20 * 60, 30 * 60, 40 * 60, 50 * 60, 60 * 60]
     if run_syndistr:
-        directory_data = '../data/syn_BA'
+        data_dir = '../data/syn_BA'
         prefixes = ['BA_100_']
 
     if PROBLEM == Problem.TSP:
-        directory_data = '../data/tsplib'
+        data_dir = '../data/tsplib'
         # prefixes = list(string.ascii_lowercase)
         # prefixes = list(string.ascii_uppercase)
         # prefixes = ['a', 'b', 'c']
         prefixes = ['a5']
     elif PROBLEM == Problem.knapsack:
-        directory_data = '../data/knapsack'
+        data_dir = '../data/knapsack'
         prefixes = ['knap_4_']
-    run_gurobi_over_manyfiles(prefixes, GUROBI_TIME_LIMITS, directory_data)
+    run_gurobi_manyfiles(prefixes, GUROBI_TIME_LIMITS, data_dir)
 
-    directory_result = '../result'
-    avg_std = calc_avg_std_of_objs(directory_result, prefixes, GUROBI_TIME_LIMITS)
+    result_dir = '../result'
+    avg_std = calc_avg_std_of_objs(result_dir, prefixes, GUROBI_TIME_LIMITS)
 
     run_knapsack = False
     if run_knapsack:
-        directory_data = '../data/knapsack'
+        data_dir = '../data/knapsack'
         prefixes = ['kp_']
 
     run_set_cover = False
     if run_set_cover:
-        directory_data = '../data/set_cover'
+        data_dir = '../data/set_cover'
         prefixes = ['set_cover_']
 
     pass

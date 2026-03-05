@@ -23,25 +23,15 @@ The pipeline of MCPG is demonstrated in the next figure. In each iteration, MCPG
 ```
     ├── config         : Configuration files for various types of problems. 
     |                    See Examples for more details to use the configuration files.
-    ├── data           : Problem instances selected for testing.
-    |                    See Summary of Datasets to access the complete datasets presented
-    ├── driver         : Scripts to reproduce the experiment results.
-    |                    See Examples for more details to use the driver files
-    └── src
-        ├── MCPG.py          : Main file to run MCPG solver on specific problem data.
-        ├── MCPG_solver.py   : Our MCPG solver. 
-        ├── model.py         : The probabilistic model to output the mean-field distribution.
-        ├── dataloader.py    : Data loader for MCPG to input the problem instance.
-        └── sampling.py      : The sampling procedure combining with the local search 
+    ├───MCPG.py          : Main file to run MCPG solver on specific problem data.
+    ├── base_solver.py   : Our MCPG solver. 
+    ├── model.py         : The probabilistic model to output the mean-field distribution.
+    ├── dataloader.py    : Data loader for MCPG to input the problem instance.
+    └── sampling.py      : The sampling procedure combining with the local search 
                                algorithm in MCPG.
 ```
 ## Requirements
 The environment dependencies are exported in the form of "environment.yaml". For the most convenient installation of these environments, we highly recommend using conda.
-
-```
-conda env create -f environment.yaml
-```
-
 
 
 ## Quick Start
@@ -110,12 +100,14 @@ where $\mathrm{obj}$ is the objective value achieved by MCPG and other compariso
 To reproduce the experiments, please download the dataset referred in Summary of Datasets.
 ```
     ├── data
-        ├── graph          : Gset datasets.
-        ├── regular_graph  : Generated large regular graph datasets.
-        ├── nbiq           : Generated nbiq datasets.
-        ├── mimo           : MIMO Simulation files.
-        ├── sat            : Generated MaxSAT files.
-        └── partial_sat    : random track of Max-SAT Evaluation 2016
+        ├── syn_BA         : synthetic BA
+        ├── syn_ER         : synthetic ER
+        ├── syn_PL         : synthetic PL
+        ├── gset           : Gset datasets.
+        ├── qubo           : Generated nbiq datasets. for qubo or qubo_bin
+        ├── MIMO           : MIMO Simulation files.
+        ├── maxsat            : Generated MaxSAT files.
+        └── partial_maxsat    : random track of Max-SAT Evaluation 2016
 ```
 ### MaxCut
 The MaxCut problem aims to divide a given weighted graph $G = (V,E)$ into two parts and maximize the total weight of the edges connecting two parts. This problem can be expressed as a binary programming problem:
@@ -214,9 +206,8 @@ The problem can be reduced to a binary one and is equivalent to the following:
 $$\min_{x\in\mathbb{R}^{2N}}\quad\|Hx-y\|_2^2,\quad\mathrm{s.t.} \quad x\in \\{-1, 1\\}^{2N}.$$
 
 For solving the MIMO problem using MCPG, run the following code
-```python
-python driver/mimo.py
-```
+
+
 | Type   | LB       | MCPG     |      | HOTML    |       | MMSE     |      |
 | ------ | -------- | -------- | ---- | -------- | ----- | -------- | ---- |
 |        | BER      | BER      | time | BER      | time  | BER      | time |

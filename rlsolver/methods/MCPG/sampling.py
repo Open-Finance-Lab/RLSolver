@@ -56,23 +56,23 @@ def sample_initializer(problem: Problem, probs, config, device=DEVICE, data=None
 
 
 def sampler_select(problem: Problem):
-    if problem == Problem.maxcut:
+    if problem.value == Problem.maxcut.value:
         return mcpg_sampling_maxcut
-    elif problem == Problem.maxcut_edge:
+    elif problem.value == Problem.maxcut_edge.value:
         return mcpg_sampling_maxcut_edge
-    elif problem == Problem.maxsat:
+    elif problem.value == Problem.maxsat.value:
         return mcpg_sampling_maxsat
-    elif problem == Problem.MIMO:
+    elif problem.value == Problem.MIMO.value:
         return mcpg_sampling_mimo
-    elif problem == Problem.ncheegercut:
+    elif problem.value == Problem.ncheegercut.value:
         return mcpg_sampling_ncheegercut
-    elif problem == Problem.partial_maxsat:
+    elif problem.value == Problem.partial_maxsat.value:
         return mcpg_sampling_maxsat
-    elif problem == Problem.qubo:
+    elif problem.value == Problem.qubo.value:
         return mcpg_sampling_qubo
-    elif problem == Problem.qubo_bin:
+    elif problem.value == Problem.qubo_bin.value:
         return mcpg_sampling_qubo_bin
-    elif problem == Problem.rcheegercut:
+    elif problem.value == Problem.rcheegercut.value:
         return mcpg_sampling_rcheegercut
     else:
         raise (Exception("Unrecognized problem type {}".format(problem)))

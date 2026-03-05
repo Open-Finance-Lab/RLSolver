@@ -3,7 +3,6 @@ import torch as th
 
 from rlsolver.methods.config import calc_device
 
-
 class Problem(enum.Enum):
     maxcut = "maxcut"
     maxcut_edge = "maxcut_edge"

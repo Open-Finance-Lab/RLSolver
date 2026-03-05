@@ -74,7 +74,7 @@ def greedy_maxcut(num_steps: Optional[int], graph: nx.Graph) -> (int, Union[List
     print('running_duration: ', running_duration)
     # alg_name = "greedy"
     # write_graph_result(score, running_duration, num_nodes, alg_name, curr_solution, filename)
-    # 修复“重复写入”的问题，原来greedy_maxcut函数内部会写一次结果，外层函数run_greedy_over_manyfiles又会写一次，导致生成两个结果一样名称不一样的文件，这里注释掉，改为在run_greedy_over_manyfiles中统一写入结果
+    # 修复“重复写入”的问题，原来greedy_maxcut函数内部会写一次结果，外层函数run_greedy_manyfiles又会写一次，导致生成两个结果一样名称不一样的文件，这里注释掉，改为在run_greedy_manyfiles中统一写入结果
     return curr_score, curr_solution, scores
 
 def greedy_graph_partitioning(num_steps:Optional[int], graph: nx.Graph) -> (int, Union[List[int], np.array], List[int]):
@@ -216,7 +216,7 @@ def greedy_MIS(num_steps: Optional[int], graph: nx.Graph) -> (int, Union[List[in
     print("solution: ", curr_solution)
     running_duration = time.time() - start_time
     print('running_duration: ', running_duration)
-    # write_graph_result 在 run_greedy_over_manyfiles 中统一调用
+    # write_graph_result 在 run_greedy_manyfiles 中统一调用
     return curr_score, curr_solution, scores
 
 def greedy_set_cover(num_items: int, num_sets: int, item_matrix: List[List[int]]) -> (int, Union[List[int], np.array], List[int]):
@@ -363,8 +363,7 @@ if __name__ == '__main__':
     num_steps = None
     data_dir = DATA_DIR  # 使用 config.py 中的配置
     prefixes = PREFIXES  # 使用 config.py 中的配置
-    # directory_data = '../data/syn_BA'
-    # directory_data = '../data/syn_ER'
+    # data_dir = '../data/syn_BA'
     # prefixes = ['BA_100_']
     # prefixes = ['ER_100_']
 
