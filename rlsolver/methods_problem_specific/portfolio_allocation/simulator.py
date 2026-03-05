@@ -91,7 +91,7 @@ class SimulatorMaxcut:
         graph: MyGraph = load_mygraph(DataDir, graph_name=sim_name)
 
         '''建立邻接矩阵'''
-        self.adjacency_matrix = build_adjacency_matrix(graph=graph, if_bidirectional=if_bidirectional).to(device)
+        self.adjacency_matrix = build_adjacency_matrix(mygraph=graph, if_bidirectional=if_bidirectional).to(device)
 
         '''建立邻接索引'''
         n0_to_n1s, n0_to_dts = build_adjacency_indies(graph=graph, if_bidirectional=if_bidirectional)
