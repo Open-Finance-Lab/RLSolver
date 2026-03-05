@@ -11,8 +11,7 @@ class simple(torch.nn.Module):
     def reset_parameters(self):
         self.lin.reset_parameters()
 
-    def forward(self, alpha=0.1, start_samples=None, value=None,
-                device=DEVICE):
+    def forward(self, alpha=0.1, start_samples=None, value=None, device=DEVICE):
         x = torch.ones(1).to(device)
         x = self.lin(x)
         x = self.sigmoid(x)
@@ -31,8 +30,7 @@ class simple(torch.nn.Module):
 
         res_samples = value.t().detach()
 
-        start_samples_idx = start_samples * \
-                            probs + (1 - start_samples) * (1 - probs)
+        start_samples_idx = start_samples * probs + (1 - start_samples) * (1 - probs)
         log_start_samples_idx = torch.log(start_samples_idx)
         log_start_samples = log_start_samples_idx.sum(dim=1)
         loss_ls = torch.mean(log_start_samples * res_samples)

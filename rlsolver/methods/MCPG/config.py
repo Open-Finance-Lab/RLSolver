@@ -1,9 +1,7 @@
 import enum
 import torch as th
 
-
-def calc_device(gpu_id: int):
-    return th.device(f"cuda:{gpu_id}" if th.cuda.is_available() and gpu_id >= 0 else "cpu")
+from rlsolver.methods.config import calc_device
 
 
 class Problem(enum.Enum):
@@ -82,6 +80,10 @@ class ConfigMIMO:
         self.repeat_times = 100
         self.num_ls = 4
 
+# only for MIMO
+class ConfigLocalMimo:
+    snr: int = 2
+    size: int = 180
 
 class ConfigNcheegercut:
     def __init__(self):

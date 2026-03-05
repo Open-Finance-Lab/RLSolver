@@ -150,7 +150,7 @@ def write_mimo():
 
 
 def write_qubo():
-    dir = data_path + "/nbiq"
+    dir = data_path + "/qubo"
     filenames = os.listdir(dir)
     for filename in filenames:
         if "npy" not in filename:

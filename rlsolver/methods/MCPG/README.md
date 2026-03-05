@@ -78,7 +78,8 @@ PROBLEM = Problem.partial_maxsat # set it in MCPG.py
 python MCPG.py
 
 # MIMO
-python MCPG_MIMO.py  
+PROBLEM = Problem.MIMO # set it in MCPG.py
+python MCPG.py  
 
 ```
 

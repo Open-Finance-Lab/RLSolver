@@ -39,7 +39,7 @@ from rlsolver.methods.util_read_data import read_list
 #         raise (Exception("Unrecognized problem type {}".format(problem_type)))
 
 
-def dataloader_select2(problem):
+def dataloader_select(problem):
     # if problem_type in ["maxcut", "maxcut_edge", "rcheegercut", "ncheegercut"]:
     #     return maxcut_dataloader
     # elif problem_type == "maxsat":
@@ -300,46 +300,6 @@ def qubo_dataloader(filename, device=DEVICE):
     Q = torch.tensor(Q).float().to(device)
     data = {'Q': Q, 'nvar': Q.shape[0]}
     return data, Q.shape[0]
-
-
-def read_data_mimo(K, N, SNR, X_num, r_seed, device=DEVICE):
-    ID1 = int(r_seed // X_num + 1)
-    ID2 = r_seed % X_num
-    path_H = "data/mimo2/4QAM{}_{}/4QAM{}H{}.mat".format(N, K, K, ID1)
-    H_ = scio.loadmat(path_H)
-    H = H_["save_H"]
-    path_X = "data/mimo2/4QAM{}_{}/4QAM{}X{}.mat".format(N, K, K, ID1)
-    X_ = scio.loadmat(path_X)
-    X = X_["save_X"][ID2]
-    path_v = "data/mimo2/4QAM{}_{}/4QAM{}v{}.mat".format(N, K, K, ID1)
-    v_ = scio.loadmat(path_v)
-    v__ = v_["save_v"][ID2]
-
-    v = np.sqrt(2 * K * 10 ** (-SNR / 10)) * v__
-
-    Y = H.dot(X) + v
-    noise = np.linalg.norm(v)
-
-    Sigma = H.T.dot(H)
-    Diag = -2 * Y.T.dot(H)
-    sca = Y.T.dot(Y)
-    for i in range(Sigma.shape[0]):
-        sca += Sigma[i][i]
-        Sigma[i][i] = 0
-
-    # to cuda
-    Sigma = torch.tensor(Sigma).to(device)
-    Diag = torch.tensor(Diag).to(device)
-    X = torch.tensor(X).to(device)
-    sca = torch.tensor(sca).to(device)
-
-    data = [Sigma, Diag, X, sca, noise]
-
-    use_new_read: bool = True
-    if use_new_read:
-        filename = data_path + "/mimo3/4QAM180_180_ID1.txt"
-        # data2 = read_data_mimo3(filename, 10, 0)
-    return data
 
 
 def read_data_mimo3(filename: str, X_num, r_seed, device=DEVICE):
