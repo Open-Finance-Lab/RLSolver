@@ -1,3 +1,4 @@
+import copy
 import os
 
 cur_path = os.path.dirname(os.path.abspath(__file__))
@@ -9,10 +10,10 @@ import tyro
 from typing import List, Tuple
 from base_solver import base_solver
 from dataloader import dataloader_select
-from config import DEVICE, Problem, PROBLEM
+from rlsolver.methods.MCPG.config import DEVICE, Problem, PROBLEM
+from rlsolver.methods.MCPG.config import ConfigMaxcut, ConfigMaxcutEdge, ConfigMaxsat, ConfigMIMO, ConfigLocalMimo, ConfigNcheegercut, ConfigPartialMaxsat, ConfigQubo, ConfigQuboBin
 
-from rlsolver.methods.util_read_data import read_set_cover_data, read_nxgraph
-from rlsolver.methods.util_write_read_result import write_result_set_cover
+from rlsolver.methods.util_read_data import read_nxgraph
 from rlsolver.methods.util import calc_txt_files_with_prefixes
 
 from rlsolver.methods.util_write_read_result import write_graph_result
@@ -21,28 +22,27 @@ import torch
 import time
 from dataloader import read_data_mimo5
 
-from config import *
 
 device = DEVICE
 
 def run_one_file(problem: Problem, filename: str):
-    if problem == PROBLEM.maxcut:
+    if problem == Problem.maxcut:
         config = ConfigMaxcut()
-    elif problem == PROBLEM.maxcut_edge:
+    elif problem == Problem.maxcut_edge:
         config = ConfigMaxcutEdge()
-    elif problem == PROBLEM.maxsat:
+    elif problem == Problem.maxsat:
         config = ConfigMaxsat()
-    elif problem == PROBLEM.MIMO:
+    elif problem == Problem.MIMO:
         config = ConfigMIMO()
-    elif problem == PROBLEM.ncheegercut:
+    elif problem == Problem.ncheegercut:
         config = ConfigNcheegercut()
-    elif problem == PROBLEM.partial_maxsat:
+    elif problem == Problem.partial_maxsat:
         config = ConfigPartialMaxsat()
-    elif problem == PROBLEM.qubo_bin:
+    elif problem == Problem.qubo_bin:
         config = ConfigQuboBin()
-    elif problem == PROBLEM.qubo:
+    elif problem == Problem.qubo:
         config = ConfigQubo()
-    elif problem == PROBLEM.rcheegercut:
+    elif problem == Problem.rcheegercut:
         config = ConfigNcheegercut()
     else:
         raise ValueError("error, problem")
@@ -87,11 +87,11 @@ def run_manyfiles(alg_name, problem: Problem, data_dir: str, prefixes: List[str]
             graph = read_nxgraph(filename)
             num_nodes = graph.number_of_nodes()
             plus1 = True
-        score, solution = run_one_file(PROBLEM, filename)
+        score, solution = run_one_file(problem, filename)
         scores.append(score)
         solutions.append(solution)
         running_duration = time.time() - start_time
-        info_dict = {'problem': PROBLEM.value}
+        info_dict = {'problem': problem.value}
         write_graph_result(score, running_duration, num_nodes, alg_name, solution, filename, plus1=plus1, info_dict=info_dict)
     return scores, solutions
 
@@ -198,7 +198,7 @@ def MCPG_MIMO(config_local_mimo: ConfigLocalMimo, config: ConfigMIMO):
     print("AVERAGE TIME: ", total_time / num_rand)
 
 if __name__ == '__main__':
-    PROBLEM = Problem.MIMO
+    PROBLEM = Problem.maxcut
 
     alg_name = "MCPG"
     if PROBLEM == Problem.maxcut:

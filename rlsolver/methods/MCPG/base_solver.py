@@ -3,7 +3,7 @@ import torch
 from model import simple
 from sampling import sampler_select, sample_initializer
 from config import update_config_for_maxsat_partial_maxsat
-from config import PROBLEM, Problem, DEVICE
+from config import Problem, DEVICE
 
 
 def base_solver(problem: Problem, num_vars, config, data, verbose=False):

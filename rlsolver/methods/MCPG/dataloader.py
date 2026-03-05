@@ -40,19 +40,11 @@ from rlsolver.methods.util_read_data import read_list
 
 
 def dataloader_select(problem):
-    # if problem_type in ["maxcut", "maxcut_edge", "rcheegercut", "ncheegercut"]:
-    #     return maxcut_dataloader
-    # elif problem_type == "maxsat":
-    #     return maxsat_dataloader
-    # elif problem_type in ["qubo", "qubo_bin"]:
-    #     return qubo_dataloader
-    # else:
-    #     raise (Exception("Unrecognized problem type {}".format(problem_type)))
-    if problem in [Problem.maxcut, Problem.maxcut_edge, Problem.rcheegercut, Problem.ncheegercut]:
+    if problem.value in [Problem.maxcut.value, Problem.maxcut_edge.value, Problem.rcheegercut.value, Problem.ncheegercut.value]:
         return maxcut_dataloader
-    elif problem in [Problem.maxsat, Problem.partial_maxsat]:
+    elif problem.value in [Problem.maxsat.value, Problem.partial_maxsat.value]:
         return maxsat_dataloader
-    elif problem in [Problem.qubo, Problem.qubo_bin]:
+    elif problem.value in [Problem.qubo.value, Problem.qubo_bin.value]:
         return qubo_dataloader
     else:
         raise (Exception("Unrecognized problem type {}".format(problem)))
