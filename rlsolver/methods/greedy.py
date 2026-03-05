@@ -16,8 +16,6 @@ from rlsolver.methods.util import (plot_fig,
                   transfer_nxgraph_to_weightmatrix,
                   calc_txt_files_with_prefixes,
                 )
-from rlsolver.methods.util_read_data import (read_nxgraph,
-                            )
 from rlsolver.methods.util_obj import (cover_all_edges,
                                        obj_maxcut,
                                        obj_graph_partitioning,
@@ -26,8 +24,9 @@ from rlsolver.methods.util_obj import (cover_all_edges,
                                        obj_set_cover_ratio,
                                        obj_set_cover,
                                        obj_graph_coloring, )
-from rlsolver.methods.util_write_read_result import (write_graph_result,
-                                                     )
+from rlsolver.methods.util_write_read_result import write_graph_result
+from rlsolver.methods.util_read_data import (read_set_cover_data, read_nxgraph)
+from rlsolver.methods.util_write_read_result import write_result_set_cover
 from rlsolver.methods.config import *
 
 # init_solution is useless
@@ -312,12 +311,9 @@ def greedy_graph_coloring(num_steps: Optional[int], graph: nx.Graph) -> (int, Un
     scores = [curr_score]
     return curr_score, curr_solution, scores
 
-# def run_greedy_over_manyfiles(alg, alg_name, num_steps, set_init_0: Optional[bool], directory_data: str, prefixes: List[str])-> List[List[float]]:
-def run_greedy_over_manyfiles(alg, alg_name, num_steps, directory_data: str, prefixes: List[str])-> List[List[float]]:
-    from util_read_data import (read_set_cover_data, read_nxgraph)
-    from util_write_read_result import write_result_set_cover
+def run_greedy_manyfiles(alg, alg_name, num_steps, data_dir: str, prefixes: List[str])-> List[List[float]]:
     scoress = []
-    files = calc_txt_files_with_prefixes(directory_data, prefixes)
+    files = calc_txt_files_with_prefixes(data_dir, prefixes)
     for i in range(len(files)):
         start_time = time.time()
         filename = files[i]
@@ -365,7 +361,7 @@ if __name__ == '__main__':
 
     alg_name = "greedy"
     num_steps = None
-    directory_data = DIRECTORY_DATA  # 使用 config.py 中的配置
+    data_dir = DATA_DIR  # 使用 config.py 中的配置
     prefixes = PREFIXES  # 使用 config.py 中的配置
     # directory_data = '../data/syn_BA'
     # directory_data = '../data/syn_ER'
@@ -374,10 +370,11 @@ if __name__ == '__main__':
 
     if_run_set_cover = False
     if if_run_set_cover:
-        directory_data = '../data/set_cover'
+        data_dir = '../data/set_cover'
         prefixes = ['frb30-15-1']
 
-    scoress = run_greedy_over_manyfiles(alg, alg_name, num_steps, directory_data, prefixes)
+    scoress = run_greedy_manyfiles(alg, alg_name, num_steps, data_dir, prefixes)
+
     print(f"scoress: {scoress}")
 
     # plot fig

@@ -23,9 +23,9 @@ from rlsolver.methods.util_write_read_result import write_graph_result
 """
 pip install torch_geometric
 """
-from config import (GPU_ID, 
+from config import (GPU_ID,
                     calc_device,
-                    DIRECTORY_DATA,
+                    DATA_DIR,
                     PREFIXES)
 
 fix_seed = False # if test speed, objs_epochs, etc, set it as True; and False otherwise.
@@ -472,7 +472,7 @@ def mcpg_manyfiles(directory_data: str, prefixes: List[str]):
 
 
 if __name__ == '__main__':
-    directory_data = DIRECTORY_DATA
+    directory_data = DATA_DIR
     prefixes = PREFIXES
     mcpg_manyfiles(directory_data, prefixes)
 

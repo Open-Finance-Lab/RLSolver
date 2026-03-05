@@ -29,7 +29,7 @@ from rlsolver.methods.util import get_hot_image_of_graph
 from rlsolver.methods.util import show_array2d
 from rlsolver.methods.config import MyGraph
 from rlsolver.methods.config import MyNeighbor
-from rlsolver.methods.config import DIRECTORY_DATA
+from rlsolver.methods.config import DATA_DIR
 from rlsolver.methods.config import GRAPH_TYPES
 from rlsolver.methods.util_generate import generate_mygraph
 
@@ -80,6 +80,20 @@ def read_mygraph(filename: str) -> MyGraph:
     num_nodes, num_edges = lines[0]
     mygraph = [(n0 - 1, n1 - 1, dt) for n0, n1, dt in lines[1:]]  # 将node_id 由“从1开始”改为“从0开始”
     return mygraph
+
+# file is the opened, it is split by comma
+def read_list(file, split_sign: str=","):
+    line = file.readline()
+    line = line.replace("\n", "")
+    line = line.replace(" ", "")
+    numbers = line.split(split_sign)
+    numbers = [i for i in numbers if len(i) >= 1]
+    if len(numbers) == 0:
+        return np.array([])
+    # print("numbers:", numbers)
+    numbers = np.array([float(i) for i in numbers])
+    numbers= np.reshape(numbers, (1, len(numbers)))
+    return numbers
 
 def load_mygraph(DataDir, graph_name: str):
     graph_types = GRAPH_TYPES

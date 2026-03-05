@@ -34,7 +34,7 @@ PROBLEM = Problem.knapsack
 GPU_ID: int = 0  # -1: cpu, >=0: gpu
 
 DATA_FILENAME = "../data/gset/BA_100_ID0.txt"  # one instance
-DIRECTORY_DATA = "../data/syn_BA"  # used in multi instances
+DATA_DIR = "../data/syn_BA"  # used in multi instances
 PREFIXES = ["BA_100_ID0"]  # used in multi instances - 匹配所有BA图(100到1000节点)
 
 DEVICE: th.device = calc_device(GPU_ID)
