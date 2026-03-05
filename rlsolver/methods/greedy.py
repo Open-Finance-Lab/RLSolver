@@ -363,6 +363,8 @@ if __name__ == '__main__':
     num_steps = None
     data_dir = DATA_DIR  # 使用 config.py 中的配置
     prefixes = PREFIXES  # 使用 config.py 中的配置
+    # directory_data = '../data/syn_BA'
+    # directory_data = '../data/syn_ER'
     # prefixes = ['BA_100_']
     # prefixes = ['ER_100_']
 
@@ -372,6 +374,7 @@ if __name__ == '__main__':
         prefixes = ['frb30-15-1']
 
     scoress = run_greedy_manyfiles(alg, alg_name, num_steps, data_dir, prefixes)
+
     print(f"scoress: {scoress}")
 
     # plot fig
