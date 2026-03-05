@@ -41,10 +41,10 @@ def select_alg(input_alg):
     else:
         raise ValueError("not supported: ", input_alg)
 
-def run_over_manyfiles(alg, alg_name, directory_data: str, prefixes: List[str]) -> List[List[float]]:
+def run_manyfiles(alg, alg_name, data_dir: str, prefixes: List[str]) -> List[List[float]]:
     from rlsolver.methods.util_read_data import read_nxgraph
     scoress = []
-    files = calc_txt_files_with_prefixes(directory_data, prefixes)
+    files = calc_txt_files_with_prefixes(data_dir, prefixes)
     for i in range(len(files)):
         start_time = time.time()
         filename = files[i]
@@ -71,14 +71,14 @@ def main():
         dir = '../../data/knapsack'
         prefixes = ['knap_4_']
         ALG = Alg.greedy
-        scoress = run_over_manyfiles(ALG, ALG.value, dir, prefixes)
+        scoress = run_manyfiles(ALG, ALG.value, dir, prefixes)
         print("scoress: ", scoress)
 
     run_all_algs = False
     if run_all_algs:
         algs = list(Alg)
         for alg in algs:
-            scoress = run_over_manyfiles(alg, alg.value, dir, prefixes)
+            scoress = run_manyfiles(alg, alg.value, dir, prefixes)
             print("scoress: ", scoress)
 
 
