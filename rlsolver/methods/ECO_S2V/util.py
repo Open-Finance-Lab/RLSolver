@@ -17,10 +17,6 @@ from rlsolver.methods.ECO_S2V.src.agents.solver import Network, Greedy
 from rlsolver.methods.ECO_S2V.src.envs.util_envs import (SingleGraphGenerator, SpinBasis)
 from rlsolver.methods.util_read_data import read_nxgraph
 
-####################################################
-# TESTING ON GRAPHS
-####################################################
-
 def peco_test_network(network, test_env, local_search_frequency):
     result = {}
     obj_vs_time = {}
