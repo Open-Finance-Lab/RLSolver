@@ -13,8 +13,6 @@ if TRAIN_INFERENCE == 0:
         from rlsolver.methods.ECO_S2V.train_and_inference.train_ECO import run
     elif ALG == Alg.S2V:
         from rlsolver.methods.ECO_S2V.train_and_inference.train_S2V import run
-    elif ALG == Alg.ECO_torch:
-        from rlsolver.methods.ECO_S2V.train_and_inference.train_ECO_torch import run
     elif ALG == Alg.PECO:
         from rlsolver.methods.ECO_S2V.train_and_inference.train_PECO import run
     elif ALG == Alg.jumanji:
@@ -29,9 +27,7 @@ if TRAIN_INFERENCE == 1:
     if ALG == Alg.PECO:
         from rlsolver.methods.ECO_S2V.train_and_inference.inference_PECO import run
 
-        run(graph_folder=DATA_DIR,
-            num_envs=NUM_INFERENCE_ENVS,
-            mini_sims=MINI_INFERENCE_ENVS)
+        run(graph_folder=DATA_DIR, num_envs=NUM_INFERENCE_ENVS, mini_sims=MINI_INFERENCE_ENVS)
     elif ALG == Alg.ECO or ALG == Alg.S2V:
         from rlsolver.methods.ECO_S2V.train_and_inference.inference import run
 

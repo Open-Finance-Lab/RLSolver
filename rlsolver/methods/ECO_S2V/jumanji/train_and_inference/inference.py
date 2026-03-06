@@ -15,7 +15,7 @@ from rlsolver.methods.ECO_S2V.src.envs.util_envs import RewardSignal
 from rlsolver.methods.ECO_S2V.src.envs.util_envs import ExtraAction
 from rlsolver.methods.ECO_S2V.src.envs.util_envs import OptimisationTarget
 from rlsolver.methods.ECO_S2V.src.envs.util_envs import SpinBasis
-from rlsolver.methods.ECO_S2V.src.envs.util_envs import DEFAULT_OBSERVABLES
+from rlsolver.methods.ECO_S2V.src.envs.util_envs import ECO_PECO_OBSERVABLES
 from rlsolver.methods.util_read_data import read_nxgraph
 
 from rlsolver.methods.ECO_S2V.jumanji.agents.AgentPPO import AgentA2C
@@ -46,7 +46,7 @@ def run(graph_folder, num_envs, mini_envs):
     for param in agent.act.parameters():
         param.requires_grad = False
     agent.act.eval()
-    env_args = {'observables': DEFAULT_OBSERVABLES,
+    env_args = {'observables': ECO_PECO_OBSERVABLES,
                 'reward_signal': RewardSignal.BLS,
                 'extra_action': ExtraAction.NONE,
                 'optimisation_target': OptimisationTarget.CUT,

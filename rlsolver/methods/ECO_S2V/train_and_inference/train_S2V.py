@@ -6,13 +6,13 @@ else:
     from rlsolver.methods.ECO_S2V.src.agents.dqn import DQN
 from rlsolver.methods.ECO_S2V.src.agents.util import TestMetric
 from rlsolver.methods.ECO_S2V.src.envs.util_envs import (SetGraphGenerator,
-                                                         RandomErdosRenyiGraphGenerator, RandomBarabasiAlbertGraphGenerator,
+                                                         RandomERGraphGenerator, RandomBAGraphGenerator,
                                                          EdgeType, RewardSignal, ExtraAction,
                                                          OptimisationTarget, SpinBasis, ValidationGraphGenerator,
                                                          Observable)
 from rlsolver.networks.mpnn import MPNN
 from rlsolver.methods.ECO_S2V.util import (cal_txt_name)
-
+from rlsolver.methods.ECO_S2V.src.envs.util_envs import *
 try:
     import seaborn as sns
 
@@ -34,7 +34,7 @@ def run(save_loc):
     gamma = 1
     step_fact = 1
 
-    env_args = {'observables': [Observable.SPIN_STATE],
+    env_args = {'observables': S2V_OBSERVABLES,
                 'reward_signal': RewardSignal.DENSE,
                 'extra_action': ExtraAction.NONE,
                 'optimisation_target': OptimisationTarget.CUT,
@@ -53,11 +53,11 @@ def run(save_loc):
     n_spins_train = NUM_TRAIN_NODES
 
     if GRAPH_TYPE == GraphType.ER:
-        train_graph_generator = RandomErdosRenyiGraphGenerator(n_spins=n_spins_train, p_connection=0.15,
-                                                               edge_type=EdgeType.DISCRETE)
+        train_graph_generator = RandomERGraphGenerator(n_spins=n_spins_train, p_connection=0.15,
+                                                       edge_type=EdgeType.DISCRETE)
     if GRAPH_TYPE == GraphType.BA:
-        train_graph_generator = RandomBarabasiAlbertGraphGenerator(n_spins=n_spins_train, m_insertion_edges=4,
-                                                                   edge_type=EdgeType.DISCRETE)
+        train_graph_generator = RandomBAGraphGenerator(n_spins=n_spins_train, m_insertion_edges=4,
+                                                       edge_type=EdgeType.DISCRETE)
 
     validation_graph_generator = ValidationGraphGenerator(n_spins=n_spins_train, graph_type=GRAPH_TYPE,
                                                           edge_type=EdgeType.DISCRETE,

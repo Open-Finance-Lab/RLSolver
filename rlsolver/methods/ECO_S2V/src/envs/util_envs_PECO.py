@@ -8,78 +8,11 @@ import torch
 from rlsolver.methods.config import GraphType
 from rlsolver.methods.ECO_S2V.src.envs.util_envs import (EdgeType)
 
-
-class GraphGenerator(ABC):
-
-    def __init__(self, n_spins, edge_type, biased=False, num_envs=2 ** 3):
-        self.n_spins = n_spins
-        self.edge_type = edge_type
-        self.biased = biased
-        self.num_envs = num_envs
-
-    def pad_matrix(self, matrix):
-        dim = matrix.shape[0]
-        m = np.zeros((dim + 1, dim + 1))
-        m[:-1, :-1] = matrix
-        return matrix
-
-    def pad_bias(self, bias):
-        return np.concatenate((bias, [0]))
-
-    @abstractmethod
-    def get(self, with_padding=False):
-        raise NotImplementedError
+from rlsolver.methods.ECO_S2V.src.envs.util_envs import GraphGenerator
 
 
-###################
-# Unbiased graphs #
-###################
-class RandomGraphGenerator(GraphGenerator):
 
-    def __init__(self, n_spins=20, edge_type=EdgeType.DISCRETE, biased=False):
-        super().__init__(n_spins, edge_type, biased)
-
-        if self.edge_type == EdgeType.UNIFORM:
-            self.get_w = lambda: 1
-        elif self.edge_type == EdgeType.DISCRETE:
-            self.get_w = lambda: np.random.choice([+1, -1])
-        elif self.edge_type == EdgeType.RANDOM:
-            self.get_w = lambda: np.random.uniform(-1, 1)
-        else:
-            raise NotImplementedError()
-
-    def get(self, with_padding=False):
-
-        g_size = self.n_spins
-
-        density = np.random.uniform()
-        matrix = np.zeros((g_size, g_size))
-        for i in range(self.n_spins):
-            for j in range(i):
-                if np.random.uniform() < density:
-                    w = self.get_w()
-                    matrix[i, j] = w
-                    matrix[j, i] = w
-
-        matrix = self.pad_matrix(matrix) if with_padding else matrix
-
-        if self.biased:
-            bias = np.array([self.get_w() if np.random.uniform() < density else 0 for _ in range(self.n_spins)])
-            bias = self.pad_bias(bias) if with_padding else bias
-            return matrix, bias
-        else:
-            return matrix
-
-        m = self.pad_matrix(self.matrix) if with_padding else self.matrix
-
-        if self.biased:
-            b = self.pad_bias(self.bias) if with_padding else self.bias
-            return m, b
-        else:
-            return m
-
-
-class RandomErdosRenyiGraphGenerator(GraphGenerator):
+class RandomERGraphGenerator(GraphGenerator):
     def __init__(self, n_spins=20, p_connection=0.2, edge_type=EdgeType.DISCRETE, num_envs=8, device="cuda"):
         super().__init__(n_spins, edge_type, False, num_envs)
         self.p_connection = p_connection
@@ -124,7 +57,7 @@ class RandomErdosRenyiGraphGenerator(GraphGenerator):
         return self.pad_matrix(adj) if with_padding else adj
 
 
-class RandomBarabasiAlbertGraphGenerator(GraphGenerator):
+class RandomBAGraphGenerator(GraphGenerator):
     def __init__(self, n_spins=20, m_insertion_edges=4, edge_type=EdgeType.DISCRETE, num_envs=8, device="cuda"):
         super().__init__(n_spins, edge_type, False, num_envs)
         self.m_insertion_edges = m_insertion_edges
@@ -178,165 +111,6 @@ class RandomBarabasiAlbertGraphGenerator(GraphGenerator):
         # if self.seed is not None:
         adj = adj * self.get_connection_mask()
         return self.pad_matrix(adj) if with_padding else adj
-    # class RandomBarabasiAlbertGraphGenerator:
-
-
-
-#     def generate_barabasi_albert(self):
-#         """
-#         使用 PyTorch 并行实现 Barabási–Albert 过程
-#         生成多个 BA 图的邻接矩阵
-#         """
-#         # 初始化邻接矩阵，全 0
-#         adj = torch.zeros((self.num_envs, self.n_spins, self.n_spins), device=self.device)
-
-#         # 初始完全连通子图
-#         for i in range(self.m_insertion_edges + 1):
-#             adj[:, i, :i + 1] = 1
-#             adj[:, :i + 1, i] = 1
-
-#         # 节点加入过程
-#         for new_node in range(self.m_insertion_edges + 1, self.n_spins):
-#             # 计算度
-#             degree = adj.sum(dim=-1)
-
-#             # 计算连接概率 (度数归一化)
-#             prob = degree / degree.sum(dim=-1, keepdim=True)
-
-#             # 选择 m 个节点（基于概率）
-#             chosen_edges = torch.multinomial(prob, num_samples=self.m_insertion_edges, replacement=False)
-
-#             # 连接新节点
-#             batch_indices = torch.arange(self.num_envs, device=self.device).repeat_interleave(self.m_insertion_edges)
-#             adj[batch_indices, new_node, chosen_edges.view(-1)] = 1
-#             adj[batch_indices, chosen_edges.view(-1), new_node] = 1  # 无向图
-
-#         return adj
-
-#     def get(self, with_padding=False):
-#         # 生成邻接矩阵
-#         adj = self.generate_barabasi_albert()
-
-
-#         adj = adj * connection_mask  # 应用掩码
-#         return adj
-
-
-class RandomRegularGraphGenerator(GraphGenerator):
-
-    def __init__(self, n_spins=20, d_node=[2, 0], edge_type=EdgeType.DISCRETE, biased=False):
-        super().__init__(n_spins, edge_type, biased)
-
-        if type(d_node) not in [list, tuple]:
-            d_node = [d_node, 0]
-        assert len(d_node) == 2, "k_neighbours must have length 2"
-        self.d_node = d_node
-
-        if self.edge_type == EdgeType.UNIFORM:
-            self.get_connection_mask = lambda: np.ones((self.n_spins, self.n_spins))
-        elif self.edge_type == EdgeType.DISCRETE:
-            def get_connection_mask():
-                mask = 2. * np.random.randint(2, size=(self.n_spins, self.n_spins)) - 1.
-                mask = np.tril(mask) + np.triu(mask.T, 1)
-                return mask
-
-            self.get_connection_mask = get_connection_mask
-        elif self.edge_type == EdgeType.RANDOM:
-            def get_connection_mask():
-                mask = 2. * np.random.rand(self.n_spins, self.n_spins) - 1
-                mask = np.tril(mask) + np.triu(mask.T, 1)
-                return mask
-
-            self.get_connection_mask = get_connection_mask
-        else:
-            raise NotImplementedError()
-
-    def get(self, with_padding=False):
-        k = np.clip(int(np.random.normal(*self.d_node)), 0, self.n_spins)
-
-        g = nx.random_regular_graph(k, self.n_spins)
-        adj = np.multiply(nx.to_numpy_array(g), self.get_connection_mask())
-
-        if not self.biased:
-            # No self-connections (this modifies adj in-place).
-            np.fill_diagonal(adj, 0)
-
-        return self.pad_matrix(adj) if with_padding else adj
-
-
-class RandomWattsStrogatzGraphGenerator(GraphGenerator):
-
-    def __init__(self, n_spins=20, k_neighbours=[2, 0], edge_type=EdgeType.DISCRETE, biased=False):
-        super().__init__(n_spins, edge_type, biased)
-
-        if type(k_neighbours) not in [list, tuple]:
-            k_neighbours = [k_neighbours, 0]
-        assert len(k_neighbours) == 2, "k_neighbours must have length 2"
-        self.k_neighbours = k_neighbours
-
-        if self.edge_type == EdgeType.UNIFORM:
-            self.get_connection_mask = lambda: np.ones((self.n_spins, self.n_spins))
-        elif self.edge_type == EdgeType.DISCRETE:
-            def get_connection_mask():
-                mask = 2. * np.random.randint(2, size=(self.n_spins, self.n_spins)) - 1.
-                mask = np.tril(mask) + np.triu(mask.T, 1)
-                return mask
-
-            self.get_connection_mask = get_connection_mask
-        elif self.edge_type == EdgeType.RANDOM:
-            def get_connection_mask():
-                mask = 2. * np.random.rand(self.n_spins, self.n_spins) - 1
-                mask = np.tril(mask) + np.triu(mask.T, 1)
-                return mask
-
-            self.get_connection_mask = get_connection_mask
-        else:
-            raise NotImplementedError()
-
-    def get(self, with_padding=False):
-        k = np.clip(int(np.random.normal(*self.k_neighbours)), 0, self.n_spins)
-
-        g = nx.watts_strogatz_graph(self.n_spins, k, 0)
-        adj = np.multiply(nx.to_numpy_array(g), self.get_connection_mask())
-
-        if not self.biased:
-            # No self-connections (this modifies adj in-place).
-            np.fill_diagonal(adj, 0)
-
-        return self.pad_matrix(adj) if with_padding else adj
-
-
-################
-# Known graphs #
-################
-class SingleGraphGenerator(GraphGenerator):
-
-    def __init__(self, matrix, bias=None):
-
-        n_spins = matrix.shape[0]
-
-        if np.isin(matrix, [0, 1]).all():
-            edge_type = EdgeType.UNIFORM
-        elif np.isin(matrix, [0, -1, 1]).all():
-            edge_type = EdgeType.DISCRETE
-        else:
-            edge_type = EdgeType.RANDOM
-
-        super().__init__(n_spins, edge_type, bias is not None)
-
-        self.matrix = matrix
-        self.bias = bias
-
-    def get(self, with_padding=False):
-
-        m = self.pad_matrix(self.matrix) if with_padding else self.matrix
-
-        if self.biased:
-            b = self.pad_bias(self.bias) if with_padding else self.bias
-            return m, b
-        else:
-            return m
-
 
 class ValidationGraphGenerator(GraphGenerator):
     def __init__(self, device, n_spins=20, edge_type=EdgeType.DISCRETE, num_envs=2 ** 3, seed=None, graph_type=GraphType.BA):
@@ -385,8 +159,7 @@ class SetGraphGenerator(GraphGenerator):
             self.graphs = matrices
         else:
             assert len(matrices) == len(biases), "Must pass through the same number of matrices and biases."
-            assert all([len(b) == self.n_spins + 1 for b in
-                        biases]), "All biases and must have the same dimension as the matrices."
+            assert all([len(b) == self.n_spins + 1 for b in biases]), "All biases and must have the same dimension as the matrices."
             self.graphs = list(zip(matrices, biases))
 
         self.ordered = ordered

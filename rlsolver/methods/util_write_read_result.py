@@ -24,7 +24,7 @@ except ImportError:
     plt = None
 
 
-# if the file exists, the result file will be renamed so that there is conflict.
+# if the file exists, the result file will be renamed so that there is no conflict.
 def write_result(obj: Union[float, int], running_duration: int,
                  alg_name: str,
                  solution: Union[Tensor, List[int], np.array], filename: str,
@@ -35,7 +35,7 @@ def write_result(obj: Union[float, int], running_duration: int,
                        plus1, info_dict)
 
 
-# if the file exists, the result file will be renamed so that there is conflict.
+# if the file exists, the result file will be renamed so that there is no conflict.
 def write_graph_result(obj: Union[float, int], running_duration: int,
                        num_nodes: Optional[int], alg_name: str,
                        solution: Union[Tensor, List[int], np.array], filename: str,

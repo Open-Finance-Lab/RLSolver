@@ -15,7 +15,7 @@ from rlsolver.methods.ECO_S2V.src.envs.util_envs_PECO import (SetGraphGenerator)
 from rlsolver.methods.ECO_S2V.src.envs.util_envs import (EdgeType, Observable,
                                                          RewardSignal, ExtraAction,
                                                          OptimisationTarget, SpinBasis,
-                                                         DEFAULT_OBSERVABLES)
+                                                         ECO_PECO_OBSERVABLES)
 from rlsolver.networks.mpnn import MPNN
 from rlsolver.methods.ECO_S2V.util import test_network
 
@@ -38,7 +38,7 @@ def run(neural_network_folder, num_envs, mini_envs, num_generated_instances, alg
     data = {}
     if alg == Alg.ECO or alg == Alg.PECO:
         env_args = {
-            'observables': DEFAULT_OBSERVABLES,
+            'observables': ECO_PECO_OBSERVABLES,
             'reward_signal': RewardSignal.BLS,
             'extra_action': ExtraAction.NONE,
             'optimisation_target': OptimisationTarget.CUT,

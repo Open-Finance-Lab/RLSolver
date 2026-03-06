@@ -17,7 +17,7 @@ from rlsolver.methods.ECO_S2V.src.envs.util_envs import RewardSignal
 from rlsolver.methods.ECO_S2V.src.envs.util_envs import ExtraAction
 from rlsolver.methods.ECO_S2V.src.envs.util_envs import OptimisationTarget
 from rlsolver.methods.ECO_S2V.src.envs.util_envs import SpinBasis
-from rlsolver.methods.ECO_S2V.src.envs.util_envs import DEFAULT_OBSERVABLES
+from rlsolver.methods.ECO_S2V.src.envs.util_envs import ECO_PECO_OBSERVABLES
 from rlsolver.networks.mpnn import MPNN
 
 from rlsolver.methods.util_write_read_result import write_graph_result
@@ -49,7 +49,7 @@ def run(graph_folder="../../data/syn_BA",
 
     if ALG == Alg.PECO:
         env_args = {
-            'observables': DEFAULT_OBSERVABLES,
+            'observables': ECO_PECO_OBSERVABLES,
             'reward_signal': RewardSignal.BLS,
             'extra_action': ExtraAction.NONE,
             'optimisation_target': OptimisationTarget.CUT,
@@ -101,7 +101,7 @@ def run(graph_folder="../../data/syn_BA",
                     start_time = time.time()
                     result, sol = peco_test_network(network, test_env, LOCAL_SEARCH_FREQUENCY)
 
-                    if result['obj'] > best_obj:  # 记录最佳结果
+                    if result['obj'] > best_obj:
                         best_obj = result['obj']
                         best_sol = result['sol']
                 run_duration = time.time() - start_time

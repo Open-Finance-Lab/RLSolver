@@ -6,7 +6,7 @@ import networkx as nx
 import numpy as np
 
 from rlsolver.methods.config import GraphType
-
+from rlsolver.methods.ECO_S2V.config import *
 
 class EdgeType(Enum):
     UNIFORM = 1
@@ -50,22 +50,22 @@ class Observable(Enum):
     DISTANCE_FROM_BEST_SCORE = 7
     DISTANCE_FROM_BEST_STATE = 8
 
-
-DEFAULT_OBSERVABLES = [Observable.SPIN_STATE,
-                       Observable.IMMEDIATE_REWARD_AVAILABLE,
-                       Observable.TIME_SINCE_FLIP,
-                       Observable.DISTANCE_FROM_BEST_SCORE,
-                       Observable.DISTANCE_FROM_BEST_STATE,
-                       Observable.NUMBER_OF_GREEDY_ACTIONS_AVAILABLE,
-                       Observable.TERMINATION_IMMANENCY]
-
+ECO_PECO_OBSERVABLES = [Observable.SPIN_STATE,
+                        Observable.IMMEDIATE_REWARD_AVAILABLE,
+                        Observable.TIME_SINCE_FLIP,
+                        Observable.DISTANCE_FROM_BEST_SCORE,
+                        Observable.DISTANCE_FROM_BEST_STATE,
+                        Observable.NUMBER_OF_GREEDY_ACTIONS_AVAILABLE,
+                        Observable.TERMINATION_IMMANENCY]
+S2V_OBSERVABLES = [Observable.SPIN_STATE]
 
 class GraphGenerator(ABC):  # ABC是抽象基类的意思，不能直接实例化，只能继承
 
-    def __init__(self, n_spins, edge_type, biased=False):
+    def __init__(self, n_spins, edge_type, biased=False, num_envs=None):
         self.n_spins = n_spins
         self.edge_type = edge_type
         self.biased = biased
+        self.num_envs = num_envs
 
     def pad_matrix(self, matrix):
         dim = matrix.shape[0]
@@ -129,7 +129,7 @@ class RandomGraphGenerator(GraphGenerator):
             return m
 
 
-class RandomErdosRenyiGraphGenerator(GraphGenerator):
+class RandomERGraphGenerator(GraphGenerator):
 
     def __init__(self, n_spins=20, p_connection=[0.1, 0], edge_type=EdgeType.DISCRETE):
         super().__init__(n_spins, edge_type, False)
@@ -171,7 +171,7 @@ class RandomErdosRenyiGraphGenerator(GraphGenerator):
         return self.pad_matrix(adj) if with_padding else adj
 
 
-class RandomBarabasiAlbertGraphGenerator(GraphGenerator):
+class RandomBAGraphGenerator(GraphGenerator):
 
     def __init__(self, n_spins=20, m_insertion_edges=4, edge_type=EdgeType.DISCRETE):
         super().__init__(n_spins, edge_type, False)
@@ -208,93 +208,6 @@ class RandomBarabasiAlbertGraphGenerator(GraphGenerator):
         return self.pad_matrix(adj) if with_padding else adj
 
 
-class RandomRegularGraphGenerator(GraphGenerator):
-
-    def __init__(self, n_spins=20, d_node=[2, 0], edge_type=EdgeType.DISCRETE, biased=False):
-        super().__init__(n_spins, edge_type, biased)
-
-        if type(d_node) not in [list, tuple]:
-            d_node = [d_node, 0]
-        assert len(d_node) == 2, "k_neighbours must have length 2"
-        self.d_node = d_node
-
-        if self.edge_type == EdgeType.UNIFORM:
-            self.get_connection_mask = lambda: np.ones((self.n_spins, self.n_spins))
-        elif self.edge_type == EdgeType.DISCRETE:
-            def get_connection_mask():
-                mask = 2. * np.random.randint(2, size=(self.n_spins, self.n_spins)) - 1.
-                mask = np.tril(mask) + np.triu(mask.T, 1)
-                return mask
-
-            self.get_connection_mask = get_connection_mask
-        elif self.edge_type == EdgeType.RANDOM:
-            def get_connection_mask():
-                mask = 2. * np.random.rand(self.n_spins, self.n_spins) - 1
-                mask = np.tril(mask) + np.triu(mask.T, 1)
-                return mask
-
-            self.get_connection_mask = get_connection_mask
-        else:
-            raise NotImplementedError()
-
-    def get(self, with_padding=False):
-        k = np.clip(int(np.random.normal(*self.d_node)), 0, self.n_spins)
-
-        g = nx.random_regular_graph(k, self.n_spins)
-        adj = np.multiply(nx.to_numpy_array(g), self.get_connection_mask())
-
-        if not self.biased:
-            # No self-connections (this modifies adj in-place).
-            np.fill_diagonal(adj, 0)
-
-        return self.pad_matrix(adj) if with_padding else adj
-
-
-class RandomWattsStrogatzGraphGenerator(GraphGenerator):
-
-    def __init__(self, n_spins=20, k_neighbours=[2, 0], edge_type=EdgeType.DISCRETE, biased=False):
-        super().__init__(n_spins, edge_type, biased)
-
-        if type(k_neighbours) not in [list, tuple]:
-            k_neighbours = [k_neighbours, 0]
-        assert len(k_neighbours) == 2, "k_neighbours must have length 2"
-        self.k_neighbours = k_neighbours
-
-        if self.edge_type == EdgeType.UNIFORM:
-            self.get_connection_mask = lambda: np.ones((self.n_spins, self.n_spins))
-        elif self.edge_type == EdgeType.DISCRETE:
-            def get_connection_mask():
-                mask = 2. * np.random.randint(2, size=(self.n_spins, self.n_spins)) - 1.
-                mask = np.tril(mask) + np.triu(mask.T, 1)
-                return mask
-
-            self.get_connection_mask = get_connection_mask
-        elif self.edge_type == EdgeType.RANDOM:
-            def get_connection_mask():
-                mask = 2. * np.random.rand(self.n_spins, self.n_spins) - 1
-                mask = np.tril(mask) + np.triu(mask.T, 1)
-                return mask
-
-            self.get_connection_mask = get_connection_mask
-        else:
-            raise NotImplementedError()
-
-    def get(self, with_padding=False):
-        k = np.clip(int(np.random.normal(*self.k_neighbours)), 0, self.n_spins)
-
-        g = nx.watts_strogatz_graph(self.n_spins, k, 0)
-        adj = np.multiply(nx.to_numpy_array(g), self.get_connection_mask())
-
-        if not self.biased:
-            # No self-connections (this modifies adj in-place).
-            np.fill_diagonal(adj, 0)
-
-        return self.pad_matrix(adj) if with_padding else adj
-
-
-################
-# Known graphs #
-################
 class SingleGraphGenerator(GraphGenerator):
 
     def __init__(self, matrix, bias=None):
