@@ -25,7 +25,7 @@ from dataloader import read_data_mimo5
 
 device = DEVICE
 
-def run_one_file(problem: Problem, filename: str):
+def run_onefile(problem: Problem, filename: str):
     if problem == Problem.maxcut:
         config = ConfigMaxcut()
     elif problem == Problem.maxcut_edge:
@@ -87,7 +87,7 @@ def run_manyfiles(alg_name, problem: Problem, data_dir: str, prefixes: List[str]
             graph = read_nxgraph(filename)
             num_nodes = graph.number_of_nodes()
             plus1 = True
-        score, solution = run_one_file(problem, filename)
+        score, solution = run_onefile(problem, filename)
         scores.append(score)
         solutions.append(solution)
         running_duration = time.time() - start_time
@@ -225,9 +225,6 @@ if __name__ == '__main__':
     if PROBLEM == Problem.rcheegercut:
         data_dir = rlsolver_path + "data/syn_BA"
         prefixes = ["BA_5_"]
-
-    # data_dir = rlsolver_path + "data/qubo"
-    # prefixes = ["nbiq_5"]
     if PROBLEM == Problem.MIMO:
         config_local_mimo = ConfigLocalMimo()
         config = ConfigMIMO()

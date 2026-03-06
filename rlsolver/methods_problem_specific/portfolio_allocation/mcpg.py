@@ -297,7 +297,7 @@ def run():
     reset_epoch_num = 320
     repeat_times = 288
     total_mcmc_num = 768
-    path = '../../data/gset/gset_14.txt'  # GPU RAM 40GB
+    filename = '../../data/gset/gset_14.txt'  # GPU RAM 40GB
 
     show_gap = 2 ** 4
 
@@ -309,7 +309,7 @@ def run():
         show_gap = 2 ** 0
 
     '''init'''
-    data, num_nodes = maxcut_dataloader(path)
+    data, num_nodes = maxcut_dataloader(filename)
     device = torch.device(f'cuda:{GPU_ID}' if torch.cuda.is_available() else 'cpu')
 
     change_times = int(num_nodes / 10)  # transition times for metropolis sampling
@@ -320,8 +320,8 @@ def run():
 
     '''addition'''
 
-    graph_name = path.split('/')[-1][:-4]
-    graph = load_mygraph(graph_name=graph_name)
+    graph_name = filename.split('/')[-1][:-4]
+    # graph = load_mygraph(graph_name=graph_name)
     simulator = SimulatorMaxcut(sim_name=graph_name, device=device)
     solver = SolverLocalSearch(simulator=simulator, num_nodes=num_nodes)
 
