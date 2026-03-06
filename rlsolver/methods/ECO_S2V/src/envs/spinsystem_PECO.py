@@ -10,21 +10,14 @@ from rlsolver.methods.ECO_S2V.src.envs.util_envs_PECO import HistoryBuffer
 from rlsolver.methods.ECO_S2V.src.envs.util_envs import (Observable,
                                                          RewardSignal, ExtraAction,
                                                          OptimisationTarget, SpinBasis,
-                                                         DEFAULT_OBSERVABLES)
-
-# A container for get_result function below. Works just like tuple, but prettier.
-ActionResult = namedtuple("action_result", ("snapshot", "observation", "reward", "is_done", "info"))
+                                                         ECO_PECO_OBSERVABLES)
 
 
 class SpinSystemFactory(object):
-    '''
-    Factory class for returning new SpinSystem.
-    '''
-
     @staticmethod
     def get(graph_generator=None,
             max_steps=20,
-            observables=DEFAULT_OBSERVABLES,
+            observables=ECO_PECO_OBSERVABLES,
             reward_signal=RewardSignal.DENSE,
             extra_action=ExtraAction.PASS,
             optimisation_target=OptimisationTarget.ENERGY,
@@ -55,13 +48,6 @@ class SpinSystemFactory(object):
 
 
 class SpinSystemBase(ABC):
-    '''
-    SpinSystemBase implements the functionality of a SpinSystem that is common to both
-    biased and unbiased systems.  Methods that require significant enough changes between
-    these two case to not readily be served by an 'if' statement are left abstract, to be
-    implemented by a specialised subclass.
-    '''
-
     # Note these are defined at the class level of SpinSystem to ensure that SpinSystem
     # can be pickled.
     class action_space():
@@ -81,7 +67,7 @@ class SpinSystemBase(ABC):
     def __init__(self,
                  graph_generator=None,
                  max_steps=20,
-                 observables=DEFAULT_OBSERVABLES,
+                 observables=ECO_PECO_OBSERVABLES,
                  reward_signal=RewardSignal.DENSE,
                  extra_action=ExtraAction.PASS,
                  optimisation_target=OptimisationTarget.ENERGY,
@@ -103,8 +89,7 @@ class SpinSystemBase(ABC):
             graph_generator: A GraphGenerator (or subclass thereof) object.
             max_steps: Maximum number of steps before termination.
             reward_signal: RewardSignal enum determining how and when rewards are returned.
-            extra_action: ExtraAction enum determining if and what additional action is allowed,
-                          beyond simply flipping spins.
+            extra_action: ExtraAction enum determining if and what additional action is allowed, beyond simply flipping spins.
             init_snap: Optional snapshot to load spin system into pre-configured state for MCTS.
             seed: Optional random seed.
         '''
@@ -164,9 +149,6 @@ class SpinSystemBase(ABC):
             self.load_snapshot(init_snap)
 
     def reset(self, spins=None):
-        """
-        Explanation here
-        """
         self.current_step = 0
         if self.gg.biased:
             # self.matrix, self.bias = self.gg.get(with_padding=(self.extra_action != ExtraAction.NONE))
@@ -199,10 +181,8 @@ class SpinSystemBase(ABC):
         self.best_obs_spins = self.state[:, 0, :self.n_spins].clone()
 
         if self.memory_length is not None:
-            self.score_memory = torch.full((self.num_envs, self.memory_length,), self.best_score,
-                                           device=self.device)
-            self.spins_memory = torch.full((self.num_envs, self.memory_length, self.best_spins.shape[0]),
-                                           self.best_spins, device=self.device)
+            self.score_memory = torch.full((self.num_envs, self.memory_length,), self.best_score, device=self.device)
+            self.spins_memory = torch.full((self.num_envs, self.memory_length, self.best_spins.shape[0]), self.best_spins, device=self.device)
             self.idx_memory = 1
 
         self._reset_graph_observables()
@@ -230,14 +210,12 @@ class SpinSystemBase(ABC):
                 self.bias_obs = self.bias
 
     def _reset_state(self, spins=None):
-        state = torch.zeros(self.num_envs, self.observation_space.shape[1], self.n_actions,
-                            device=self.device)
+        state = torch.zeros(self.num_envs, self.observation_space.shape[1], self.n_actions, device=self.device)
 
         if spins is None:
             if self.reversible_spins:
                 # For reversible spins, initialise randomly to {+1,-1}.
-                state[:, 0, :self.n_spins] = 2 * torch.randint(0, 2, (self.num_envs, self.n_spins,),
-                                                               device=self.device, dtype=torch.float) - 1
+                state[:, 0, :self.n_spins] = 2 * torch.randint(0, 2, (self.num_envs, self.n_spins,), device=self.device, dtype=torch.float) - 1
             else:
                 # For irreversible spins, initialise all to +1 (i.e. allowed to be flipped).
                 state[0, :self.n_spins] = 1

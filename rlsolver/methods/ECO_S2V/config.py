@@ -10,17 +10,16 @@ from rlsolver.methods.util import calc_device
 class Alg(Enum):
     ECO = 'ECO'
     S2V = 'S2V'
-    ECO_torch = 'ECO_torch'
     PECO = 'PECO'
     jumanji = 'jumanji'
     rl4co = 'rl4co'
 
 PROBLEM = Problem.maxcut
 
-TRAIN_INFERENCE = 0  # 0: train, 1: inference
+TRAIN_INFERENCE = 1  # 0: train, 1: inference
 assert TRAIN_INFERENCE in [0, 1]
 
-ALG = Alg.S2V  # Alg
+ALG = Alg.PECO  # Alg
 GRAPH_TYPE = GraphType.BA
 
 # training

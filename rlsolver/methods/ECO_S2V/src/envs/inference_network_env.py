@@ -10,7 +10,7 @@ from rlsolver.methods.ECO_S2V.src.envs.util_envs import (RewardSignal,
                                                          OptimisationTarget,
                                                          Observable,
                                                          SpinBasis,
-                                                         DEFAULT_OBSERVABLES)
+                                                         ECO_PECO_OBSERVABLES)
 
 # A container for get_result function below. Works just like tuple, but prettier.
 ActionResult = namedtuple("action_result", ("snapshot", "observation", "reward", "is_done", "info"))
@@ -24,7 +24,7 @@ class SpinSystemFactory(object):
     @staticmethod
     def get(graph_generator=None,
             max_steps=20,
-            observables=DEFAULT_OBSERVABLES,
+            observables=ECO_PECO_OBSERVABLES,
             reward_signal=RewardSignal.DENSE,
             extra_action=ExtraAction.PASS,
             optimisation_target=OptimisationTarget.ENERGY,
@@ -46,14 +46,12 @@ class SpinSystemFactory(object):
             return SpinSystemBiased(graph_generator, max_steps,
                                     observables, reward_signal, extra_action, optimisation_target, spin_basis,
                                     norm_rewards, memory_length, horizon_length, stag_punishment, basin_reward,
-                                    reversible_spins,
-                                    init_snap, seed)
+                                    reversible_spins, init_snap, seed)
         else:
             return SpinSystemUnbiased(graph_generator, max_steps,
                                       observables, reward_signal, extra_action, optimisation_target, spin_basis,
                                       norm_rewards, memory_length, horizon_length, stag_punishment, basin_reward,
-                                      reversible_spins,
-                                      init_snap, seed, device, num_envs, use_tensor_core)
+                                      reversible_spins, init_snap, seed, device, num_envs, use_tensor_core)
 
 
 class SpinSystemBase(ABC):
@@ -83,7 +81,7 @@ class SpinSystemBase(ABC):
     def __init__(self,
                  graph_generator=None,
                  max_steps=20,
-                 observables=DEFAULT_OBSERVABLES,
+                 observables=ECO_PECO_OBSERVABLES,
                  reward_signal=RewardSignal.DENSE,
                  extra_action=ExtraAction.PASS,
                  optimisation_target=OptimisationTarget.ENERGY,
@@ -268,13 +266,9 @@ class SpinSystemBase(ABC):
                 state[:, idx, :self.n_spins] = immeditate_rewards_avaialable / self.max_local_reward_available
             elif obs == Observable.NUMBER_OF_GREEDY_ACTIONS_AVAILABLE:
                 if self.use_tensor_core:
-                    state[:, idx, :self.n_spins] = (
-                            1 - torch.sum(immeditate_rewards_avaialable <= 0, dim=-1).to(torch.float16) / self.n_spins).unsqueeze(
-                        -1)
+                    state[:, idx, :self.n_spins] = (1 - torch.sum(immeditate_rewards_avaialable <= 0, dim=-1).to(torch.float16) / self.n_spins).unsqueeze(-1)
                 else:
-                    state[:, idx, :self.n_spins] = (
-                            1 - torch.sum(immeditate_rewards_avaialable <= 0, dim=-1).float() / self.n_spins).unsqueeze(
-                        -1)
+                    state[:, idx, :self.n_spins] = (1 - torch.sum(immeditate_rewards_avaialable <= 0, dim=-1).float() / self.n_spins).unsqueeze(-1)
 
         return state
 
@@ -563,8 +557,7 @@ class SpinSystemUnbiased(SpinSystemBase):
             spins = self._get_spins()
         # else:
         #     spins = self._format_spins_to_signed(spins)
-        return ((1 / 4) * (torch.matmul(spins, self.matrix).squeeze(-1) * -spins).sum(dim=-1) + (1 / 4)
-                * torch.sum(self.matrix))
+        return ((1 / 4) * (torch.matmul(spins, self.matrix).squeeze(-1) * -spins).sum(dim=-1) + (1 / 4) * torch.sum(self.matrix))
 
     def get_best_cut(self):
         if self.optimisation_target == OptimisationTarget.CUT:

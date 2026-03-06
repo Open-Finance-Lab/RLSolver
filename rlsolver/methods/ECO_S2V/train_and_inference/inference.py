@@ -8,7 +8,7 @@ from rlsolver.methods.ECO_S2V.src.envs.spinsystem import SpinSystemFactory
 from rlsolver.methods.ECO_S2V.src.envs.util_envs import (SingleGraphGenerator,
                                                          RewardSignal, ExtraAction,
                                                          OptimisationTarget, SpinBasis,
-                                                         DEFAULT_OBSERVABLES, Observable)
+                                                         ECO_PECO_OBSERVABLES, Observable)
 from rlsolver.networks.mpnn import MPNN
 from rlsolver.methods.ECO_S2V.util import test_network, load_graph_set_from_txt
 from rlsolver.methods.util import calc_txt_files_with_prefixes
@@ -59,7 +59,7 @@ def run(save_loc="BA_40spin/eco",
                     'reversible_spins': False,
                     'if_greedy': if_greedy}
     else:
-        env_args = {'observables': DEFAULT_OBSERVABLES,
+        env_args = {'observables': ECO_PECO_OBSERVABLES,
                     'reward_signal': RewardSignal.BLS,
                     'extra_action': ExtraAction.NONE,
                     'optimisation_target': OptimisationTarget.CUT,

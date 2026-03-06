@@ -1,22 +1,7 @@
 import torch
 from torch_scatter import scatter
 from torch.distributions.bernoulli import Bernoulli
-from config import DEVICE, PROBLEM, Problem
-
-
-# def sample_initializer_old(problem_type, probs, config, device=DEVICE, data=None):
-#     if problem_type in ["rcheegercut", "ncheegercut"]:
-#         samples = torch.zeros(config.total_mcmc_num, data.num_nodes)
-#         index = data.sorted_degree_nodes[-config.total_mcmc_num:]
-#         max_i = min(len(index), config.total_mcmc_num)
-#         for i in range(max_i):
-#             samples[i][index[i]] = 1
-#         samples = samples.repeat(config.repeat_times, 1)
-#         return samples.t()
-#     m = Bernoulli(probs)
-#     samples = m.sample([config.total_mcmc_num * config.repeat_times])
-#     samples = samples.detach().to(device)
-#     return samples.t()
+from config import DEVICE, Problem
 
 
 def sample_initializer(problem: Problem, probs, config, device=DEVICE, data=None):
@@ -28,10 +13,11 @@ def sample_initializer(problem: Problem, probs, config, device=DEVICE, data=None
             samples[i][index[i]] = 1
         samples = samples.repeat(config.repeat_times, 1)
         return samples.t()
-    m = Bernoulli(probs)
-    samples = m.sample([config.total_mcmc_num * config.repeat_times])
-    samples = samples.detach().to(device)
-    return samples.t()
+    else:
+        m = Bernoulli(probs)
+        samples = m.sample([config.total_mcmc_num * config.repeat_times])
+        samples = samples.detach().to(device)
+        return samples.t()
 
 
 # def sampler_select_old(problem_type):
