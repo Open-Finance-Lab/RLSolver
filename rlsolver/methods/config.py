@@ -51,17 +51,16 @@ INF = 1e6
 TRAIN_INFERENCE = 1  # 0: train, 1: inference
 assert TRAIN_INFERENCE in [0, 1]
 
+GPU_ID = 0
+DEVICE = calc_device(GPU_ID)
 
 # training
-TRAIN_GPU_ID = 0
-TRAIN_DEVICE = calc_device(TRAIN_GPU_ID)
+
 NUM_TRAIN_NODES = 20
 NUM_TRAIN_ENVS = 2 ** 8
 
 
 # inference
-INFERENCE_GPU_ID = 0
-INFERENCE_DEVICE = calc_device(INFERENCE_GPU_ID)
 NUM_TRAINED_NODES_IN_INFERENCE = 20  # also used in select_best_neural_network
 NUM_INFERENCE_NODES = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 2000, 3000, 4000, 5000, 10000]
 INFERENCE_PREFIXES = [GRAPH_TYPE.value + "_" + str(i) + "_" for i in NUM_INFERENCE_NODES]

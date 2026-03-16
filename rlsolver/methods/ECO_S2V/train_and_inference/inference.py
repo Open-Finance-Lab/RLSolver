@@ -3,7 +3,7 @@ import time
 import torch
 
 from rlsolver.methods.ECO_S2V.config import *
-from rlsolver.methods.ECO_S2V.config import INFERENCE_DEVICE
+from rlsolver.methods.ECO_S2V.config import DEVICE
 from rlsolver.methods.ECO_S2V.src.envs.spinsystem import SpinSystemFactory
 from rlsolver.methods.ECO_S2V.src.envs.util_envs import (SingleGraphGenerator,
                                                          RewardSignal, ExtraAction,
@@ -38,7 +38,7 @@ def run(save_loc="BA_40spin/eco",
         'n_features': 64,
         'n_hid_readout': [],
         'tied_weights': False,
-        'device': INFERENCE_DEVICE,
+        'device': DEVICE,
     }
 
     ####################################################
@@ -93,13 +93,13 @@ def run(save_loc="BA_40spin/eco",
                                          graphs_test[0].shape[0] * step_factor,  # step_factor is 1 here
                                          **env_args)
 
-        torch.device(INFERENCE_DEVICE)
-        print("Set torch default device to {}.".format(INFERENCE_DEVICE))
+        torch.device(DEVICE)
+        print("Set torch default device to {}.".format(DEVICE))
 
         network = MPNN(n_obs_in=test_env.observation_space.shape[1],
-                             **mpnn_args).to(INFERENCE_DEVICE)
+                             **mpnn_args).to(DEVICE)
 
-        network.load_state_dict(torch.load(network_save_path, map_location=INFERENCE_DEVICE))
+        network.load_state_dict(torch.load(network_save_path, map_location=DEVICE))
         for param in network.parameters():
             param.requires_grad = False
         network.eval()
@@ -109,7 +109,7 @@ def run(save_loc="BA_40spin/eco",
         ####################################################
         # TEST NETWORK ON VALIDATION GRAPHS
         ####################################################
-        results, results_raw, history = test_network(network, env_args, graphs_test, INFERENCE_DEVICE, step_factor, n_attempts=50,
+        results, results_raw, history = test_network(network, env_args, graphs_test, DEVICE, step_factor, n_attempts=50,
                                                      # step_factor is 1
                                                      return_raw=True, return_history=True,
                                                      batched=batched, max_batch_size=max_batch_size)

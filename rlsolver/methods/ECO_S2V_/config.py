@@ -17,16 +17,17 @@ PROBLEM = Problem.maxcut
 TRAIN_INFERENCE = 1  # 0: train, 1: inference
 assert TRAIN_INFERENCE in [0, 1]
 
-ALG = Alg.S2V  # Alg
+ALG = Alg.PECO  # Alg
 GRAPH_TYPE = GraphType.BA
 
+GPU_ID = 0
+DEVICE = calc_device(GPU_ID)
+
 # training
-TRAIN_GPU_ID = 0
-TRAIN_DEVICE = calc_device(TRAIN_GPU_ID)
 SAMPLE_GPU_ID_IN_ECO_S2V = -1 if ALG in [Alg.ECO, Alg.S2V] else None
 SAMPLE_DEVICE_IN_ECO_S2V = None if SAMPLE_GPU_ID_IN_ECO_S2V is None else calc_device(SAMPLE_GPU_ID_IN_ECO_S2V)
 USE_TWO_DEVICES_IN_ECO_S2V = False # True if ALG in [Alg.ECO, Alg.S2V] else False
-BUFFER_GPU_ID = SAMPLE_GPU_ID_IN_ECO_S2V if USE_TWO_DEVICES_IN_ECO_S2V else TRAIN_GPU_ID
+BUFFER_GPU_ID = SAMPLE_GPU_ID_IN_ECO_S2V if USE_TWO_DEVICES_IN_ECO_S2V else GPU_ID
 BUFFER_DEVICE = calc_device(BUFFER_GPU_ID)
 NUM_TRAIN_NODES = 20
 NUM_TRAIN_ENVS = 2 ** 8
@@ -36,8 +37,6 @@ NUM_VALIDATION_ENVS = 2 ** 4
 TEST_SAMPLING_SPEED = False  # False by default
 
 # inference
-INFERENCE_GPU_ID = 0
-INFERENCE_DEVICE = calc_device(INFERENCE_GPU_ID)
 NUM_GENERATED_INSTANCES_IN_SELECT_BEST = 10  # select_best_neural_network
 NUM_TRAINED_NODES_IN_INFERENCE = 20  # also used in select_best_neural_network
 NUM_INFERENCE_NODES = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 2000, 3000, 4000, 5000, 10000]
@@ -107,3 +106,11 @@ else:
     UPDATE_TARGET_FREQUENCY = 4000
     REPLAY_START_SIZE = 3000  # NUM_TRAIN_NODES*2*NUM_TRAIN_ENVS
 
+# jumanji
+JUMANJI_NUM_STEPS = 10000
+HERIZON_LENGTH = int(NUM_TRAIN_NODES / 2)
+JUMANJI_TEST_OBJ_FREQUENCY = 10  # 每次test的时间间隔
+
+# rl4co
+RL4CO_GRAPH_DIR = rlsolver_path + "data/syn_BA/BA_100_ID0.txt"
+RL4CO_CHECKOUT_DIR = rlsolver_path + "trained_agent/tmp/rl4co_BA_20spin/rl4co_BA_20spin_step=000250.ckpt"

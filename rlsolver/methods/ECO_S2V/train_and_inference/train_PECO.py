@@ -52,13 +52,13 @@ def run(save_loc):
 
     if GRAPH_TYPE == GraphType.ER:
         train_graph_generator = RandomERGraphGenerator(n_spins=n_spins_train, p_connection=0.15,
-                                                       edge_type=EdgeType.DISCRETE, num_envs=NUM_TRAIN_ENVS, device=TRAIN_DEVICE)
+                                                       edge_type=EdgeType.DISCRETE, num_envs=NUM_TRAIN_ENVS, device=DEVICE)
     if GRAPH_TYPE == GraphType.BA:
         train_graph_generator = RandomBAGraphGenerator(n_spins=n_spins_train, m_insertion_edges=4,
-                                                       edge_type=EdgeType.DISCRETE, num_envs=NUM_TRAIN_ENVS, device=TRAIN_DEVICE)
+                                                       edge_type=EdgeType.DISCRETE, num_envs=NUM_TRAIN_ENVS, device=DEVICE)
 
     validation_graph_generator = ValidationGraphGenerator(n_spins=NUM_VALIDATION_NODES, graph_type=GRAPH_TYPE,
-                                                          edge_type=EdgeType.DISCRETE, device=TRAIN_DEVICE,
+                                                          edge_type=EdgeType.DISCRETE, device=DEVICE,
                                                           num_envs=NUM_VALIDATION_ENVS, seed=VALIDATION_SEED)
 
     ####
@@ -71,7 +71,7 @@ def run(save_loc):
     # SET UP TRAINING AND TEST ENVIRONMENTS
     ####################################################
 
-    device = SAMPLE_DEVICE_IN_ECO_S2V if USE_TWO_DEVICES_IN_ECO_S2V else TRAIN_DEVICE
+    device = SAMPLE_DEVICE_IN_ECO_S2V if USE_TWO_DEVICES_IN_ECO_S2V else DEVICE
     train_envs = ising_env.make("SpinSystem",
                                 train_graph_generator,
                                 int(n_spins_train * step_fact),
@@ -104,7 +104,7 @@ def run(save_loc):
                               n_features=64,
                               n_hid_readout=[],
                               tied_weights=False,
-                              device=TRAIN_INFERENCE if TRAIN_INFERENCE==0 else INFERENCE_DEVICE,)
+                              device=DEVICE,)
 
     args = {
         'envs': train_envs,

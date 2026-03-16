@@ -23,7 +23,7 @@ def setup_ddp(rank, world_size):
     """Initialize distributed training."""
     os.environ['MASTER_ADDR'] = args.MASTER_ADDR
     os.environ['MASTER_PORT'] = args.MASTER_PORT
-    gpu_id = args.TRAIN_GPU_IDS[rank]
+    gpu_id = args.GPU_IDS[rank]
     torch.cuda.set_device(gpu_id)
     if world_size > 1:
         dist.init_process_group("nccl", rank=rank, world_size=world_size)
@@ -39,7 +39,7 @@ def main_worker(rank, world_size):
     """Main worker function for each GPU."""
     setup_ddp(rank, world_size)
     
-    gpu_id = args.TRAIN_GPU_IDS[rank]
+    gpu_id = args.GPU_IDS[rank]
     
     torch.manual_seed(args.SEED + rank)
     torch.cuda.manual_seed(args.SEED + rank)
@@ -85,12 +85,12 @@ def main_worker(rank, world_size):
 
 def main():
     """Main entry point."""
-    world_size = len(args.TRAIN_GPU_IDS)
+    world_size = len(args.GPU_IDS)
     if world_size == 1:
-        print(f"Starting POMO training on GPU {args.TRAIN_GPU_IDS[0]}")
+        print(f"Starting POMO training on GPU {args.GPU_IDS[0]}")
         main_worker(0, 1)
     else:
-        print(f"Starting POMO distributed training on GPUs {args.TRAIN_GPU_IDS}")
+        print(f"Starting POMO distributed training on GPUs {args.GPU_IDS}")
         mp.spawn(main_worker, args=(world_size,), nprocs=world_size, join=True)
 
 

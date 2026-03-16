@@ -157,7 +157,7 @@ class DQN:
     ):
 
         self.double_dqn = double_dqn
-        self.train_device = TRAIN_DEVICE
+        self.train_device = DEVICE
         self.sample_device = sample_device
         self.buffer_device = buffer_device
         self.replay_start_size = replay_start_size
@@ -348,7 +348,7 @@ class DQN:
                 t1 = time.time()
                 state = self.env.reset()
                 self.replay_buffer.record_matrix(state[:, 7:, :])
-                score_device = SAMPLE_DEVICE_IN_ECO_S2V if USE_TWO_DEVICES_IN_ECO_S2V else TRAIN_DEVICE
+                score_device = SAMPLE_DEVICE_IN_ECO_S2V if USE_TWO_DEVICES_IN_ECO_S2V else DEVICE
                 score = torch.zeros((self.env.num_envs), device=score_device, dtype=torch.float)
                 losses_eps = []
             else:
@@ -529,7 +529,7 @@ class DQN:
         # self.predict(obs).squeeze(-1)
 
         done = torch.zeros((test_env.num_envs), dtype=torch.bool, device=test_env.device)
-        actions_device = SAMPLE_DEVICE_IN_ECO_S2V if USE_TWO_DEVICES_IN_ECO_S2V else TRAIN_DEVICE
+        actions_device = SAMPLE_DEVICE_IN_ECO_S2V if USE_TWO_DEVICES_IN_ECO_S2V else DEVICE
         actions = self.predict(obs).squeeze(-1)
         actions = actions.to(actions_device)
         while not done[0]:

@@ -150,7 +150,7 @@ class DQN:
             args=None,
     ):
 
-        self.device = TRAIN_DEVICE
+        self.device = DEVICE
 
         self.double_dqn = double_dqn
 

@@ -44,11 +44,10 @@ SEED = 111
 # Training GPU IDs - list of GPU IDs to use for training
 # Single GPU: TRAIN_GPU_IDS = [0]
 # Multi-GPU:  TRAIN_GPU_IDS = [0, 1, 2, 3]
-TRAIN_GPU_IDS = [0]
+GPU_IDS = [0]
 
 # Inference
-INFERENCE_GPU_ID = 0
-INFERENCE_DEVICE = torch.device(f'cuda:{INFERENCE_GPU_ID}' if torch.cuda.is_available() else 'cpu')
+INFERENCE_DEVICE = torch.device(f'cuda:{GPU_IDS[0]}' if torch.cuda.is_available() else 'cpu')
 
 # ================== Distributed Training ==================
 MASTER_ADDR = 'localhost'

@@ -156,9 +156,9 @@ class peco_ReplayBuffer:
         matrix = self.matrix[matrix_index]
         for key in list(self._memory.keys())[:-2]:
             if key == 'state' or key == 'state_next':
-                traj.append(torch.cat((self._memory[key][indices], matrix), dim=-2).to(TRAIN_DEVICE))
+                traj.append(torch.cat((self._memory[key][indices], matrix), dim=-2).to(DEVICE))
             else:
-                traj.append(self._memory[key][indices].to(TRAIN_DEVICE))
+                traj.append(self._memory[key][indices].to(DEVICE))
         return traj
 
     # def sample(self, batch_size,biased=None):

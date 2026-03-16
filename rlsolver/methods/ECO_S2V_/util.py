@@ -90,7 +90,7 @@ def test_network(network, env_args, graphs_test, device=None, step_factor=1, bat
 def __test_network_batched(network, env_args, graphs_test, device=None, step_factor=1,
                            n_attempts=50, return_raw=False, return_history=False, max_batch_size=None):
     if device is None:
-        device = INFERENCE_DEVICE
+        device = DEVICE
     torch.device(device)
 
     # HELPER FUNCTION FOR NETWORK TESTING
