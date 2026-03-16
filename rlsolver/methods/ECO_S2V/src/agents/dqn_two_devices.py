@@ -150,7 +150,7 @@ class DQN:
             args=None,
     ):
 
-        self.train_device = TRAIN_DEVICE
+        self.train_device = DEVICE
         self.sample_device = SAMPLE_DEVICE_IN_ECO_S2V
 
         self.double_dqn = double_dqn
@@ -456,10 +456,10 @@ class DQN:
             q_value_target[q_value_target < 0] = 0
 
         # Calculate TD target
-        rewards = rewards.to(TRAIN_DEVICE)
-        dones = dones.to(TRAIN_DEVICE)
-        states = states.to(TRAIN_DEVICE)
-        actions = actions.to(TRAIN_DEVICE)
+        rewards = rewards.to(DEVICE)
+        dones = dones.to(DEVICE)
+        states = states.to(DEVICE)
+        actions = actions.to(DEVICE)
         td_target = rewards + (1 - dones) * self.gamma * q_value_target
 
         # Calculate Q value

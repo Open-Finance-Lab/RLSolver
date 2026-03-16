@@ -114,7 +114,7 @@ def run(save_loc):
                               n_features=64,
                               n_hid_readout=[],
                               tied_weights=False,
-                              device=TRAIN_INFERENCE if TRAIN_INFERENCE==0 else INFERENCE_DEVICE,)
+                              device=DEVICE,)
     args = {
         'envs': train_envs,
         'network': network_fn,

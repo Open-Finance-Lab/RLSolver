@@ -1,16 +1,13 @@
-##########################################################################################
-# Machine Environment Config
+import os
+import sys
+cur_path = os.path.dirname(os.path.abspath(__file__))
+rlsolver_path = os.path.join(cur_path, '../../../../rlsolver')
+sys.path.append(os.path.dirname(rlsolver_path))
 
 DEBUG_MODE = False
 USE_CUDA = not DEBUG_MODE
 CUDA_DEVICE_NUM = 0
 
-
-##########################################################################################
-# Path Config
-
-import os
-import sys
 
 cur_path = os.path.dirname(os.path.abspath(__file__))
 orig_path = os.path.join(cur_path, '../../')

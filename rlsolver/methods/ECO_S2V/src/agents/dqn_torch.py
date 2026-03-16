@@ -149,7 +149,7 @@ class DQN:
     ):
 
         self.double_dqn = double_dqn
-        self.device = TRAIN_DEVICE
+        self.device = DEVICE
         self.replay_start_size = replay_start_size
         self.replay_buffer_size = replay_buffer_size
         self.gamma = gamma

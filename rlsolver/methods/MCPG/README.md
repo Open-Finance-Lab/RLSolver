@@ -73,25 +73,6 @@ python MCPG.py
 
 ```
 
-## Usage
-```
-usage: python MCPG.py [-h] config_file problem_instance
-
-positional arguments:
-  config_file       input the configuration file for the MCPG solver
-  problem_instance  input the data file for the problem instance
-```
-The following codes demonstrate how to integrate the MCPG solver into your program
-```
-from MCPG_solver import MCPG_solver
-# load the config file and problem_data file as shown in MCPG.py
-config = ...
-problem_data = ...
-# use MCPG_solver to obtain the solution
-max_res, solution, _, _ = MCPG_solver(config, problem_data)
-# use the solution in the rest of the program
-```
-Although the experiments we show in the paper are running with GPU, the program automatically detects the devices and can also running on CPU without assistance of GPU device.  
 ## Examples
 We first briefly introduce the problems tested in our paper, show how to use MCPG to solve the specific problems, and then present the partial results respectively for all the testing problems. The gap is defined as 
 $$\mathrm{gap} = \frac{|\mathrm{UB} - \mathrm{obj}|}{\mathrm{UB}} \times 100 \\%$$

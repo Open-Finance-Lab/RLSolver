@@ -38,11 +38,11 @@ def run(graph_folder="../../data/syn_BA",
         'n_features': 64,
         'n_hid_readout': [],
         'tied_weights': False,
-        'device': INFERENCE_DEVICE,
+        'device': DEVICE,
     }
-    network = MPNN(n_obs_in=7, **mpnn_args).to(INFERENCE_DEVICE)
+    network = MPNN(n_obs_in=7, **mpnn_args).to(DEVICE)
 
-    network.load_state_dict(torch.load(network_save_path, map_location=INFERENCE_DEVICE))
+    network.load_state_dict(torch.load(network_save_path, map_location=DEVICE))
     for param in network.parameters():
         param.requires_grad = False
     network.eval()
@@ -76,12 +76,12 @@ def run(graph_folder="../../data/syn_BA",
                 file_list.append(file)
                 g = read_nxgraph(file)
                 g_array = nx.to_numpy_array(g)
-                g_tensor = torch.tensor(g_array, dtype=torch.float, device=INFERENCE_DEVICE)
+                g_tensor = torch.tensor(g_array, dtype=torch.float, device=DEVICE)
                 graphs.append(g_tensor)
 
         if len(graphs) > 0:
             for i, graph_tensor in enumerate(graphs):
-                test_graph_generator = SetGraphGenerator(graph_tensor, device=INFERENCE_DEVICE)
+                test_graph_generator = SetGraphGenerator(graph_tensor, device=DEVICE)
 
                 best_obj = float('-inf')
                 best_sol = None
@@ -94,7 +94,7 @@ def run(graph_folder="../../data/syn_BA",
                         test_graph_generator,
                         graph_tensor.shape[0] * step_factor,
                         **env_args,
-                        device=INFERENCE_DEVICE,
+                        device=DEVICE,
                         num_envs=current_mini_sims,  # 只处理 mini_sims 个环境
                     )
 

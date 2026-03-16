@@ -67,7 +67,7 @@ def run(neural_network_folder, num_envs, mini_envs, num_generated_instances, alg
     if alg == Alg.PECO:
         from rlsolver.methods.ECO_S2V.src.envs.util_envs_PECO import ValidationGraphGenerator
         validation_graph_generator = ValidationGraphGenerator(n_spins=num_nodes, graph_type=graph_type,
-                                                              edge_type=EdgeType.DISCRETE, device=INFERENCE_DEVICE,
+                                                              edge_type=EdgeType.DISCRETE, device=DEVICE,
                                                               num_envs=num_generated_instances, seed=VALIDATION_SEED)
     elif alg == Alg.S2V or alg == Alg.ECO:
         from rlsolver.methods.ECO_S2V.src.envs.util_envs import ValidationGraphGenerator
@@ -91,20 +91,20 @@ def run(neural_network_folder, num_envs, mini_envs, num_generated_instances, alg
                 'n_features': 64,
                 'n_hid_readout': [],
                 'tied_weights': False,
-                'device': INFERENCE_DEVICE,
+                'device': DEVICE,
             }
             if alg == Alg.ECO or alg == Alg.PECO:
-                network = MPNN(n_obs_in=7, **mpnn_args).to(INFERENCE_DEVICE)
+                network = MPNN(n_obs_in=7, **mpnn_args).to(DEVICE)
             elif alg == Alg.S2V:
-                network = MPNN(n_obs_in=1, **mpnn_args).to(INFERENCE_DEVICE)
-            network.load_state_dict(torch.load(network_save_path, map_location=INFERENCE_DEVICE))
+                network = MPNN(n_obs_in=1, **mpnn_args).to(DEVICE)
+            network.load_state_dict(torch.load(network_save_path, map_location=DEVICE))
             for param in network.parameters():
                 param.requires_grad = False
             network.eval()
             step_factor = 2
             if alg == Alg.ECO or alg == Alg.S2V:
                 for i, graph_array in enumerate(graphs):
-                    results, results_raw, history = test_network(network, env_args, [graph_array], INFERENCE_DEVICE, step_factor, n_attempts=50,
+                    results, results_raw, history = test_network(network, env_args, [graph_array], DEVICE, step_factor, n_attempts=50,
                                                                  # step_factor is 1
                                                                  return_raw=True, return_history=True,
                                                                  batched=True, max_batch_size=None)
@@ -113,7 +113,7 @@ def run(neural_network_folder, num_envs, mini_envs, num_generated_instances, alg
             elif alg == Alg.PECO:
                 for i, graph_tensor in enumerate(graphs):
                     best_obj = -1e10
-                    test_graph_generator = SetGraphGenerator(graph_tensor, device=INFERENCE_DEVICE)
+                    test_graph_generator = SetGraphGenerator(graph_tensor, device=DEVICE)
                     num_batches = (num_envs + mini_envs - 1) // mini_envs  # 计算分批次数
                     for batch in range(num_batches):
                         current_mini_sims = min(mini_envs, num_envs - batch * mini_envs)  # 防止超出 num_envs
@@ -122,7 +122,7 @@ def run(neural_network_folder, num_envs, mini_envs, num_generated_instances, alg
                             test_graph_generator,
                             graph_tensor.shape[0] * step_factor,
                             **env_args, use_tensor_core=USE_TENSOR_CORE_IN_INFERENCE,
-                            device=INFERENCE_DEVICE,
+                            device=DEVICE,
                             num_envs=current_mini_sims,  # 只处理 mini_sims 个环境
                         )
 
