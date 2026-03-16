@@ -1,6 +1,11 @@
 from enum import Enum
 import networkx as nx
 import time
+import os
+import sys
+cur_path = os.path.dirname(os.path.abspath(__file__))
+rlsolver_path = os.path.join(cur_path, '../../../rlsolver')
+sys.path.append(os.path.dirname(rlsolver_path))
 from rlsolver.methods.util_read_data import read_nxgraph
 from rlsolver.methods.util import calc_txt_files_with_prefixes
 

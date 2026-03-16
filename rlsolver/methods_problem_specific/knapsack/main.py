@@ -23,8 +23,8 @@ def select_alg(input_alg):
     if input_alg == Alg.branch_bound:
         from rlsolver.methods_problem_specific.knapsack.branch_bound import branch_and_bound as alg
         return alg
-    if input_alg == Alg.brute_force:
-        from rlsolver.methods_problem_specific.knapsack.brute_force import brute_force as alg
+    if input_alg == Alg.exhaustive_search:
+        from rlsolver.methods_problem_specific.knapsack.exhaustive_search import exhaustive_search as alg
         return alg
     if input_alg == Alg.dynamic_programming:
         from rlsolver.methods_problem_specific.knapsack.dynamic_programming import dynamic_programming as alg
