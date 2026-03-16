@@ -1,0 +1,109 @@
+import os
+from enum import Enum
+
+cur_path = os.path.dirname(os.path.abspath(__file__))
+rlsolver_path = os.path.join(cur_path, '../../')
+from rlsolver.methods.config import GraphType, Problem, PROBLEM
+from rlsolver.methods.util import calc_device
+
+
+class Alg(Enum):
+    ECO = 'ECO'
+    S2V = 'S2V'
+    PECO = 'PECO'
+
+PROBLEM = Problem.maxcut
+
+TRAIN_INFERENCE = 1  # 0: train, 1: inference
+assert TRAIN_INFERENCE in [0, 1]
+
+ALG = Alg.S2V  # Alg
+GRAPH_TYPE = GraphType.BA
+
+# training
+TRAIN_GPU_ID = 0
+TRAIN_DEVICE = calc_device(TRAIN_GPU_ID)
+SAMPLE_GPU_ID_IN_ECO_S2V = -1 if ALG in [Alg.ECO, Alg.S2V] else None
+SAMPLE_DEVICE_IN_ECO_S2V = None if SAMPLE_GPU_ID_IN_ECO_S2V is None else calc_device(SAMPLE_GPU_ID_IN_ECO_S2V)
+USE_TWO_DEVICES_IN_ECO_S2V = False # True if ALG in [Alg.ECO, Alg.S2V] else False
+BUFFER_GPU_ID = SAMPLE_GPU_ID_IN_ECO_S2V if USE_TWO_DEVICES_IN_ECO_S2V else TRAIN_GPU_ID
+BUFFER_DEVICE = calc_device(BUFFER_GPU_ID)
+NUM_TRAIN_NODES = 20
+NUM_TRAIN_ENVS = 2 ** 8
+NUM_VALIDATION_NODES = NUM_TRAIN_NODES
+VALIDATION_SEED = 10
+NUM_VALIDATION_ENVS = 2 ** 4
+TEST_SAMPLING_SPEED = False  # False by default
+
+# inference
+INFERENCE_GPU_ID = 0
+INFERENCE_DEVICE = calc_device(INFERENCE_GPU_ID)
+NUM_GENERATED_INSTANCES_IN_SELECT_BEST = 10  # select_best_neural_network
+NUM_TRAINED_NODES_IN_INFERENCE = 20  # also used in select_best_neural_network
+NUM_INFERENCE_NODES = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 2000, 3000, 4000, 5000, 10000]
+USE_TENSOR_CORE_IN_INFERENCE = True if ALG == Alg.PECO else False
+INFERENCE_PREFIXES = [GRAPH_TYPE.value + "_" + str(i) + "_" for i in NUM_INFERENCE_NODES]
+# PREFIXES = ["BA_100_", "BA_200_", "BA_300_", "BA_400_", "BA_500_""]  # Replace with your desired prefixes
+NUM_INFERENCE_ENVS = 50
+MINI_INFERENCE_ENVS = int(0.5 * NUM_INFERENCE_ENVS)  # 如果NUM_INFERENCE_ENVS太大导致GPU内存爆掉，分拆成MINI_INFERENCE_ENVS个环境，跑多次凑够NUM_INFERENCE_ENVS
+USE_LOCAL_SEARCH = True if ALG == Alg.PECO else False
+LOCAL_SEARCH_FREQUENCY = 10
+NEURAL_NETWORK_SAVE_PATH = rlsolver_path + "trained_agent/" + ALG.value + "_" + PROBLEM.value + "_" + GRAPH_TYPE.value + "_" + str(NUM_TRAINED_NODES_IN_INFERENCE) + ".pth"
+DATA_DIR = rlsolver_path + "data/syn_" + GRAPH_TYPE.value
+NEURAL_NETWORK_DIR = rlsolver_path + "trained_agent/tmp"
+NEURAL_NETWORK_SUBFOLDER = ALG.value + "_" + PROBLEM.value + "_" + GRAPH_TYPE.value + "_" + str(NUM_TRAINED_NODES_IN_INFERENCE)
+NEURAL_NETWORK_FOLDER = rlsolver_path + "trained_agent/tmp/" + NEURAL_NETWORK_SUBFOLDER
+NEURAL_NETWORK_PREFIX = ALG.value + "_" + PROBLEM.value + "_" + GRAPH_TYPE.value + "_" + str(NUM_TRAIN_NODES)
+
+UPDATE_FREQUENCY = 32
+
+if GRAPH_TYPE == GraphType.BA:
+    if NUM_TRAIN_NODES == 20:
+        NUM_STEPS = 500  # 25000
+        REPLAY_BUFFER_SIZE = 300
+    elif NUM_TRAIN_NODES == 40:
+        NUM_STEPS = 250000
+        REPLAY_BUFFER_SIZE = 5000
+    elif NUM_TRAIN_NODES == 60 or NUM_TRAIN_NODES == 80:
+        NUM_STEPS = 500000
+        REPLAY_BUFFER_SIZE = 5000
+    elif NUM_TRAIN_NODES == 100:
+        NUM_STEPS = 800000
+        REPLAY_BUFFER_SIZE = 10000
+    elif NUM_TRAIN_NODES >= 200:
+        NUM_STEPS = 1000000
+        REPLAY_BUFFER_SIZE = 10 * NUM_TRAIN_NODES * NUM_TRAIN_ENVS
+    else:
+        raise ValueError("parameters are not set")
+elif GRAPH_TYPE == GraphType.ER:
+    if NUM_TRAIN_NODES == 20:
+        NUM_STEPS = 250000
+        REPLAY_BUFFER_SIZE = 5000
+    elif NUM_TRAIN_NODES == 40:
+        NUM_STEPS = 250000
+        REPLAY_BUFFER_SIZE = 5000
+    elif NUM_TRAIN_NODES == 60:
+        NUM_STEPS = 500000
+        REPLAY_BUFFER_SIZE = 5000
+    elif NUM_TRAIN_NODES == 100:
+        NUM_STEPS = 800000
+        REPLAY_BUFFER_SIZE = 10000
+    elif NUM_TRAIN_NODES >= 200:
+        NUM_STEPS = 1000000
+        REPLAY_BUFFER_SIZE = 70000
+    else:
+        raise ValueError("parameters are not set")
+FINAL_EXPLORATION_STEP = int(0.8 * NUM_STEPS)
+NUM_TEST_OBJ = 5000
+TEST_OBJ_FREQUENCY = max(1, int(NUM_STEPS / NUM_TEST_OBJ))
+SAVE_NETWORK_FREQUENCY = 10 if NUM_TRAIN_NODES <= 100 else 500  # seconds
+if NUM_TRAIN_NODES <= 80:
+    UPDATE_TARGET_FREQUENCY = 1000
+    REPLAY_START_SIZE = 50
+elif NUM_TRAIN_NODES <= 100:
+    UPDATE_TARGET_FREQUENCY = 2500
+    REPLAY_START_SIZE = 1500
+else:
+    UPDATE_TARGET_FREQUENCY = 4000
+    REPLAY_START_SIZE = 3000  # NUM_TRAIN_NODES*2*NUM_TRAIN_ENVS
+
