@@ -11,8 +11,6 @@ class Alg(Enum):
     ECO = 'ECO'
     S2V = 'S2V'
     PECO = 'PECO'
-    jumanji = 'jumanji'
-    rl4co = 'rl4co'
 
 PROBLEM = Problem.maxcut
 
