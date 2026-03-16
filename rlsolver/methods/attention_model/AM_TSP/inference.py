@@ -60,7 +60,7 @@ def run_inference(model_path=None, num_nodes=None):
     """Main inference function."""
     model_path = model_path or args.MODEL_PATH
     num_nodes = num_nodes or args.NUM_NODES
-    device = args.INFERENCE_DEVICE
+    device = args.DEVICE
 
     print("="*60)
     print("TSP Model Inference with POMO")

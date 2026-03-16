@@ -47,7 +47,7 @@ SEED = 111
 GPU_IDS = [0]
 
 # Inference
-INFERENCE_DEVICE = torch.device(f'cuda:{GPU_IDS[0]}' if torch.cuda.is_available() else 'cpu')
+DEVICE = torch.device(f'cuda:{GPU_IDS[0]}' if torch.cuda.is_available() else 'cpu')
 
 # ================== Distributed Training ==================
 MASTER_ADDR = 'localhost'
